@@ -1,7 +1,7 @@
 /hook       Add, remove, or list installed hooks.
 
 Syntax:
-    /hook -l [-i]
+    /hook -l [-i] [<name>]
     /hook -r [-T <type>] <data>
     /hook -N <name>
     /hook -d <name>
@@ -15,7 +15,9 @@ Syntax:
 
 
 Options:
-    -l      List the installed hooks. (default, mutually exclusive with -t, -C, -r)
+    -l      List the installed hooks. (default, mutually exclusive with -[tCr])
+            If <name> is specified, it will give you detailed information about
+            that hook.
     -i      List internal hooks (with -l), otherwise make new hook "internal".
     -r      Run the named hook, with <data> as its argument.
     -T      Type of hook.                                        (default: SEND)
@@ -124,8 +126,8 @@ Notes:
 Examples:
     Here are four equivalent ways to define an alias using hooks:
 
-      /hook -T SEND -t /^jump$/ jumpalias2 = emote jumps into the air!
-      /hook -T SEND -t /^jump$/ jumpalias1 = /eval run "emote jumps into the air!"
+      /hook -T SEND -t /^jump/ jumpalias2 = emote jumps into the air!
+      /hook -T SEND -t /^jump/ jumpalias1 = /eval run "emote jumps into the air!"
       /hook -T SEND -C jump jumpalias3 = emote jumps into the air!
       /hook -T SEND -C jump jumpalias4 = /run jumpalias4
         # Defined in some loaded perl file:
@@ -146,3 +148,14 @@ Examples:
     Ideally, some piece of perl/python code should call
       /hook -T ROOM -r '$_' ...
     if it detects that the line contains a room description.
+
+    This will create an alias 'sh' which will allow you to run shell commands,
+    and relay their output to the mud by prepending "say " to each line.
+        /hook -t'^sh (.*)' sh = /eval -s -Lperl return join("say ", `$1`)
+
+    This implements /paste and /nopaste similar to what exists in TinyFugue
+        /hook -t'^(.*)$' -DT SEND -p100 paste = /send "say $1"
+    You can '/enable paste', paste a bunch of stuff (use the x-windows middle
+    mouse button paste), then '/disable paste'.  It will "say" what you paste.
+
+See Also: /trig, /alias, /gag
