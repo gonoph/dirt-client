@@ -432,7 +432,7 @@ bool Hook::run(HookType t, char* data, savedmatch* sm) {
 // (i.e. hash_map, hashed on name).
 bool Hook::remove(string name) {
     HookStub* stub;
-
+    
     // it iterates over the multiset<vector<HookStub*> >, *it and it-> are vector<>
     if((stub = hooknames[name])) {
         for(hookgroups_type::iterator git = hookgroups.begin(); git != hookgroups.end();git++) {
@@ -514,9 +514,11 @@ void Hook::gc() {
     if(!deleted_count) return;  // Return quickly if nothing has been deleted.
     while(deleted_count) {
         for(hooknames_type::iterator it=hooknames.begin();it != hooknames.end();it++) {
-            if(it->second->deleted) remove(it->first);
-            deleted_count--;
-            break;
+            if(it->second->deleted) {
+                remove(it->first);
+                deleted_count--;
+                break;
+            }
             // This invalidates our iterator
         }
     }
