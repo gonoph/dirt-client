@@ -16,7 +16,6 @@
 
 Config *config;	 // Global configuration FIXME why is this a pointer, and an extern class?
 time_t current_time;
-char* tmpbuf = new(char[MAX_MUD_BUF]);  // temporary buffer for everyone's use.
 
 GlobalStats globalStats;
 
@@ -155,12 +154,12 @@ int main(int argc, char **argv) {
         interpreter.execute();
         
         if (currentSession)
-            currentSession->idle();		// Some time updates if necessary
+            currentSession->idle();  // Some time updates if necessary
 
         if (chatServerSocket)
             chatServerSocket->idle();
         
-        screen->idle();			// Call all idle methods of all windows
+        screen->idle();   // Call all idle methods of all windows
         EmbeddedInterpreter::runCallouts();
         
         // This doesn't feel right
@@ -179,13 +178,10 @@ int main(int argc, char **argv) {
     Selectable::select(0,0); // One last time for anything that was sent by the done scripts
     interpreter.execute();
     
-    int session_fd = currentSession ? dup(currentSession->getFD()) : -1;
-
     delete chatServerSocket;
-    delete currentSession;						// Close the current session, if any
-    delete screen;					// Reset screen (this kills all subwindows too)
-    delete tty;						// Reset TTY state
-    
+    delete currentSession;      // Close the current session, if any
+    delete screen;              // Reset screen (this kills all subwindows too)
+    delete tty;                 // Reset TTY state
     delete outputPipe;
     delete interpreterPipe;
     
@@ -206,11 +202,8 @@ int main(int argc, char **argv) {
              globalStats.tty_chars, globalStats.ctrl_chars
             );
 
-    bool opt_copyover_value = config->getOption(opt_copyover);
-
     save_history(); // OJ: better do this before config is deleted..
-    
-    delete config;					// Save configuration; updates stats too
+    delete config;     // Save configuration; updates stats too
     
     return 0;
 }
