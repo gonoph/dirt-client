@@ -97,6 +97,7 @@ tags:	$(SRC_FILES) $(INC_FILES)
 
 $(OBJ_DIR):
 	mkdir $(OBJ_DIR)
+	mkdir $(OBJ_DIR)/plugins
 
 # Link with $(CC) to avoid the c++ libs to be linked
 $(EXE): $(OBJ_FILES)
@@ -105,19 +106,19 @@ $(EXE): $(OBJ_FILES)
 $(OBJ_DIR)/%.o: %.cc
 	$(CXX) -c $(DIRT_CXXFLAGS) $< -o $@
 
-$(OBJ_DIR)/mccpDecompress.o: mccpDecompress.c
+$(OBJ_DIR)/mccpDecompress.o: $(OBJ_DIR) mccpDecompress.c
 	$(CC) -c $(DIRT_CFLAGS) $< -o $@
 
-o/plugins/perl.so: o/plugins/PerlEmbeddedInterpreter.o
+$(OBJ_DIR)/plugins/perl.so:  $(OBJ_DIR) o/plugins/PerlEmbeddedInterpreter.o
 	$(CC) $(LDFLAGS) -shared $< -o $@ $(PERL_LDFLAGS) $(LIBPTHREAD)
 
-o/plugins/PerlEmbeddedInterpreter.o: plugins/PerlEmbeddedInterpreter.cc
+$(OBJ_DIR)/plugins/PerlEmbeddedInterpreter.o: $(OBJ_DIR) plugins/PerlEmbeddedInterpreter.cc
 	$(CC) -c $(DIRT_CFLAGS) $(PERL_CPPFLAGS) $< -o $@
 
-o/plugins/python.so: o/plugins/PythonEmbeddedInterpreter.o
+$(OBJ_DIR)/plugins/python.so: $(OBJ_DIR) o/plugins/PythonEmbeddedInterpreter.o
 	$(CC) $(LDFLAGS) -shared $< -o $@ $(PYTHON_LDFLAGS) $(LIBPTHREAD)
 
-o/plugins/PythonEmbeddedInterpreter.o: plugins/PythonEmbeddedInterpreter.cc
+$(OBJ_DIR)/plugins/PythonEmbeddedInterpreter.o: $(OBJ_DIR) plugins/PythonEmbeddedInterpreter.cc
 	$(CC) -c $(DIRT_CFLAGS) $(PYTHON_CPPFLAGS) $< -o $@
 
 install: $(EXE)
