@@ -1,5 +1,6 @@
 #include "misc.h"
 #include "Socket.h"
+#include "Session.h"
 #include "Config.h"
 #include "StaticBuffer.h"
 
@@ -22,8 +23,6 @@ Socket::Socket(int _fd, struct sockaddr_in *_remote) {
             error ("socket: %m");
         long flags;
         flags = fcntl(fd, F_GETFL);
-//FIXME
-//        cout << "Allocated AF_INET socket with fd " << fd << endl;
     } else {
         fd = _fd;
         uint len = sizeof(struct sockaddr_in);
@@ -60,17 +59,6 @@ int Socket::bind(int port) {
     unsigned int namelen=sizeof(struct sockaddr_in);
     namelen=sizeof(struct sockaddr_in);
     getsockname(fd, (struct sockaddr *)&local, &namelen);
-//BOB FIXME
-//    long flags;
-//    cout << "Flags for fd " << fd << " bound to port " << port << ":\n";
-//    if(flags & O_CREAT) cout << "O_CREAT\n";
-//    if(flags & O_EXCL) cout << "O_EXCL\n";
-//    if(flags & O_NOCTTY) cout << "O_NOCTTY\n";
-//    if(flags & O_TRUNC) cout << "O_TRUNC\n";
-//    if(flags & O_APPEND) cout << "O_APPEND\n";
-//    if(flags & O_NONBLOCK) cout << "O_NONBLOCK\n";
-//    if(flags & O_NDELAY) cout << "O_NDELAY\n";
-//    if(flags & O_SYNC) cout << "O_SYNC\n";
 
     return 0;
 }
@@ -109,23 +97,6 @@ void Socket::writeLine(const char *s) {
     buf[len] = '\r';
     buf[len+1] = '\n';
     outbuf.use(len+2);
-    if(config->getOption(opt_undelim_prompt)) {
-        inbuf.strncat(buf,len+2);
-    }
-}
-
-void Socket::write (const char *buf, int len) {
-    outbuf.strncat(buf,len);
-    if(config->getOption(opt_undelim_prompt)) {
-        inbuf.strncat(buf,len);
-    }
-}
-
-void Socket::writeText(const char *buf) {
-    outbuf.strcat(buf);
-    if(config->getOption(opt_undelim_prompt)) {
-        inbuf.strcat(buf);
-    }
 }
 
 const char* Socket::getErrorText() {
@@ -141,10 +112,6 @@ const char* Socket::getErrorText() {
     default:
         return strerror(currentError);
     }
-}
-
-void Socket::unread(const char *buf, int count) {
-    inbuf.unshift(buf,count);
 }
 
 int Socket::read(char *buf, int count) {
@@ -175,7 +142,6 @@ void Socket::check_fdset(fd_set *readset, fd_set *writeset) {
     bool call_output_sent = false;
     
     if (currentError == 0 && FD_ISSET(fd, writeset)) {
-//FIXME      cout << "WRITE activity on a socket...\n";
         if (waitingForConnection) {
             waitingForConnection = false;
             unsigned int namelen=sizeof(struct sockaddr_in);
@@ -199,7 +165,6 @@ void Socket::check_fdset(fd_set *readset, fd_set *writeset) {
     }
     
     if (FD_ISSET(fd, readset)) {
-//FIXME        cout << "READ activity on a socket...\n";
         if (listen_port) {
             struct sockaddr_in sock;
             uint addrlen = sizeof(sockaddr_in);
@@ -214,26 +179,10 @@ void Socket::check_fdset(fd_set *readset, fd_set *writeset) {
             int count = ::read(fd, buf, MAX_MUD_BUF);
             if (count < 0)
                 currentError = errno;
-//                if(errno == 0) currentError = errEOF;
             else if (count == 0) {
                 currentError = errEOF;
-//                cout << "read() got an EOF...\n";
             } else
                 inbuf.use(count);
-// FIXME            if(fd == 8) {
-//                cout << "read " << count << " bytes from socket " << fd << ", errno: ";
-//                switch(errno) {
-//                    case EINTR: cout << "EINTR"; break;
-//                    case EAGAIN: cout << "EINTR"; break;
-//                    case EIO: cout << "EINTR"; break;
-//                    case EISDIR: cout << "EINTR"; break;
-//                    case EBADF: cout << "EINTR"; break;
-//                    case EINVAL: cout << "EINTR"; break;
-//                    case EFAULT: cout << "EINTR"; break;
-//                }
-//                cout << "(" << errno << ")...\n";
-//            }
-
             if (inbuf.count()) {
                 inputReady();
             }

@@ -18,11 +18,11 @@ public:
     
     // IO
     int read (char *buf, int count);               // Return number of bytes actually available
-    void unread(const char *buf, int count);       // Return that many bytes
-    
-    void write (const char *buf, int count);       // Both accept NULs in the stream
+    void unread(const char *buf, int count) { inbuf.unshift(buf, count); }// Return that many bytes
 
-    void writeText(const char *buf);               // Let Socket find out the length
+    // Both accept NULs in the stream
+    void write (const char *buf, int len) { outbuf.strncat(buf,len); }      
+    void writeText(const char *buf) { outbuf.strcat(buf); } // Let Socket find out the length
     void writeLine (const char *buf);              // string, let Socket end it with \r\n
 
     int writeUnbuffered(const char *buf, int len); // Write directly
