@@ -114,9 +114,6 @@ Aliases are getting evaluated in the wrong order:
     life-forest;portal has same problem...
     .eejjnnw;portal does not...
 Hooks without a matcher will not have RHS expanded as a quoted string.  Is this bad?
-Ifpython compile fails...  Need to pass --disable-python?
-    Need to pass -I/usr/include/python1.5 to gcc...
-speedwalk=1 in dirtrc (which is default!) causes crash
 Numpad doesn't work in xterm.
 up/down doesn't work in eterm.
 /paste /nopaste commands (when /paste is active, all user-typed commands have the 
