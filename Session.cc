@@ -421,7 +421,7 @@ void Session::terminalHandle(unsigned char ch)
         hook.run(OUTPUT, term_txt);
         interpreter.execute(); // If triggers generated any new commands, execute them.
 	print(term_txt.c_str());
-        print("\n"); // We don't want to trigger on the \n
+        if(term_txt.length()) print("\n"); // We don't want to trigger on the \n
 	term_txt = "";
       } else {
           term_txt += ch;
