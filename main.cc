@@ -192,62 +192,25 @@ int main(int argc, char **argv) {
     freopen("/dev/tty", "r+", stdout);
     freopen("/dev/tty", "r+", stderr);
     
-    if (!dirtRestart) {
-        fprintf (stderr, CLEAR_SCREEN
-                 "You wasted %d seconds, sent %d bytes and received %d.\n"
-                 "%ld bytes of compressed data expanded to %ld bytes (%.1f%%)\n"
-                 "%d characters written to the TTY (%d control characters).\n"
-                 "Goodbye!\n",
-                 (int)(current_time - globalStats.starting_time),
-                 globalStats.bytes_written,
-                 globalStats.bytes_read,
-                 globalStats.comp_read,
-                 globalStats.uncomp_read,
-                 globalStats.uncomp_read ? (float)globalStats.comp_read / (float)globalStats.uncomp_read * 100.0 : 0.0,
-                 globalStats.tty_chars, globalStats.ctrl_chars
-                );
-    }
+    fprintf (stderr, CLEAR_SCREEN
+             "You wasted %d seconds, sent %d bytes and received %d.\n"
+             "%ld bytes of compressed data expanded to %ld bytes (%.1f%%)\n"
+             "%d characters written to the TTY (%d control characters).\n"
+             "Goodbye!\n",
+             (int)(current_time - globalStats.starting_time),
+             globalStats.bytes_written,
+             globalStats.bytes_read,
+             globalStats.comp_read,
+             globalStats.uncomp_read,
+             globalStats.uncomp_read ? (float)globalStats.comp_read / (float)globalStats.uncomp_read * 100.0 : 0.0,
+             globalStats.tty_chars, globalStats.ctrl_chars
+            );
 
     bool opt_copyover_value = config->getOption(opt_copyover);
 
     save_history(); // OJ: better do this before config is deleted..
     
     delete config;					// Save configuration; updates stats too
-    
-    if (dirtRestart) {
-        char fd_buf[64];
-        sprintf(fd_buf, "%d", session_fd);
-        
-        char **temp_arg = new char* [6] , **arg = temp_arg+1;
-        memcpy (temp_arg, argv, sizeof(char*)); // copy just first arg
-        
-        if (currentSession) {
-            if (opt_copyover_value) {
-                *arg++ = "-@";
-                *arg++ = fd_buf;
-            } else {
-                close(session_fd);
-            }
-            
-            *arg++ = (char*)~lastMud->name;
-            *arg++ = NULL;
-        }
-
-        *arg = NULL;
-        
-        signal (SIGPROF, SIG_IGN);		
-        execv(argv[0], temp_arg);
-        
-        // Don't try this at home
-//        temp_arg[0] = "/root/ed/dirt/dirt";
-//        execv(argv[0], temp_arg);
-        
-        // OK, last attempt. path.
-//        temp_arg[0] = "dirt";
-//        execvp(argv[0], temp_arg);
-        
-        perror ("exec");
-    }
     
     return 0;
 }
