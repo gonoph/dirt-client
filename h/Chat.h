@@ -11,38 +11,38 @@ enum Protocol {                              // Protocol supported by the remote
 };
 
 // Commands
-    // s = accepts but not useful
-    // S = accepts and fully implemented
-    // C = can send out
-    enum {
-        cmdNameChange = 1,                   //  S
-        cmdRequestConnections = 2,           // CS
-        cmdConnectionList = 3,               // CS
-        cmdTextEverybody = 4,                // CS
-        cmdTextPersonal = 5,                 // CS
-        cmdTextGroup = 6,                    // CS
-        cmdMessage = 7,                      // CS
-        cmdVersion = 19,                     // CS
-        cmdFileStart = 20,                   //  s
-        cmdFileDeny = 21,                    //  s
-        cmdFileBlockRequest = 22,            //  s
-        cmdFileBlock = 23,                   //  s
-        cmdFileEnd = 24,                     //  s
-        cmdFileCancel = 25,                  //  s
-        cmdPingRequest = 26,                 // CS
-        cmdPingResponse = 27,                // CS
-        cmdPeekConnections = 28,             // CS
-        cmdPeekList = 29,                    // CS
-        cmdSnoop = 30,                       // CS
-        cmdSnoopData = 31,                   //  S
-        cmdIcon = 100,                       // Cs
-        cmdStatus = 101,                     // CS
-        cmdEmailAddress = 102,               // CS
-        cmdRequestPGPKey = 103,              //  s
-        cmdPGPKey = 104,                     //  s
-        cmdSendCommand = 105,                // CS
-        cmdStamp = 106                       // CS
-    };
+// s = accepts but not useful
+// S = accepts and fully implemented
+// C = can send out
+enum {
+    cmdNameChange = 1,                   //  S
+    cmdRequestConnections = 2,           // CS
+    cmdConnectionList = 3,               // CS
+    cmdTextEverybody = 4,                // CS
+    cmdTextPersonal = 5,                 // CS
+    cmdTextGroup = 6,                    // CS
+    cmdMessage = 7,                      // CS
+    cmdVersion = 19,                     // CS
+    cmdFileStart = 20,                   //  s
+    cmdFileDeny = 21,                    //  s
+    cmdFileBlockRequest = 22,            //  s
+    cmdFileBlock = 23,                   //  s
+    cmdFileEnd = 24,                     //  s
+    cmdFileCancel = 25,                  //  s
+    cmdPingRequest = 26,                 // CS
+    cmdPingResponse = 27,                // CS
+    cmdPeekConnections = 28,             // CS
+    cmdPeekList = 29,                    // CS
+    cmdSnoop = 30,                       // CS
+    cmdSnoopData = 31,                   //  S
+    cmdIcon = 100,                       // Cs
+    cmdStatus = 101,                     // CS
+    cmdEmailAddress = 102,               // CS
+    cmdRequestPGPKey = 103,              //  s
+    cmdPGPKey = 104,                     //  s
+    cmdSendCommand = 105,                // CS
+    cmdStamp = 106                       // CS
+};
 
 enum ConnectionFlags {
     flagIgnored = 0x0001,           // Ignore stuff from this connection
