@@ -14,7 +14,6 @@ Repeat -> C++, with inverse last command a la zmud.
 Commands -> static autocomplete
 Perl eval: %
 Evaluating commands ('/') in send
-Actions must be rewritten.  See Session.cc:674, Session::triggerCheck.
 finish removing one_argument, convert to OptionParser.
 Make all keys in InputLine.cc be KEYPRESS hooks.
 #ifndef BLAH_H protect all header files.
@@ -111,10 +110,9 @@ Convert usage of "Sprintf"...or not?
     http://www.bero.org/clap/classString.html
     child of string that adds useful routines (like sprintf)
 /aliases should be added to static autocomplete list.
-Rip out Alias, Macro, Action:
-    /aliases should be mud-specific.  Mud name is in $mud.  Modify config.pl
-    Define keypad-walking hooks in C++, with group "numpad"
-    Write script to convert existing mclrc files
+/aliases should be mud-specific.  Mud name is in $mud.  Modify config.pl
+Define keypad-walking hooks in C++, with group "numpad"
+Write script to convert existing mclrc files
 /set command to set config variables.  (stuff in dirtrc)
     /set debug command to turn on debugging.  For instance, print which hook catches
     a line of output.  See Hook.cc:199 (Hook::run).
@@ -210,9 +208,6 @@ convert:
     sys/keys
 Continue converting commands in Interpreter.cc
 Message if command not found...
-Action -> /trig, 
-Subst -> /trig, check that parenthesis/$n backtracing works.
-Alias -> /alias, alt-a should bring up list of aliases.
 /help, alt-h should bring up help window.  bind pgup/pgdn to help window.
 tell, soul, chatline, etc. windows.
 

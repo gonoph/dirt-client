@@ -146,17 +146,21 @@ const char * ChatServerSocket::findIPAddress() {
 }
 
 ChatConnection* ChatServerSocket::findByAddress(const char *ip, int port) {
-    FOREACH(ChatConnection*,c,connections)
+    for(size_t i=0;i<connections.size();i++) {
+        ChatConnection* c = connections[i];
         if (!strcmp(c->getRemoteServerIP(),ip) && c->getRemoteServerPort() == port)
             return c;
+    }
     return NULL;
 }
 
 ChatConnection* ChatServerSocket::findConnection(const char *name) {
     // Let's try to compare the names first
-    FOREACH(ChatConnection*,c,connections)
+    for(size_t i=0;i<connections.size();i++) {
+        ChatConnection* c = connections[i];
         if (c->getName() == name || !strcmp(c->getRemoteServerIP(), name))
             return c;
+    }
 
     // Number?
     int n = atoi(name);
@@ -171,13 +175,15 @@ void ChatServerSocket::generateId() {
 }
 
 ChatServerSocket::~ChatServerSocket() {
-    FOREACH(ChatConnection*,c,connections)
-        delete c;
+    for(size_t i=0;i<connections.size();i++) {
+        delete connections[i];
+    }
 }
 
 void ChatServerSocket::idle() {
-    FOREACH(ChatConnection*,c,connections)
-        c->idle();
+    for(size_t i=0;i<connections.size();i++) {
+        connections[i]->idle();
+    }
     
     if (!is_afk && tty->last_activity + 300 < current_time) {
         handleUserCommand("afk", "quiet");
@@ -188,13 +194,13 @@ void ChatServerSocket::idle() {
 
 void ChatServerSocket::connectionAccepted(int fd, struct sockaddr_in *remote) {
     ChatConnection *c = new ChatConnection(fd,remote);
-    connections.insert(c);
+    connections.push_back(c);
     c->handleIncoming();
 }
 
 void ChatServerSocket::call(const char *name, int port, Protocol protocol) {
     ChatConnection *c = new ChatConnection();
-    connections.insert(c);
+    connections.push_back(c);
     c->connect(name, port, protocol);
 }
 
@@ -259,11 +265,13 @@ void ChatServerSocket::handleUserCommand(const char *name, const char *arg) {
                 arg += 6;
             }
 
-            FOREACH(ChatConnection*,c,connections)
+            for(size_t i=0;i<connections.size();i++) {
+                ChatConnection* c = connections[i];
                 if (c->getGroup() == group_name) {
                     ok = true;
                     c->sendTextGroup(group_name, arg, emote);
                 }
+            }
 
             const char *colored = sanitize(arg,strlen(arg), 1024);
             
@@ -304,7 +312,8 @@ void ChatServerSocket::handleUserCommand(const char *name, const char *arg) {
         if (!arg[0])
             writeChat("%cchat.request ALL|<connection name>", CMDCHAR);
         else if (!strcmp(arg, "all")) {
-            FOREACH(ChatConnection*,c,connections) {
+            for(size_t i=0;i<connections.size();i++) {
+                ChatConnection* c = connections[i];
                 c->sendCommand(cmdRequestConnections, "");
                 c->setFlags(c->getFlags() | flagRequestPending);
             }
@@ -322,7 +331,8 @@ void ChatServerSocket::handleUserCommand(const char *name, const char *arg) {
         if (!arg[0])
             writeChat("%cchat.peek ALL|<connection name>", CMDCHAR);
         else if (!strcmp(arg, "all")) {
-            FOREACH(ChatConnection*,c,connections) {
+            for(size_t i=0;i<connections.size();i++) {
+                ChatConnection* c = connections[i];
                 c->sendCommand(cmdPeekConnections, "");
                 c->setFlags(c->getFlags() | flagRequestPending);
             }
@@ -341,8 +351,9 @@ void ChatServerSocket::handleUserCommand(const char *name, const char *arg) {
         if (!arg[0])
             writeChat("%cchat.ping ALL|<connection name>", CMDCHAR);
         else if (!strcasecmp(arg, "all")) {
-            FOREACH(ChatConnection*, c, connections)
-                c->sendPing();
+            for(size_t i=0;i<connections.size();i++) {
+                connections[i]->sendPing();
+            }
         } else {
             ChatConnection *c =  findConnection(arg);
             if (!c)
@@ -354,16 +365,16 @@ void ChatServerSocket::handleUserCommand(const char *name, const char *arg) {
     } else if (!strcmp(name, "list")) {
         int i = 1;
         bool verbose = (outputWindow->width > 90);
-        FOREACH(ChatConnection *, c, connections)
-            outputWindow->printf("%2d %s\n", i++, c->longDescription(verbose));
+        for(size_t i=0;i<connections.size();i++)
+            outputWindow->printf("%2d %s\n", i++, connections[i]->longDescription(verbose));
         outputWindow->printf("\n%d active connections.\n", i-1);
         
         
     } else if (!strcmp(name, "accept")) {
         bool ok = false;
         
-        FOREACH(ChatConnection *, c, connections)
-            if (c->acceptConnection()) {
+        for(size_t i=0;i<connections.size();i++)
+            if (connections[i]->acceptConnection()) {
                 ok = true;
                 break;
             }
@@ -414,8 +425,8 @@ void ChatServerSocket::handleUserCommand(const char *name, const char *arg) {
 
             const char *colored = sanitize(arg,strlen(arg), 1024);
             
-            FOREACH(ChatConnection*,c,connections)
-                c->sendTextEverybody(arg, emote);
+            for(size_t i=0;i<connections.size();i++)
+                connections[i]->sendTextEverybody(arg, emote);
             
             if (!emote)
                 writeChatText("You chat to all: '%s%c%c'", colored, SET_COLOR, config->getOption(opt_chat_chatcolor));
@@ -428,14 +439,15 @@ void ChatServerSocket::handleUserCommand(const char *name, const char *arg) {
             writeChat("Can't find %s: %m",arg);
         else {
             writeChat("chat.icon updated to %s and sent", arg);
-            FOREACH(ChatConnection*,c,connections)
-                c->sendIcon(arg);
+            for(size_t i=0;i<connections.size();i++)
+                connections[i]->sendIcon(arg);
         }
         
     } else if (!strcmp(name, "reject")) {
         bool ok = false;
         
-        FOREACH(ChatConnection *, c, connections) {
+        for(size_t i=0;i<connections.size();i++) {
+            ChatConnection *c = connections[i];
             const char *desc = c->shortDescription();
             if (c->rejectConnection()) {
                 ok = true;
@@ -457,9 +469,8 @@ void ChatServerSocket::handleUserCommand(const char *name, const char *arg) {
             if (strcmp(arg,"quiet"))
                 writeChat("You are no longer AFK");
         }
-        FOREACH(ChatConnection*,c,connections)
-            c->sendStatus();
-        
+        for(size_t i=0;i<connections.size();i++)
+            connections[i]->sendStatus();
     } else if (!strcmp(name, "flags")) {
         char name[MAX_INPUT_BUF];
         arg = one_argument(arg, name, true);
@@ -499,9 +510,11 @@ void ChatServerSocket::computeIPAddress() {
 }
 
 void ChatServerSocket::handleSnooping(const char *data, int len) {
-    FOREACH(ChatConnection *,c,connections)
+    for(size_t i=0;i<connections.size();i++) {
+        ChatConnection *c = connections[i];
         if (c->getFlags() & flagSnoopedBy)
             c->sendCommand(cmdSnoopData,data,len);
+    }
 }
 
 void ChatServerSocket::create(int base_port) {
@@ -547,7 +560,13 @@ ChatConnection::ChatConnection (int fd, struct sockaddr_in *remote) : Socket(fd,
 }
 
 ChatConnection::~ChatConnection() {
-    chatServerSocket->connections.remove(this);
+    for(vector<ChatConnection*>::iterator it = chatServerSocket->connections.begin();
+            it != chatServerSocket->connections.end(); it++) {
+        if(*it == this) { 
+            chatServerSocket->connections.erase(it);
+            break;
+        }
+    }
     delete[] pgpKey;
 }
 
@@ -972,11 +991,13 @@ void ChatConnection::dispatchCommand (int command, const char *data, int len) {
                 writeChatText("%s", sane);
             
             // Now propagate this message
-            FOREACH(ChatConnection *, c, chatServerSocket->connections)
+            for(size_t i=0;i<chatServerSocket->connections.size();i++) {
+                ChatConnection *c = chatServerSocket->connections[i];
                 if (c != this && (c->flags & flagServing) && c->group == group_name) {
                     c->sendText(cmdTextGroup, data);
                     if (CDEBUG) writeChat("Propagating to %s", c->shortDescription());
                 }
+            }
         }
     }
     break;
@@ -989,8 +1010,8 @@ void ChatConnection::dispatchCommand (int command, const char *data, int len) {
             if (val == chatServerSocket->getId()) { // oh my god, we wore the same thing!
                 writeChat("I have the same StampID as %s -- regenerating mine", shortDescription());
                 chatServerSocket->generateId();
-                FOREACH(ChatConnection*,c,chatServerSocket->connections)
-                    c->sendStamp();
+                for(size_t i=0;i<chatServerSocket->connections.size();i++)
+                    chatServerSocket->connections[i]->sendStamp();
             }
         }
         
@@ -1000,9 +1021,11 @@ void ChatConnection::dispatchCommand (int command, const char *data, int len) {
     case cmdPeekConnections: {
         writeChat("%s asked for a list of our connections", shortDescription());
         Buffer b;
-        FOREACH(ChatConnection*,c,chatServerSocket->connections)
+        for(size_t i=0;i<chatServerSocket->connections.size();i++) {
+            ChatConnection *c = chatServerSocket->connections[i];
             if (!(c->getFlags() & flagPrivate))
                 b.printf(",%s,%d", c->getRemoteServerIP(), c->getRemoteServerPort());
+        }
         
         if (b.count())
             b.shift(1);
@@ -1093,11 +1116,13 @@ void ChatConnection::dispatchCommand (int command, const char *data, int len) {
         }
         
         // Now propagate this message
-        FOREACH(ChatConnection *, c, chatServerSocket->connections)
+        for(size_t i=0;i<chatServerSocket->connections.size();i++) {
+            ChatConnection *c = chatServerSocket->connections[i];
             if (c != this && (c->flags & flagServing)) {
                 c->sendText(cmdTextEverybody, data);
                 if (CDEBUG) writeChat("Propagating to %s", c->shortDescription());
             }
+        }
         
         break;
         

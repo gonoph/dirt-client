@@ -35,6 +35,9 @@
 * Made it compile and run with gcc v3 and perl 5.6.1
 * Ripped out Alias, Macro, and Action.  (see /alias, /keypress, and /trig
     for replacements)
+* Converted keys in InputLine::keypress to KeypressHookStub (not finished)
+    Need KeypressHookStub to handle more than one key...
+* Replaced List<> in Selectable.cc
 
 Dirt 0.60.0
 * Made file release on sourceforge.

@@ -178,7 +178,7 @@ public:
     ChatConnection* findByAddress(const char *ip, int port);
 
     ChatConnection* findByNumber(int no) { return connections[no]; }
-    int getConnectionCount() const { return connections.count(); }
+    int getConnectionCount() const { return connections.size(); }
     
     int getId()                    { return id; }
     void generateId();
@@ -195,7 +195,7 @@ private:
     virtual void connectionAccepted(int, struct sockaddr_in*); // new incoming connection
     
     ChatServerSocket(); // bind to port
-    List<ChatConnection*> connections;
+    vector<ChatConnection*> connections;
     
     friend class ChatConnection;
     int id; // Stamp ID
