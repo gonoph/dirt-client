@@ -5,6 +5,7 @@
 #include "Pipe.h"
 #include "Interpreter.h"
 #include "OutputWindow.h"
+#include "GlobalStats.h"
 #include "StatusLine.h"
 #include "InputLine.h"
 #include "Curses.h"

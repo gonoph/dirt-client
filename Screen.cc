@@ -8,6 +8,7 @@
 #include "Session.h"
 #include "Hook.h"
 #include "Numbered.h"
+#include "GlobalStats.h"
 
 #include <sys/ioctl.h>
 #include <unistd.h>

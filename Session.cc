@@ -10,6 +10,7 @@
 #include "Hook.h"
 #include "StatusLine.h"
 #include "OutputWindow.h"
+#include "GlobalStats.h"
 #include "InputLine.h"
 
 #include <ctype.h>

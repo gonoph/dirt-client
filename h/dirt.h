@@ -77,18 +77,6 @@ extern EmbeddedInterpreter *embed_interp;
 extern const char *szDefaultPrompt;
 extern bool dirtFinished;
 
-extern struct GlobalStats {
-     int tty_chars;
-     int ctrl_chars;
-     int bytes_written;
-     int bytes_read;
-     time_t starting_time;
-     unsigned long comp_read;
-     unsigned long uncomp_read;
-     
-     GlobalStats();
-} globalStats;
-
 #define CMDCHAR config->getOption(opt_commandcharacter)
 
 // Search for stuff there

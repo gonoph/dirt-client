@@ -233,10 +233,6 @@ int longestLine (const char *s)
 }
 
 
-GlobalStats::GlobalStats() {
-    time (&starting_time);
-}
-
 static int color_conv_table[8] =  {
     fg_black,
     fg_red,
