@@ -157,7 +157,58 @@ InputLine::InputLine(Window *_parent, int _w, int _h, Style _style, int _x, int 
 : Window(_parent, _w, _h, _style, _x, _y),
 cursor_pos(0), max_pos(0), left_pos(0), ready(false), id(_id), history_pos(0)
 {
-	set_default_prompt();
+    set_default_prompt();
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_BUILTIN_InputLine::keypress_ctrl_a", vector<string>(1, "Dirt keys"), 
+        "", "", NULL, key_ctrl_a, "", &InputLine::keypress_ctrl_a, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_BUILTIN_InputLine::keypress_ctrl_c", vector<string>(1, "Dirt keys"), 
+        "", "", NULL, key_ctrl_c, "", &InputLine::keypress_ctrl_c, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_BUILTIN_InputLine::keypress_ctrl_k", vector<string>(1, "Dirt keys"), 
+        "", "", NULL, key_ctrl_k, "", &InputLine::keypress_ctrl_k, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_BUILTIN_InputLine::keypress_ctrl_j", vector<string>(1, "Dirt keys"), 
+        "", "", NULL, key_ctrl_j, "", &InputLine::keypress_ctrl_k, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_BUILTIN_InputLine::keypress_escape", vector<string>(1, "Dirt keys"), 
+        "", "", NULL, key_escape, "", &InputLine::keypress_escape, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_BUILTIN_InputLine::keypress_backspace", vector<string>(1, "Dirt keys"), 
+        "", "", NULL, key_backspace, "", &InputLine::keypress_backspace, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_BUILTIN_InputLine::keypress_ctrl_h", vector<string>(1, "Dirt keys"), 
+        "", "", NULL, key_ctrl_h, "", &InputLine::keypress_backspace, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_BUILTIN_InputLine::keypress_ctrl_e", vector<string>(1, "Dirt keys"), 
+        "", "", NULL, key_ctrl_e, "", &InputLine::keypress_ctrl_e, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_BUILTIN_InputLine::keypress_ctrl_u", vector<string>(1, "Dirt keys"), 
+        "", "", NULL, key_ctrl_u, "", &InputLine::keypress_ctrl_u, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_BUILTIN_InputLine::keypress_ctrl_w", vector<string>(1, "Dirt keys"), 
+        "", "", NULL, key_ctrl_w, "", &InputLine::keypress_ctrl_w, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_BUILTIN_InputLine::keypress_delete", vector<string>(1, "Dirt keys"), 
+        "", "", NULL, key_delete, "", &InputLine::keypress_delete, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_BUILTIN_InputLine::keypress_enter", vector<string>(1, "Dirt keys"), 
+        "", "", NULL, key_enter, "", &InputLine::keypress_enter, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_BUILTIN_InputLine::keypress_kp_enter", vector<string>(1, "Dirt keys"), 
+        "", "", NULL, key_kp_enter, "", &InputLine::keypress_enter, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_BUILTIN_InputLine::keypress_arrow_left", vector<string>(1, "Dirt keys"), 
+        "", "", NULL, key_arrow_left, "", &InputLine::keypress_arrow_left, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_BUILTIN_InputLine::keypress_arrow_right", vector<string>(1, "Dirt keys"), 
+        "", "", NULL, key_arrow_right, "", &InputLine::keypress_arrow_right, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_BUILTIN_InputLine::keypress_arrow_up", vector<string>(1, "Dirt keys"), 
+        "", "", NULL, key_arrow_up, "", &InputLine::keypress_arrow_up, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_BUILTIN_InputLine::keypress_arrow_down", vector<string>(1, "Dirt keys"), 
+        "", "", NULL, key_arrow_down, "", &InputLine::keypress_arrow_down, (void*)this));
 }
 
 void InputLine::set_default_prompt() {
@@ -209,96 +260,7 @@ bool InputLine::keypress(int key) {
     if ((key = embed_interp->get_int("Key")) == 0)
         return true;
     
-    if (key == key_ctrl_h || key == key_backspace) {
-        if (max_pos == 0 || cursor_pos == 0)
-            ; //status->setf ("Nothing to delete");
-        else if (cursor_pos == max_pos) {
-            max_pos--;
-            cursor_pos--;
-        }
-        else { // we are in the middle of the input line
-            memmove(input_buf + cursor_pos - 1, input_buf + cursor_pos, max_pos - cursor_pos);
-            cursor_pos--;
-            max_pos--;
-        }
-        
-        left_pos = max(0,left_pos-1);
-        
-    }
-    else if (key == key_ctrl_a) {
-        cursor_pos = left_pos = 0;
-    }
-    else if (key == key_ctrl_c) { // save line to history but don't execute
-        if (strlen(input_buf) > 0) {
-            history->add (id, input_buf);
-            set("");
-            status->setf("Line added to history but not sent");
-        }
-    }
-    else if (key == key_ctrl_j || key == key_ctrl_k) { // delete until EOL
-        max_pos = cursor_pos;
-    }
-    else if (key == key_escape) {
-        set("");
-    }
-    else if (key == key_ctrl_e) { // go to eol
-        cursor_pos = max_pos;
-        adjust();
-    }
-    else if (key == key_ctrl_u) {
-        memmove(input_buf, input_buf+cursor_pos, max_pos - cursor_pos);
-        max_pos -= cursor_pos;
-        cursor_pos = 0;
-        adjust();
-    }
-    else if (key == key_ctrl_w) { // Delete word
-        // How long is the word?
-        int bow = cursor_pos - 1;
-        
-        while (bow > 0 && isspace(input_buf[bow]))
-            bow--;
-        while (bow > 0 && !isspace(input_buf[bow]))
-            bow--;
-
-        if (bow > 0)
-            bow++; // Don't eat the space
-
-        if (bow >= 0 ) {
-            memmove(input_buf+bow, input_buf+cursor_pos, max_pos - cursor_pos);
-            max_pos -= cursor_pos - bow;
-            cursor_pos = bow;
-            adjust();
-        }
-    }
-    else if (key == key_delete) { // delete to the right
-        if (cursor_pos == max_pos)
-            status->setf ("Nothing to the right of here");
-        else  {
-            memmove(input_buf+cursor_pos, input_buf + cursor_pos + 1, max_pos - cursor_pos);
-            max_pos--;
-        }
-    }
-    else if (key == keyEnter || key == key_kp_enter) { // return. finish this line
-        ready = true;
-        input_buf[max_pos] = NUL;
-        
-        if ((int)strlen(input_buf) >= config->getOption(opt_histwordsize))
-            history->add (id, input_buf);
-        
-        history_pos = 0; // Reset history cycling
-        cursor_pos = 0;
-        
-        max_pos = left_pos = 0;
-        ready = false;
-        
-        move(0, parent->height-1);
-        outputWindow->move(0,0);
-        resize(width, 1);
-        
-        execute();
-    }
-    
-    else if (key >= ' ' && key < 256) { // Normal key. Just insert
+    if (key >= ' ' && key < 256) { // Normal key. Just insert
         if (max_pos < MAX_INPUT_BUF-1) {
             if (cursor_pos == max_pos) { // We are already at EOL
                 input_buf[max_pos++] = key;
@@ -314,73 +276,6 @@ bool InputLine::keypress(int key) {
         else
             status->setf ("The input buffer is full");
     }
-    else if (key == key_arrow_left) {
-        if (cursor_pos == 0)
-            status->setf ("Already at the far left of the input line.");
-        else
-        {
-            cursor_pos--;
-            left_pos = max(0,left_pos-1);
-        }
-    }
-    else if (key == key_arrow_right) {
-        if (cursor_pos == max_pos)
-            status->setf ("Already at the end of the input line.");
-        else
-        {
-            cursor_pos++;
-            if (cursor_pos > 7*width/8) // scroll only when we are approaching right margin
-                adjust();
-        }
-    }
-    else if (key == key_arrow_up) { // recall
-        int lines=0;
-        
-        if (id == hi_none)
-            status->setf ("No history available");
-        else if (id != hi_generic && (lines = config->getOption(opt_historywindow)))
-        {
-            lines = min (parent->height-4, lines);
-            
-            if (!history->get(id,1, NULL))
-                status->setf ("There are no previous commands");
-            else
-            {
-                if (lines > 3)
-                    (void)new InputHistorySelection(parent, width, lines, 0, -(lines+2), *this, true, id);
-                // Window is to small; we need to cycle history in the input box
-                else  {
-                    (void)new MessageBox(screen, "Sorry, no history available", 0);
-                }
-            }
-        }
-        else {
-            const char *s;
-            if (!(s = history->get(id, history_pos+1, NULL)))
-                status->setf ("No previous history");
-            else  {
-                set(s);
-                history_pos++;
-            }
-        }
-    }
-    else if (key == key_arrow_down) {
-        const char *s;
-        if (id == hi_none)
-            status->setf("No history available");
-        else if (history_pos <= 1 || !(s = history->get(id,history_pos-1, NULL)))
-        {
-            status->setf ("No next history");
-            history_pos = 0;
-            set("");
-        }
-        else
-        {
-            set(s);
-            history_pos--;
-        }
-    }
-    
     else
         return false;
     
@@ -461,6 +356,218 @@ void  InputLine::set_prompt (const char *s) {
     
     
     dirty = true;
+}
+
+// go to beginning of line.
+bool InputLine::keypress_ctrl_a(string&, void* mt) {
+    InputLine* mythis = (InputLine*)mt;
+    mythis->cursor_pos = mythis->left_pos = 0;
+    return true;
+}
+
+// save line to history but don't execute
+bool InputLine::keypress_ctrl_c(string&, void* mt) {
+    InputLine* mythis = (InputLine*)mt;
+    if (strlen(mythis->input_buf) > 0) {
+        history->add (mythis->id, mythis->input_buf);
+        mythis->set("");
+        status->setf("Line added to history but not sent");
+    }
+    return true;
+}
+
+// delete until EOL
+bool InputLine::keypress_ctrl_k(string&, void* mt) {
+    InputLine* mythis = (InputLine*)mt;
+    mythis->max_pos = mythis->cursor_pos;
+    return true;
+}
+
+// erase input line
+bool InputLine::keypress_escape(string&, void* mt) {
+    InputLine* mythis = (InputLine*)mt;
+    mythis->set("");
+    return true;
+}
+
+// delete one character to left
+bool InputLine::keypress_backspace(string&, void* mt) {
+    InputLine* mythis = (InputLine*)mt;
+    if (mythis->max_pos == 0 || mythis->cursor_pos == 0)
+        ; //status->setf ("Nothing to delete");
+    else if (mythis->cursor_pos == mythis->max_pos) {
+        mythis->max_pos--;
+        mythis->cursor_pos--;
+    }
+    else { // we are in the middle of the input line
+        memmove(mythis->input_buf + mythis->cursor_pos - 1, 
+                mythis->input_buf + mythis->cursor_pos, 
+                mythis->max_pos - mythis->cursor_pos);
+        mythis->cursor_pos--;
+        mythis->max_pos--;
+    }
+    mythis->left_pos = max(0,mythis->left_pos-1);
+    return true;
+}
+
+// go to end of line.
+bool InputLine::keypress_ctrl_e(string&, void* mt) {
+    InputLine* mythis = (InputLine*)mt;
+    mythis->cursor_pos = mythis->max_pos;
+    mythis->adjust();
+    return true;
+}
+
+// Delete one word
+bool InputLine::keypress_ctrl_w(string&, void* mt) {
+    InputLine* mythis = (InputLine*)mt;
+    // How long is the word?
+    int bow = mythis->cursor_pos - 1;
+    
+    while (bow > 0 && isspace(mythis->input_buf[bow]))
+        bow--;
+    while (bow > 0 && !isspace(mythis->input_buf[bow]))
+        bow--;
+
+    if (bow > 0)
+        bow++; // Don't eat the space
+
+    if (bow >= 0 ) {
+        memmove(mythis->input_buf+bow, mythis->input_buf+mythis->cursor_pos, 
+                mythis->max_pos - mythis->cursor_pos);
+        mythis->max_pos -= mythis->cursor_pos - bow;
+        mythis->cursor_pos = bow;
+        mythis->adjust();
+    }
+    return true;
+}
+
+// delete input line
+bool InputLine::keypress_ctrl_u(string&, void* mt) {
+    InputLine* mythis = (InputLine*)mt;
+    memmove(mythis->input_buf, 
+            mythis->input_buf+mythis->cursor_pos, 
+            mythis->max_pos - mythis->cursor_pos);
+    mythis->max_pos -= mythis->cursor_pos;
+    mythis->cursor_pos = 0;
+    mythis->adjust();
+    return true;
+}
+
+// delete one char to the right
+bool InputLine::keypress_delete(string&, void* mt) {
+    InputLine* mythis = (InputLine*)mt;
+    if (mythis->cursor_pos == mythis->max_pos)
+        status->setf ("Nothing to the right of here");
+    else  {
+        memmove(mythis->input_buf+mythis->cursor_pos, 
+                mythis->input_buf + mythis->cursor_pos + 1, 
+                mythis->max_pos - mythis->cursor_pos);
+        mythis->max_pos--;
+    }
+    return true;
+}
+
+// execute
+bool InputLine::keypress_enter(string&, void* mt) {
+    InputLine* mythis = (InputLine*)mt;
+    mythis->ready = true;
+    mythis->input_buf[mythis->max_pos] = NUL;
+    
+    if ((int)strlen(mythis->input_buf) >= config->getOption(opt_histwordsize))
+        history->add (mythis->id, mythis->input_buf);
+    
+    mythis->history_pos = 0; // Reset history cycling
+    mythis->cursor_pos = 0;
+    
+    mythis->max_pos = mythis->left_pos = 0;
+    mythis->ready = false;
+    
+    mythis->move(0, mythis->parent->height-1);
+    outputWindow->move(0,0);
+    mythis->resize(mythis->width, 1);
+    
+    mythis->execute();
+    return true;
+}
+
+bool InputLine::keypress_arrow_left(string&, void* mt) {
+    InputLine* mythis = (InputLine*)mt;
+    if (mythis->cursor_pos == 0)
+        status->setf ("Already at the far left of the input line.");
+    else
+    {
+        mythis->cursor_pos--;
+        mythis->left_pos = max(0,mythis->left_pos-1);
+    }
+    return true;
+}
+
+bool InputLine::keypress_arrow_right(string&, void* mt) {
+    InputLine* mythis = (InputLine*)mt;
+    if (mythis->cursor_pos == mythis->max_pos)
+        status->setf ("Already at the end of the input line.");
+    else
+    {
+        mythis->cursor_pos++;
+        if (mythis->cursor_pos > 7*mythis->width/8) // scroll only when we are approaching right margin
+            mythis->adjust();
+    }
+    return true;
+}
+
+bool InputLine::keypress_arrow_up(string&, void* mt) {
+    InputLine* mythis = (InputLine*)mt;
+    int lines=0;
+    
+    if (mythis->id == hi_none)
+        status->setf ("No history available");
+    else if (mythis->id != hi_generic && (lines = config->getOption(opt_historywindow)))
+    {
+        lines = min (mythis->parent->height-4, lines);
+        
+        if (!history->get(mythis->id,1, NULL))
+            status->setf ("There are no previous commands");
+        else
+        {
+            if (lines > 3)
+                (void)new InputHistorySelection(mythis->parent, mythis->width, 
+                                                lines, 0, -(lines+2), *mythis, true, mythis->id);
+            // Window is to small; we need to cycle history in the input box
+            else  {
+                (void)new MessageBox(screen, "Sorry, no history available", 0);
+            }
+        }
+    }
+    else {
+        const char *s;
+        if (!(s = history->get(mythis->id, mythis->history_pos+1, NULL)))
+            status->setf ("No previous history");
+        else  {
+            mythis->set(s);
+            mythis->history_pos++;
+        }
+    }
+    return true;
+}
+
+bool InputLine::keypress_arrow_down(string&, void* mt) {
+    InputLine* mythis = (InputLine*)mt;
+    const char *s;
+    if (mythis->id == hi_none)
+        status->setf("No history available");
+    else if (mythis->history_pos <= 1 || !(s = history->get(mythis->id,mythis->history_pos-1, NULL)))
+    {
+        status->setf ("No next history");
+        mythis->history_pos = 0;
+        mythis->set("");
+    }
+    else
+    {
+        mythis->set(s);
+        mythis->history_pos--;
+    }
+    return true;
 }
 
 MainInputLine::MainInputLine()

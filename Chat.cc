@@ -1458,7 +1458,7 @@ bool ChatWindow::keypress(int key) {
     } else if (key == key_delete || key == key_backspace) {
         if (c)
             c->close("User request");
-    } else if (key == keyEnter) {
+    } else if (key == key_enter) {
         if (c)
             inputLine->set(Sprintf("%cchat.to %s ", CMDCHAR, ~c->getName()));
         die();

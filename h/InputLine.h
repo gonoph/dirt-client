@@ -20,6 +20,21 @@ public:
     virtual char* get () { return input_buf; }
     NAME(InputLine);   
     virtual bool keypress(int key); // FIXME remove after key transition complete.
+
+    static bool keypress_ctrl_a(string&, void*);
+    static bool keypress_ctrl_c(string&, void*);
+    static bool keypress_ctrl_e(string&, void*);
+    static bool keypress_ctrl_k(string&, void*);
+    static bool keypress_ctrl_u(string&, void*);
+    static bool keypress_ctrl_w(string&, void*);
+    static bool keypress_escape(string&, void*);
+    static bool keypress_backspace(string&, void*);
+    static bool keypress_delete(string&, void*);
+    static bool keypress_enter(string&, void*);
+    static bool keypress_arrow_left(string&, void*);
+    static bool keypress_arrow_right(string&, void*);
+    static bool keypress_arrow_up(string&, void*);
+    static bool keypress_arrow_down(string&, void*);
 protected:
     
     virtual void execute() {}; // Called when data has been inputted
