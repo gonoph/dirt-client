@@ -113,7 +113,7 @@ PerlEmbeddedInterpreter::PerlEmbeddedInterpreter()
         report_err("\t%s\n", SvPV(ERRSV, PL_na));
     }
 
-    default_var = perl_get_sv("_", TRUE);
+    default_var = get_sv("_", TRUE);
 }
 
 PerlEmbeddedInterpreter::~PerlEmbeddedInterpreter() {
@@ -134,7 +134,7 @@ bool PerlEmbeddedInterpreter::load_file(const char *filename, bool suppress_erro
 
     dSP;
     PUSHMARK(SP);
-    perl_eval_pv(s, FALSE);
+    eval_pv(s, FALSE);
         
     if (SvOK(ERRSV) && SvTRUE(ERRSV)) {
         if(!suppress_error)
@@ -156,7 +156,7 @@ bool PerlEmbeddedInterpreter::run_quietly(const char* lang, const char *path, co
         function = path;
 
     CV *cv;
-    if (!(cv = perl_get_cv((char*) function, FALSE))) {
+    if (!(cv = get_cv((char*) function, FALSE))) {
         char buf[256];
         sprintf(buf, "%s.pl", path);
         
@@ -185,7 +185,7 @@ bool PerlEmbeddedInterpreter::run(const char*, const char *function, const char 
     string cmd = "";
     
     if(haserror) {
-        CV* cv = perl_get_cv((char*)buf,FALSE); // Just check if it exists.
+        CV* cv = get_cv((char*)buf,FALSE); // Just check if it exists.
         if (!cv) { 
             haserror = true;
             if(out) strcpy(out, oldarg.c_str());
@@ -197,7 +197,7 @@ bool PerlEmbeddedInterpreter::run(const char*, const char *function, const char 
         cmd += "/" + backslashify(sm->regex, '/') + "/; ";
     } else if(arg != NULL) sv_setpv(default_var, arg);
     cmd += "&" + string(buf) + "(); ";
-    SV* res = perl_eval_pv(cmd.c_str(), FALSE);
+    SV* res = eval_pv(cmd.c_str(), FALSE);
     if (SvTRUE(ERRSV)) { // Perl handles printing of errors for us...
         if(out) strcpy(out, oldarg.c_str()); // return unmodified argument.
 //        report("PerlEmb... out: %s\n", out);
@@ -229,7 +229,7 @@ void* PerlEmbeddedInterpreter::match_prepare(const char *pattern, const char *co
     sprintf(buf, autofn, bpattern.c_str(), bcommands.c_str());
     dSP;
     PUSHMARK(SP);
-    SV* result = perl_eval_pv(buf, FALSE);
+    SV* result = eval_pv(buf, FALSE);
     free(buf);
     if(SvTRUE(ERRSV)) {
         report_err("Unable to evaluate regular expression: %s\n", pattern);
@@ -244,13 +244,14 @@ void* PerlEmbeddedInterpreter::match_prepare(const char *pattern, const char *co
 bool PerlEmbeddedInterpreter::match(void *perlsub, const char *str, char *const &out) {
     bool retval;
     int count;
+    STRLEN n_a;
     sv_setpv(default_var, str);
     dSP;
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
     PUTBACK;
-    count = perl_call_sv((SV*)perlsub, G_EVAL|G_SCALAR|G_NOARGS);
+    count = call_sv((SV*)perlsub, G_EVAL|G_SCALAR|G_NOARGS);
     SPAGAIN;
     if(!count) report_err("Matcher function did not return a value.");
     if (SvTRUE(ERRSV)) {
@@ -264,8 +265,9 @@ bool PerlEmbeddedInterpreter::match(void *perlsub, const char *str, char *const 
         if(count && !POPi) {
             if(strlen(s)) report_err("PerlEmbeddedInterpreter::match: strlen(s) thinks the match succeded but return value disagrees.");
             retval = false;
-        } else
+        } else {
             retval = true;
+        }
     }
     PUTBACK;
     FREETMPS;
@@ -280,7 +282,7 @@ void* PerlEmbeddedInterpreter::substitute_prepare(const char *pattern, const cha
     sprintf(buf, autofn, pattern, replacement);
     dSP;
     PUSHMARK(SP);
-    SV* result = perl_eval_pv(buf, FALSE);
+    SV* result = eval_pv(buf, FALSE);
     if(SvTRUE(ERRSV)) {
         report_err("Error evaluating regular expression: %s\n", pattern);
         report_err("\t%s\n", SvPV(ERRSV, PL_na));
@@ -302,7 +304,7 @@ bool PerlEmbeddedInterpreter::eval(const char*, const char *expr, const char* ar
         cmd += "/" + backslashify(sm->regex, '/') + "/; ";
     } else if(arg != NULL) sv_setpv(default_var, arg);
     cmd += expr;
-    SV* res = perl_eval_pv(cmd.c_str(), FALSE);
+    SV* res = eval_pv(cmd.c_str(), FALSE);
     
     if (SvTRUE(ERRSV)) {      // Perl will provide a warning message for us. 
         if(out) *out = NUL;   //(make sure init.pl gets loaded!)
@@ -322,23 +324,23 @@ bool PerlEmbeddedInterpreter::eval(const char*, const char *expr, const char* ar
 
 // Set a named global perl variable to this value
 void PerlEmbeddedInterpreter::set(const char *var, int value) {
-    SV *v = perl_get_sv((char*)var, TRUE);
+    SV *v = get_sv((char*)var, TRUE);
     sv_setiv(v,value);
 }
 
 void PerlEmbeddedInterpreter::set(const char *var, const char* value) {
-    SV *v = perl_get_sv((char*)var, TRUE);
+    SV *v = get_sv((char*)var, TRUE);
     sv_setpv(v,value);
 }
 
 int PerlEmbeddedInterpreter::get_int(const char *name) {
-    SV *v = perl_get_sv((char*)name, TRUE);
+    SV *v = get_sv((char*)name, TRUE);
     return SvIV(v);
 }
     
 char *PerlEmbeddedInterpreter::get_string(const char *name)
 {
-  SV *v = perl_get_sv((char*)name, TRUE);
+  SV *v = get_sv((char*)name, TRUE);
 
   return SvPV(v, PL_na);
 }
