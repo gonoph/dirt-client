@@ -373,15 +373,6 @@ void Session::idle() {
     }
 }
 
-void Session::set_prompt (const char *s, int len) {
-    char buf[MAX_MUD_BUF];
-    memcpy(buf, s, len);
-    buf[len] = NUL;
-//    embed_interp->eval("hook_run('prompt')", buf, buf);
-    hook.run(PROMPT, buf);
-    inputLine->set_prompt(buf);
-}
-
 void Session::establishConnection (bool quick_restore) {
     state = connected;
     stats.connect_time = current_time;
@@ -408,16 +399,15 @@ void Session::errorEncountered(int) {
 // Data from the MUD has arrived
 void Session::inputReady() {
     char    temp_buf[MAX_MUD_BUF];
-    unsigned char *lastline = (unsigned char*)input_buffer;
+    unsigned char *lastline = (unsigned char*)input_buffer; // points WRT input_buffer
     // These are used in processing the input.  In case of a partial line, they
     // are static so they can be used when the rest of the line is received.
     static int     pos=0;
     static char    out_buf[MAX_MUD_BUF];
-    static char   *out=out_buf;           // points into out_buf
-    static char   *prompt_begin = NULL;   // Points WRT out
-    static int     code_pos = -1;         // indicates where inside an ANSI sequence we are.
-                                   // -1 indicates we're not inside an ansi
-                                   // sequence.
+    static char   *out=out_buf;             // points into out_buf
+    static char   *line_begin = out;        // Points WRT out
+    static int     code_pos = -1;           // indicates where inside an ANSI sequence we are.
+                                            // -1 indicates we're not inside an ansi sequence.
     int     count;
     int     i;
 
@@ -458,46 +448,27 @@ void Session::inputReady() {
             
             /* IAC: next character is a telnet command */
             if (input_buffer[i] == IAC) {
-                if (++i < count + pos) {	/* just forget it if it appears at the end of a buffer */
+                if (++i < count + pos) {/* just forget it if it appears at the end of a buffer */
                     /* spec: handle prompts that split across reads */
                     if (input_buffer[i] == GA || input_buffer[i] == EOR) { /* this is a prompt */
-                        /* if we have a prompt_begin, that's the start of
-                         * the prompt. If we don't, then the contents
-                         * of the 'prompt' buffer, plus any output we
-                         * have, is the prompt.
-                         */
-                        if(!config->getOption(opt_snarf_prompt)) {
-                            if(prompt_begin) {
-                                int len = out - prompt_begin;
-                                char *buf = new char[len + 1];
-                                memcpy(buf, prompt_begin+1, len);
-                                buf[len] = '\0';
-                                hook.run(PROMPT, buf);
-                            }
-                        } else if (prompt_begin) {
-                            set_prompt (prompt_begin + 1, out - prompt_begin - 1);
-                            if (!config->getOption(opt_showprompt))
-                                out = prompt_begin + 1;
-                        } else {
-                            if (prompt[0] || out[0]) {
-                                unsigned char   *temp = prompt + strlen ((char*)prompt);
-                                
-                                *out = NUL;
-                                strcat ((char*)prompt, out_buf);
-                                set_prompt ((char*)prompt, (int)strlen ((char*)prompt));
-                                *temp = NUL;
-                            }
-                            if (!config->getOption(opt_showprompt))
-                                out = out_buf;
+                        memcpy(prompt, line_begin, out-line_begin);
+                        prompt[out-line_begin] = NUL;
+                        hook.run(OUTPUT, (char*)prompt);
+                        hook.run(PROMPT, (char*)prompt);
+                        if(config->getOption(opt_snarf_prompt))
+                            inputLine->set_prompt((char*)prompt);
+                        if (config->getOption(opt_showprompt)) {
+                            strcpy(out, "\n");
+                            print(out_buf); // FIXME print one line.
                         }
-                        // Insert a clear color code here
+                        // Insert a 'clear color' code here
                         // It'd be better to interpret color codes in the prompt properly,
                         // but that is surprisingly hard to do FIXME Huh?
-                        *out++ = SET_COLOR;
-                        *out++ = bg_black|fg_white; // Is that really the *default* color?
+//                        *out++ = SET_COLOR;
+//                        *out++ = bg_black|fg_white; // FIXME Is that really the *default* color?
                         
-                        prompt[0] = NUL;            // Make prompt empty.
-                        prompt_begin = out;         // Mark current position as start of prompt
+                        out = out_buf;
+                        line_begin = out_buf;
                     }
                     // React to IAC WILL EOR and send back IAC DO EOR
                     else if (input_buffer[i] == WILL && (i+1) < count+pos && input_buffer[i+1] == TELOPT_EOR) {
@@ -510,7 +481,6 @@ void Session::inputReady() {
                     else if (input_buffer[i] >= WILL && input_buffer[i] <= DONT)
                         i++;
                 }
-                
                 continue;
             }
             
@@ -524,32 +494,30 @@ void Session::inputReady() {
             
             else if (code_pos == -1) { // not inside a color code, real text
                 if (input_buffer[i] == '\n')  {
-                    int len = prompt_begin ? out-prompt_begin-1: out-out_buf;
+                    int len = out-line_begin;
                     int old_len = len;
-                    char* line = prompt_begin ? prompt_begin +1 : (char*) out_buf;
+                    char* line = line_begin;
                     
-                    line[len] = NUL;                 // This should replace a \n with a \0
+                    line[len] = NUL;
                     hook.run(OUTPUT, line);
-                    out = line + strlen(line);
-                    len = strlen(line);
                     interpreter.execute(); // If triggers generated any new commands, execute them.
-                    prompt_begin = out;
-                    *out='\0';      // Make sure it's null terminated
+                    len = strlen(line);
+                    out = line + strlen(line);
                     
                     lastline = input_buffer + i+1;
                     // if we had a >0 char line and now have 0 line.. the line
                     // shouldn't be shown at all.
                     if (old_len > 0 && len == 0) {  // Line was gagged...
-                        if (out > out_buf)
-                            prompt_begin = out-1;
+                        if (out > out_buf)  // how is *that* possible?
+                            line_begin = out-1;
                         else
-                            prompt_begin = NULL;
+                            line_begin = out;
                         continue;
                     } else {
-                        out[0] = '\n';
-                        out[1] = '\0';
-                        print(out_buf); // FIXME print one line.
-                        prompt_begin=NULL;
+                        strcpy(out, "\n");  // Add a CR
+                        print(out_buf);     // FIXME print one line.
+                        line_begin=out_buf; // the next line will begin at the beginning 
+                                            // of the buffer.
                     }
                     out = out_buf;  // reset pointer -- use this buffer over.
                 } else if (input_buffer[i] != '\r')	/* discard those */
@@ -589,17 +557,6 @@ void Session::inputReady() {
                 report_err("We have code_pos but buffer terminates on line-end!\n");
             }
         }
-
-        /* spec: fix up partial lines for subsequent prompts */
-        if (prompt_begin)
-            strcpy ((char*)prompt, prompt_begin);
-        else if (strlen((char*)prompt) < MAX_MUD_BUF/4 && strlen(out_buf) < MAX_MUD_BUF/4) {
-            // guard against too long lines
-            strcat((char*)prompt, out_buf);
-        }
-        input_buffer[pos] = '\0';
-
-
     } // end while
 }
 

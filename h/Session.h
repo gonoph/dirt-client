@@ -35,7 +35,7 @@ private:
     // Incomplete ANSI codes should be left in this buffer 
     unsigned char input_buffer[MAX_MUD_BUF];
     
-    // and this one, partial lines (for prompts) 
+    // and this one for prompts
     unsigned char prompt[MAX_MUD_BUF];
     
     NetworkStateWindow *nsw;	// if non-NULL, we display stats there when idle'ing
@@ -59,7 +59,6 @@ private:
 
     void print(const char *s);				// Write to our output/log
 
-    void set_prompt (const char *s, int len);
     void establishConnection(bool quick_restore); // run on connect, qr = true if 'hot' boot
     int  convert_color (const unsigned char *s, int size);
 
