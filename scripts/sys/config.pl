@@ -69,6 +69,6 @@ sub save {
   }
 }
 
-print "Loaded config.pl\t(Routines to load/save perl config)\n";
+print "Loaded sys/config.pl\t(Routines to load/save perl config)\n";
 
 1;

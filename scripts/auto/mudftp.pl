@@ -538,6 +538,6 @@ sub dirtcmd_mudftp {
     return;
 }
 
-print "Loaded mudftp.pl\t(Routines to get/put files to/from certain muds)\n";
+print "Loaded auto/mudftp.pl\t(Routines to get/put files to/from certain muds)\n";
 
 1;

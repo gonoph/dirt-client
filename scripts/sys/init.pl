@@ -55,5 +55,5 @@ sub init {
     &run($commandCharacter . "hook -T INIT -r ''"); # and run INIT again in case require'ed scripts need it.
 }
 
-print "Loaded init.pl\t\t(Loads everything else)\n";
+print "Loaded sys/init.pl\t(Loads everything else)\n";
 1;
