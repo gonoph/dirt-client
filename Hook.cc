@@ -79,6 +79,7 @@ bool Hook::command_hook(string& s, void* mt) {
         }
     } else {
         if(opt.gotOpt('k')) type = KEYPRESS;
+        else if(opt.gotOpt('t')) type = OUTPUT;
         else type = SEND;
     }
 
