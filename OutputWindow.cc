@@ -19,7 +19,7 @@ OutputWindow::OutputWindow(Window *_parent)
     fFrozen = false;
     clear();
     screen->setScrollingRegion(trueX(), trueY(), trueX() + width, trueY() + height);
-    sb = new ScrollbackController(screen, outputWindow);
+    sb = new ScrollbackController(screen, this); // FIXME
 }
 
 OutputWindow::~OutputWindow()
