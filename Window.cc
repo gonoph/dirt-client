@@ -1,18 +1,19 @@
 #include "dirt.h"
 #include "cui.h"
 //#include "MessageWindow.h"
+//#include "Window.h"
 #include "ProxyWindow.h"
 #include "Curses.h"
 #include <stdarg.h>
 #include <deque>
+#include <list>
 
 Window* Numbered::list[10];
 
 Window::Window(Window *_parent, int _width, int _height,  Style _style, int _x, int _y)
     : parent(_parent), width(_width), height(_height),
-    next(NULL), prev(NULL), child_first(NULL), child_last(NULL), visible(true),
-    color(fg_white|bg_black),focused(NULL), parent_x(_x), parent_y(_y), cursor_x(0),
-    cursor_y(0), dirty(true),  style(_style)
+    visible(true), color(fg_white|bg_black),focused(NULL), parent_x(_x), 
+    parent_y(_y), cursor_x(0), cursor_y(0), dirty(true),  style(_style)
 {
 //    cout << "Window::Window(" << _parent << "," << _width << "," << _height << "," << _style << "," << _x << "," << _y << ")" << endl;
     if (width == wh_half)
@@ -60,10 +61,10 @@ Window::Window(Window *_parent, int _width, int _height,  Style _style, int _x, 
 
 bool Window::is_focused() {
 //        if (parent && parent->focused && parent->focused == this)// maybe this instead?
-	if (!parent || !parent->focused || parent->focused == this)  // FIXME this logic seems wrong...
-		return true;
-	else
-		return false;
+    if (!parent || !parent->focused || parent->focused == this)  // FIXME this logic seems wrong...
+        return true;
+    else
+        return false;
 }
 
 void Window::insert (Window *window) {
@@ -71,50 +72,26 @@ void Window::insert (Window *window) {
         error("Window::insert, window not found\n");
         
     check();
-    Window *w;
-    for(w = child_first;w != child_last; w = w->next) {
-        if(w == window) {
+    for(list<Window*>::iterator it = children.begin();it != children.end();it++) {
+        if(*it == window) {
             report_err("Window::insert attempting to insert a window twice (1)!\n");
             return;
         }
     }
-    for(w = child_last;w != child_first; w = w->prev) {
-        if(w == window) {
-            report_err("Window::insert attempting to insert a window twice (2)!\n");
-            return;
-        }
-    }
 
-    if (child_last) {
-        child_last->next = window;
-        window->next = NULL;
-        window->prev = child_last;
-    }
-    else child_first = window;
-
-    child_last = window;
+    assert(window != NULL);
+    children.push_back(window);
     assert(window->parent == this);
     check();
 }
 
 void Window::check() {
-    Window *w;
-    int count;
+    int count=0;
 
-    for (count = 0, w = child_first; w; w = w->next)
+    for(list<Window*>::iterator it = children.begin();it != children.end();it++) {
+        if(*it == NULL) error("Window::check found a NULL child!\n");
         if (++count > 100)  {
-            error("Window::check too many children via child_first\n");
-        }
-
-    for (count = 0, w = child_last; w; w = w->prev) {
-        if (++count > 100)  {
-            char buf[16384];
-            int ptr = 0;
-            for(count=0,w=child_last; w; w=w->prev) {
-                ptr += sprintf(buf+ptr, "%lx\r\n", w);
-                if(++count > 10) break;
-            }
-            error("Window::check too many children via child_last: \r\n%s", buf);
+            error("Window::check too many children\n");
         }
     }
 }
@@ -133,11 +110,9 @@ void Window::remove (Window *window)
         return;
     }
     
-    if (window->prev) window->prev->next = window->next;
-    if (window->next) window->next->prev = window->prev;
-    if (window == child_first) child_first = window->next;
-    if (window == child_last) child_last = window->prev;
-    window->next = window->prev = NULL;
+    for(list<Window*>::iterator it = children.begin();it != children.end();it++) {
+        if(*it == window) { it = children.erase(it); break; }
+    }
     dirty = true;
     if (focused) focused->dirty = true;
     if (window == focused) focused = NULL;
@@ -147,44 +122,39 @@ void Window::remove (Window *window)
 
 Window::~Window()
 {
-    Window *w, *w_next;
-    
     check();
-    for (w = child_first; w; w = w_next) {
-        w_next = w->next;
-        assert(w != parent);
-        assert(w != this);
-        assert(this != parent);
-        cerr << "   Killing a child: " << w->getName() << endl;
-//        w->die();
-//        w->check();
-        //assert(this == w->parent); // This fails sometimes.  FIXME WHY?
-        if(this != w->parent) {
-            report_err("Window::~Window: Window has bogus parent.\n");
-            w->parent = NULL; // FIXME
-        }
-        delete w;  // At this point, window has a deleted child in its list.
-    }
-
     // Remove me
     if (parent) parent->remove(this);
+    while(!children.empty()) { // After delete, iterators are invalid (due to child calling parent->remove)
+        list<Window*>::iterator it = children.begin();
+        assert(*it != parent); // This fails sometimes too!
+        assert(*it != this);
+        assert(this != parent);
+        assert(*it != NULL);
+        if(*it) { // This should never be null, but check anyway.
+            cerr << "   Killing a child: " << (*it)->getName() << endl;
+            assert(this == (*it)->parent); // This fails sometimes.  FIXME WHY?
+            (*it)->die(); // calls delete
+        } else {
+            error("NULL child in list!\n");
+        }
+    }
             
     delete[] canvas;
 }
 
-Window* Window::findByName(const char *name, Window *after)
+Window* Window::findByName(const char *name)
 {
-    Window *w;
-    for (w = after ? after->next : child_first ; w; w = w->next)
-        if (!strcmp(name, w->getName()))
-            return w;
+    for(list<Window*>::iterator it = children.begin();it != children.end();it++)
+        if (!strcmp(name, (*it)->getName()))
+            return *it;
     
     return NULL;
 }
 
 bool Window::scroll()
 {
-	return false;
+    return false;
 }
 
 #define MAX_PRINTF_BUF 16384
@@ -270,24 +240,24 @@ void Window::print(const char *s)
 // Formatted print
 void Window::printf(const char *fmt, ...)
 {
-	char buf[MAX_PRINTF_BUF];
-	va_list va;
-	
-	va_start (va,fmt);
-	vsnprintf (buf, MAX_PRINTF_BUF, fmt, va);
-	va_end (va);
-	
-	print(buf);
+    char buf[MAX_PRINTF_BUF];
+    va_list va;
+    
+    va_start (va,fmt);
+    vsnprintf (buf, MAX_PRINTF_BUF, fmt, va);
+    va_end (va);
+    
+    print(buf);
 }
 
 // Formatted, centered print
 void Window::cprintf(const char *fmt, ...)
 {
-	char buf[MAX_PRINTF_BUF];
-	va_list va;
+    char buf[MAX_PRINTF_BUF];
+    va_list va;
 	
-	va_start (va,fmt);
-	vsnprintf (buf, MAX_PRINTF_BUF, fmt, va);
+    va_start (va,fmt);
+    vsnprintf (buf, MAX_PRINTF_BUF, fmt, va);
     va_end (va);
 
     gotoxy(0, cursor_y);
@@ -301,101 +271,87 @@ void Window::cprintf(const char *fmt, ...)
 void Window::copy (attrib *source, int w, int h, int _x, int _y)
 {
 	// Don't bother if it is clearly outside of our rectangle
-    if (_y >= width || _x >= width
-        || (_x+w <= 0) || (_y+h) <= 0) // far out
+    if (_y >= width || _x >= width || (_x+w <= 0) || (_y+h) <= 0) // far out
 		return;
 		
-	// Direct copy?
-	if (width == w && _x == 0)
-    {
+    // Direct copy?
+    if (width == w && _x == 0) {
         // adjust if _y < 0
         if (_y < 0) {
             source += (-1 * w*_y);
             h += _y;
             _y = 0;
         }
-		int size = min(w*h, (height-_y) * width);
+        int size = min(w*h, (height-_y) * width);
 		
-		// This will not copy more than there is space for in this window
-		if (size > 0)
-			memcpy (canvas + _y*width, source, size * sizeof(attrib));
-	}
-	else
-	{
-		// For each row up to max of our height or source height
-		for (int y2 = max(0,_y); y2 < height && y2 < (_y+h) ; y2++)
-			memcpy (
-				canvas + (y2 * width) + _x,				// Copy to (_x, y2)
-				source + (y2 - _y) * w,					// Copy from (0, y2 - _y)
-				sizeof(attrib) * min(w, width - _x));	// Copy w units, or whatever there's space for
-	}
+    // This will not copy more than there is space for in this window
+        if (size > 0)
+            memcpy (canvas + _y*width, source, size * sizeof(attrib));
+    } else {
+        // For each row up to max of our height or source height
+        for (int y2 = max(0,_y); y2 < height && y2 < (_y+h) ; y2++)
+            memcpy (
+                canvas + (y2 * width) + _x,				// Copy to (_x, y2)
+                source + (y2 - _y) * w,					// Copy from (0, y2 - _y)
+                sizeof(attrib) * min(w, width - _x));	// Copy w units, or whatever there's space for
+    }
 }
 
 // This simple window cannot redraw itself
 // If the canvas somehow is lost, printed stuff is lost
 void Window::redraw()
 {
-	dirty = false;
+    dirty = false;
 }
 
 bool Window::refresh()
 {
-	bool refreshed = false;
+    bool refreshed = false;
 
-	// Don't do anything if we are hidden	
-	if (!visible)
-	{
-		if (dirty)
-		{
-			dirty = false;
-			return true;
-		}
-		else
-			return false;
-	}
+    // Don't do anything if we are hidden	
+    if (!visible) {
+        if (dirty) {
+            dirty = false;
+            return true;
+        } else return false;
+    }
 	
-	// Do we need to redraw?
-	if (dirty)
-	{
-		redraw();
-		refreshed = true;
-	}
+    // Do we need to redraw?
+    if (dirty) {
+        redraw();
+        refreshed = true;
+    }
 	
-	// Refresh children
-	// Note that the first in list will be the one behind
-	for (Window *w = child_first; w ; w = w->next)
-		refreshed = w->refresh() || refreshed;
+    // Refresh children
+    // Note that the first in list will be the one behind
+    for(list<Window*>::iterator it = children.begin();it != children.end();it++)
+        refreshed = (*it)->refresh() || refreshed;
 
-	draw_on_parent();		 // Copy our canvas to parent
+    draw_on_parent();		 // Copy our canvas to parent
 
-	return refreshed;		
+    return refreshed;		
 }
 
 // Fill this window with 'color'
 void Window::clear()
 {
-	attrib *p;
-	attrib *end = canvas + width * height;
-	attrib blank = (color << 8) + ' ';
-	
-	for (p = canvas; p < end; p++)
-		*p = blank;
-	
-	dirty = true;
+    attrib *p;
+    attrib *end = canvas + width * height;
+    attrib blank = (color << 8) + ' ';
+    
+    for (p = canvas; p < end; p++)
+        *p = blank;
+    
+    dirty = true;
 }
 
 // Take care of this keypress
 bool Window::keypress(int key)
 {
-    Window *w_prev;
-    
     // By default, do not do anything with the key, but just ask the children
-    // If they can do anything with it
-    // Keep pointer to prev window in case current gets deleted
-    // This needs to be rewritten using some List/Iterator!
-    for (Window *w = child_last; w; w = w_prev) {
-        w_prev = w->prev;
-        if (w->keypress(key)) return true;
+    // If they can do anything with it (starting with most recently added child)
+    for(list<Window*>::reverse_iterator rit = children.rbegin();rit != children.rend();rit++) {
+        if ((*rit)->keypress(key)) return true;
     }
     
     return false;
@@ -405,18 +361,15 @@ bool Window::keypress(int key)
 // Asks the parent, translating the coordinates accordingly
 void Window::set_cursor(int _x, int _y)
 {
-	if (parent)
-		parent->set_cursor(_x+parent_x,_y+parent_y);
+    if (parent)
+        parent->set_cursor(_x+parent_x,_y+parent_y);
 }
 
 
 void Window::idle()
 {
-    Window *w_next;
-    for (Window *w = child_first; w; w = w_next)
-    {
-        w_next = w->next;
-        w->idle();
+    for(list<Window*>::iterator it = children.begin();it != children.end();it++) {
+        (*it)->idle();
     }
 }
 
@@ -449,76 +402,62 @@ void Window::move (int x, int y) {
 // Draw a box from (x1,y2) to (x2,y2) using border style _borders
 void    Window::box (int x1, int y1, int x2, int y2, int _borders)
 {
-	int     box_width = x2 - x1;
+    int     box_width = x2 - x1;
 
-	char   *s = new char[box_width + 1];
+    char   *s = new char[box_width + 1];
 
-	// Top/bottom   
-	memset (s, special_chars[bc_horizontal], box_width);
-	s[box_width] = NUL;
+    // Top/bottom   
+    memset (s, special_chars[bc_horizontal], box_width);
+    s[box_width] = NUL;
 
-	if (_borders & BRD_TOP)
-	{
-		gotoxy (x1 + 1, y1);
-		print (s);
-	}
+    if (_borders & BRD_TOP) {
+        gotoxy (x1 + 1, y1);
+        print (s);
+    }
 
-	if (_borders & BRD_BOTTOM)
-	{
-		gotoxy (x1, y2);
-		print (s);
-	}
+    if (_borders & BRD_BOTTOM) {
+            gotoxy (x1, y2);
+            print (s);
+    }
 
-	// Left/Right
-	for (int _y = y1 + 1; _y < y2; _y++)
-	{
-		if (_borders & BRD_LEFT)
-		{
-			gotoxy (x1, _y);
-			printf ("%c", special_chars[bc_vertical]);
-		}
+    // Left/Right
+    for (int _y = y1 + 1; _y < y2; _y++) {
+        if (_borders & BRD_LEFT) {
+            gotoxy (x1, _y);
+            printf ("%c", special_chars[bc_vertical]);
+        }
 
-		if (_borders & BRD_RIGHT)
-		{
-			gotoxy (x2, _y);
-			printf ("%c", special_chars[bc_vertical]);
-		}
-	}
+        if (_borders & BRD_RIGHT) {
+            gotoxy (x2, _y);
+            printf ("%c", special_chars[bc_vertical]);
+        }
+    }
 
-	// Corners
-	if (_borders & BRD_TOP)
-	{
+    // Corners
+    if (_borders & BRD_TOP) {
+        if (_borders & BRD_LEFT) {
+            gotoxy (x1, y1);
+            printf ("%c", special_chars[bc_upper_left]);
+        }
 
-		if (_borders & BRD_LEFT)
-		{
-			gotoxy (x1, y1);
-			printf ("%c", special_chars[bc_upper_left]);
-		}
+        if (_borders & BRD_RIGHT) {
+            gotoxy (x2, y1);
+            printf ("%c", special_chars[bc_upper_right]);
+        }
+    }
 
-		if (_borders & BRD_RIGHT)
-		{
-			gotoxy (x2, y1);
-			printf ("%c", special_chars[bc_upper_right]);
-		}
-	}
+    if (_borders & BRD_BOTTOM) {
+        if (_borders & BRD_LEFT) {
+            gotoxy (x1, y2);
+            printf ("%c", special_chars[bc_lower_left]);
+        }
 
-	if (_borders & BRD_BOTTOM)
-	{
-
-		if (_borders & BRD_LEFT)
-		{
-			gotoxy (x1, y2);
-			printf ("%c", special_chars[bc_lower_left]);
-		}
-
-		if (_borders & BRD_RIGHT)
-		{
-			gotoxy (x2, y2);
-			printf ("%c", special_chars[bc_lower_right]);
-		}
-	}
-
-	delete[]s;
+        if (_borders & BRD_RIGHT) {
+            gotoxy (x2, y2);
+            printf ("%c", special_chars[bc_lower_right]);
+        }
+    }
+    delete[]s;
 }
 
 void Window::clear_line(int _y)
@@ -531,8 +470,7 @@ void Window::clear_line(int _y)
 
 void Window::draw_on_parent()
 {
-	if (parent)
-		parent->copy(canvas, width, height, parent_x, parent_y);
+    if (parent) parent->copy(canvas, width, height, parent_x, parent_y);
 }
 
 void Window::popUp()
@@ -547,15 +485,13 @@ void Window::die() {
     delete this; 
     if (p) {
         p->deathNotify(this);
-//FIXME (bob)        
-//p->remove(this);
     }
 }
 
 Window* Window::find(Window* w)
 {
-    for (Window *u = child_first; u; u = u->next)
-        if (u == w)
+    for(list<Window*>::iterator it = children.begin();it != children.end();it++)
+        if (*it == w)
             return w;
 
     return NULL;

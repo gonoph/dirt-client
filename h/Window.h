@@ -3,6 +3,7 @@
 //
 
 #include <deque>
+#include <list>
 typedef unsigned short int attrib;
 
 enum {wh_half = -5000, wh_full = -5001}; // this sucks, plain and simple
@@ -85,19 +86,17 @@ public:
     virtual void set_top_message (const char *s);
     virtual void set_bottom_message (const char *s);
 
-    
     friend WindowGroup;                    // argh
 
     Window* find(Window *w); // Is this window still one of my children?
 
-    Window* findByName(const char *name, Window *after = NULL); // Find a window with this typename
+    Window* findByName(const char *name); // Find a window with this typename
 
     NAME(Window);
 
 protected:
     
-    Window *next, *prev;            // Next/rev window in list
-    Window *child_first, *child_last; // Children
+    list<Window*> children;
 
     unsigned int visible : 1;        // Is this window visible? 
     

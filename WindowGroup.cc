@@ -29,10 +29,19 @@ void WindowGroup::insert (Window *window)
 
 void WindowGroup::remove (Window *window)
 {
-	if (window == focused)
-		focused = focused->prev ? focused->prev : focused->next;
-	
-	Window::remove(window);
+    if (window == focused) {
+        for(list<Window*>::iterator it = children.begin();it != children.end();it++) {
+            if(*it == window) {
+                if(it != children.end()) focused = *(++it);
+                else if(it != children.begin()) focused = *(--it);
+                else focused = NULL;
+                break;
+            }
+        }
+    }
+//        focused = focused->prev ? focused->prev : focused->next;
+    
+    Window::remove(window);
 }
 
 bool WindowGroup::keypress (int key)
@@ -43,8 +52,15 @@ bool WindowGroup::keypress (int key)
 	{
 		focused->redraw();
 		
-		if (!(focused = focused->prev))
-			focused = child_last;
+                // Does this do anything?
+                for(list<Window*>::iterator it = focused->parent->children.begin();it != focused->parent->children.end();it++)
+                    if(*it == this) {
+                        if(it != focused->parent->children.end()) focused = *(--it);
+                        else focused = NULL;
+                        break;
+                    }
+//		if (!(focused = focused->prev))
+//			focused = child_last;
 			
 		focused->redraw();
 		
@@ -73,11 +89,8 @@ bool WindowGroup::keypress (int key)
 	if (focused->keypress(key))
 		return true;
 	
-	Window *w_prev;
-	for (Window *w = child_last; w; w = w_prev)
-	{
-		w_prev = w->prev;
-		if (w != focused && w->keypress(key))
+        for(list<Window*>::iterator it = focused->parent->children.begin();it != focused->parent->children.end();it++) {
+		if ((*it) != focused && (*it)->keypress(key))
 			return true;
 	}
 	

@@ -297,7 +297,7 @@ bool Screen::refreshTTY() {
     
     int n = write(STDIN_FILENO, ~*out, out->count());
     if (n != out->count())
-        abort();
+        error("Screen::refreshTTY: n != out->count()\n");
     
     memcpy(last_screen, canvas, width*height*sizeof(attrib));
     
