@@ -302,7 +302,7 @@ bool Interpreter::expandSpeedwalk(string& str)
         && str.find_first_not_of(legal_extended_speedwalk, 1) == str.npos) {
         start = 1;
         try_speedwalk = true;
-    } else if(str.find_first_not_of(legal_standard_speedwalk) == str.npos) {
+    } else if(str.length() >= 2 && str.find_first_not_of(legal_standard_speedwalk) == str.npos) {
         start = 0;
     } else {
         try_speedwalk = false;
