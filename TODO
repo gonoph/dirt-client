@@ -165,6 +165,24 @@ command parser seems to be grabbing the wrong equals sign:
 Grab Portal mud information:
     http://www.gameaxle.com/PortalMIP8-0.pdf
 Note howto get key name:  key_name(key)  (see old Screen:keypress)
+/enable -T repg does not tell me that there is no trigger named 'repg'!
+Keypress hooks really need to be passed the cursor position.
+Other hooks really need to be passed the parenthesized subexpression matches.
+...consider adding another parameter to HookStub::operator()...
+History::loadHistory does not deal well with long lines in history file (segfault)
+autocomplete does not move cursor to end of line (again, perl needs to see cursor_pos)
+    How about 2nd arg to operator() being a struct union?
+    struct {
+        int key;         // KEYPRESS
+        int cursor_pos;  // KEYPRESS
+        string& mudname; // CONNECT
+        void* subex; // pointer to a perl list of ($1, $2, $3...)  what about python?
+                     // can we count '(' to determine how many subexpressions?  How about string[] instead?
+        string& data;
+    } hook_args;
+    Hook::run(HookType type, string& data, hook_args arg)
+    How to pass this to perl?  (as arguments?)
+    Can save regex results with @shit = ($line =~ /$regex/) plus %&, $', $`
 
 Hook:
 -----

@@ -4,14 +4,14 @@
 #include "Hook.h"
 #include "Interpreter.h"
 #include <sys/stat.h>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
 History::History(int _id) : id (_id), current(0) {
     max_history = config->getOption(opt_histsize);
-    strings = new (char*)[max_history];
+    strings = new string[max_history];
     timestamps = new time_t[max_history];
-	
-    // Hmm, not sure about this
-    memset(strings,0, max_history * sizeof(char*));
 }
 
 History::~History() {
@@ -19,15 +19,12 @@ History::~History() {
     delete[] timestamps;
 }
 
-void History::add(const char *s,time_t t) {
-	// Don't store multiple strings that are exactly the same
-	if (current > 0 && !strcmp(s,strings[(current-1) % max_history]))
-		return;
-	
-	if (strings[current % max_history])
-		free(strings[current % max_history]);
-	
-    strings[current % max_history] = strdup(s);
+void History::add(const string& s,time_t t) {
+    // Don't store multiple strings that are exactly the same
+    if (current > 0 && s == strings[(current-1) % max_history])
+            return;
+
+    strings[current % max_history] = s;
     timestamps[current % max_history] = t;
 
 	current++;
@@ -40,7 +37,7 @@ const char * History::get(int count, time_t* timestamp) {
     
     if (timestamp)
         *timestamp = timestamps[(current - count) % max_history];
-    return strings[(current - count) % max_history];
+    return strings[(current - count) % max_history].c_str();
 }
 
 HistorySet::HistorySet() : hist_list(hi_search_scrollback+1) {
@@ -73,15 +70,21 @@ void HistorySet::saveHistory() {
 
 void HistorySet::loadHistory() {
     if (config->getOption(opt_save_history)) {
-        FILE *fp = fopen(Sprintf("%s/.dirt/history", getenv("HOME")), "r");
-        if (fp) {
+        fstream in(Sprintf("%s/.dirt/history", getenv("HOME")));
+        if (in.is_open()) {
             int id;
             time_t t;
-            char buf[1024];
-            
-            while (3 == fscanf(fp, "%d %ld %1024[^\n]", &id, &t, buf))
+            char buf[4096], c;
+
+            while(in.peek() != ios::traits_type::eof()) {
+                in.getline(buf, 4096);
+                istringstream sbuf(buf);
+                sbuf >> id >> t;
+                sbuf.get(c); // skip the leading space.
+                sbuf.getline(buf,4096);
                 hist_list[id]->add(buf, t);
-            fclose(fp);
+            }
+            in.close();
         }
     }
 }
@@ -212,19 +215,18 @@ cursor_pos(0), max_pos(0), left_pos(0), ready(false), id(_id), history_pos(0)
 }
 
 void InputLine::set_default_prompt() {
-	strcpy(prompt_buf, ">");
-	adjust();
-	dirty = true;
+    strcpy(prompt_buf, ">");
+    adjust();
+    dirty = true;
 }
 
 void InputLine::set(const char *s) {
-	strcpy (input_buf, s);
-	max_pos = strlen(input_buf);
-	cursor_pos = max_pos;
+    strcpy (input_buf, s);
+    max_pos = strlen(input_buf);
+    cursor_pos = max_pos;
     left_pos = 0;
-
-	adjust();
-	dirty = true;
+    adjust();
+    dirty = true;
 }
 
 void MainInputLine::set (const char *s) {
@@ -245,16 +247,12 @@ bool InputLine::keypress(int key) {
     embed_interp->set("Key", key);
     dirty = true; // let's just assume this to make things easier
     
-    int prev_len = max_pos;
-    
 //    report("calling hook.run(KEYPRESS, %s)", input_buf);
     hook.run(KEYPRESS, input_buf); // FIXME MOVE to TTY::check_fdset
 //    report("returned from hook.run(KEYPRESS, %s)", input_buf);
-    // This is tough - what do we adjust here
-    int new_len = strlen(input_buf);
-    max_pos += (new_len - prev_len);
-    cursor_pos += (new_len - prev_len);
-    cursor_pos = max(cursor_pos, 0);
+    max_pos = strlen(input_buf);
+    cursor_pos = min(max_pos, max(cursor_pos, 0));
+    adjust();
     
     // set Key to 0 if keypress handled. Ugh FIXME: make all of the below hooks.
     if ((key = embed_interp->get_int("Key")) == 0)
@@ -271,17 +269,13 @@ bool InputLine::keypress(int key) {
                 input_buf[cursor_pos++] = key;
             }
             adjust();
-            
         }
         else
             status->setf ("The input buffer is full");
+        input_buf[max_pos] = NUL;
+        return true;
     }
-    else
-        return false;
-    
-    input_buf[max_pos] = NUL;
-    
-    return true;
+    return false;
 }
 
 void InputLine::redraw() {
@@ -329,10 +323,21 @@ bool InputLine::getline(char *buf, bool fForce)
 
 void InputLine::adjust() {
     if (config->getOption(opt_multiinput) && isExpandable()) {
-        while ( ((int)strlen(prompt_buf) + max_pos)/width >= height) {
-            move(parent_x, parent_y - 1);
-            resize(width, height+1);
-            outputWindow->move(0, 1-height);
+        int newheight = 1 + (strlen(prompt_buf) + max_pos)/width;
+        int adjust = newheight - height;
+        status->setf("height: %d, adjust = %d, 1-(height+adjust)=%d", height, adjust, 1-(height+adjust));
+        if(adjust) {
+        // FIXME: This doesn't work.
+        // There is some strange interactions going on at the Window level when I resize things.
+        // For instance, after the outputWindow->move() call, the HEIGHT of the InputLine is changed.
+            move(parent_x, parent_y - adjust);
+            report("move(%d, %d)", parent_x, parent_y-adjust);
+            outputWindow->move(0, 1-(height+adjust));
+            report("outputWindow->move(0, %d)", 1-(height+adjust));
+            resize(width, height+adjust);
+            report("resize(%d, %d) height: %d, adjust: %d", width, height+adjust, height, adjust);
+            //outputWindow->resize(outputWindow->width, outputWindow->height - adjust); // causes segfault.
+            //parent->resize(parent->width, parent->height - adjust);
         }
     }
     else
@@ -366,47 +371,37 @@ bool InputLine::keypress_ctrl_a(string&, void* mt) {
 }
 
 // save line to history but don't execute
-bool InputLine::keypress_ctrl_c(string&, void* mt) {
+bool InputLine::keypress_ctrl_c(string& inputline, void* mt) {
     InputLine* mythis = (InputLine*)mt;
-    if (strlen(mythis->input_buf) > 0) {
+    if(inputline.length()) {
         history->add (mythis->id, mythis->input_buf);
-        mythis->set("");
+        inputline = "";
         status->setf("Line added to history but not sent");
     }
     return true;
 }
 
 // delete until EOL
-bool InputLine::keypress_ctrl_k(string&, void* mt) {
+bool InputLine::keypress_ctrl_k(string& inputline, void* mt) {
     InputLine* mythis = (InputLine*)mt;
-    mythis->max_pos = mythis->cursor_pos;
+    inputline.erase(mythis->cursor_pos);
     return true;
 }
 
 // erase input line
-bool InputLine::keypress_escape(string&, void* mt) {
-    InputLine* mythis = (InputLine*)mt;
-    mythis->set("");
+bool InputLine::keypress_escape(string& inputline, void*) {
+    inputline = "";
     return true;
 }
 
 // delete one character to left
-bool InputLine::keypress_backspace(string&, void* mt) {
+bool InputLine::keypress_backspace(string& inputline, void* mt) {
     InputLine* mythis = (InputLine*)mt;
-    if (mythis->max_pos == 0 || mythis->cursor_pos == 0)
-        ; //status->setf ("Nothing to delete");
-    else if (mythis->cursor_pos == mythis->max_pos) {
-        mythis->max_pos--;
+    if (mythis->max_pos != 0 && mythis->cursor_pos != 0) {
+        inputline.erase(mythis->cursor_pos-1, 1);
         mythis->cursor_pos--;
+        mythis->left_pos = max(0,mythis->left_pos-1);
     }
-    else { // we are in the middle of the input line
-        memmove(mythis->input_buf + mythis->cursor_pos - 1, 
-                mythis->input_buf + mythis->cursor_pos, 
-                mythis->max_pos - mythis->cursor_pos);
-        mythis->cursor_pos--;
-        mythis->max_pos--;
-    }
-    mythis->left_pos = max(0,mythis->left_pos-1);
     return true;
 }
 
@@ -414,80 +409,60 @@ bool InputLine::keypress_backspace(string&, void* mt) {
 bool InputLine::keypress_ctrl_e(string&, void* mt) {
     InputLine* mythis = (InputLine*)mt;
     mythis->cursor_pos = mythis->max_pos;
-    mythis->adjust();
     return true;
 }
 
 // Delete one word
-bool InputLine::keypress_ctrl_w(string&, void* mt) {
+bool InputLine::keypress_ctrl_w(string& inputline, void* mt) {
     InputLine* mythis = (InputLine*)mt;
     // How long is the word?
     int bow = mythis->cursor_pos - 1;
     
-    while (bow > 0 && isspace(mythis->input_buf[bow]))
-        bow--;
-    while (bow > 0 && !isspace(mythis->input_buf[bow]))
-        bow--;
-
-    if (bow > 0)
-        bow++; // Don't eat the space
-
+    while (bow > 0 && isspace(inputline[bow])) bow--;   // Scan to end of word (skip space)
+    while (bow > 0 && !isspace(inputline[bow])) bow--;  // Scan to beginning of word
+    if (bow > 0) bow++; // Don't eat the space
     if (bow >= 0 ) {
-        memmove(mythis->input_buf+bow, mythis->input_buf+mythis->cursor_pos, 
-                mythis->max_pos - mythis->cursor_pos);
-        mythis->max_pos -= mythis->cursor_pos - bow;
+        inputline.erase(bow, mythis->cursor_pos - bow);
         mythis->cursor_pos = bow;
-        mythis->adjust();
     }
     return true;
 }
 
-// delete input line
-bool InputLine::keypress_ctrl_u(string&, void* mt) {
+// delete to beginning of line
+bool InputLine::keypress_ctrl_u(string& inputline, void* mt) {
     InputLine* mythis = (InputLine*)mt;
-    memmove(mythis->input_buf, 
-            mythis->input_buf+mythis->cursor_pos, 
-            mythis->max_pos - mythis->cursor_pos);
-    mythis->max_pos -= mythis->cursor_pos;
+    inputline.erase(0, mythis->cursor_pos);
     mythis->cursor_pos = 0;
-    mythis->adjust();
     return true;
 }
 
 // delete one char to the right
-bool InputLine::keypress_delete(string&, void* mt) {
+bool InputLine::keypress_delete(string& inputline, void* mt) {
     InputLine* mythis = (InputLine*)mt;
-    if (mythis->cursor_pos == mythis->max_pos)
-        status->setf ("Nothing to the right of here");
-    else  {
-        memmove(mythis->input_buf+mythis->cursor_pos, 
-                mythis->input_buf + mythis->cursor_pos + 1, 
-                mythis->max_pos - mythis->cursor_pos);
-        mythis->max_pos--;
-    }
+    if (mythis->cursor_pos != mythis->max_pos)
+        inputline = inputline.substr(0,mythis->cursor_pos) 
+            + inputline.substr(mythis->cursor_pos+1, mythis->max_pos);
     return true;
 }
 
 // execute
-bool InputLine::keypress_enter(string&, void* mt) {
+bool InputLine::keypress_enter(string& inputline, void* mt) {
     InputLine* mythis = (InputLine*)mt;
     mythis->ready = true;
-    mythis->input_buf[mythis->max_pos] = NUL;
-    
-    if ((int)strlen(mythis->input_buf) >= config->getOption(opt_histwordsize))
+
+    if(inputline.length() >= (unsigned)config->getOption(opt_histwordsize)) {
         history->add (mythis->id, mythis->input_buf);
+    }
     
     mythis->history_pos = 0; // Reset history cycling
     mythis->cursor_pos = 0;
-    
-    mythis->max_pos = mythis->left_pos = 0;
+    mythis->left_pos = 0;
     mythis->ready = false;
-    
-    mythis->move(0, mythis->parent->height-1);
-    outputWindow->move(0,0);
-    mythis->resize(mythis->width, 1);
-    
-    mythis->execute();
+    hook.run(USERINPUT, inputline);
+    interpreter.add(inputline);
+    if (config->getOption (opt_echoinput))		// echo input if wanted
+        outputWindow->printf ("%c>> %s\n", SOFT_CR, inputline.c_str());
+    inputline = "";
     return true;
 }
 
@@ -573,11 +548,4 @@ bool InputLine::keypress_arrow_down(string&, void* mt) {
 MainInputLine::MainInputLine()
 :InputLine(screen, wh_full, 1, None, 0, -1, hi_main_input) {
     parent->focus(this);
-}
-
-void MainInputLine::execute() {
-    hook.run(USERINPUT, input_buf);
-    interpreter.add(input_buf);
-    if (config->getOption (opt_echoinput))		// echo input if wanted
-        outputWindow->printf ("%c>> %s\n", SOFT_CR, input_buf);
 }

@@ -393,7 +393,7 @@ void Hook::run(HookType t, string& data) {
 void Hook::run(HookType t, char* data = NULL) {
     string s = (data)?data:"";
     run(t, s);
-    if(data && data != s.c_str()) strcpy(data, s.c_str());
+    if(data && data != s) strcpy(data, s.c_str());
 }
 
 // These (remove/disable/enable) are O(n) operations.  I assuming you won't be

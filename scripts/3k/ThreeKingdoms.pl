@@ -13,7 +13,7 @@ use IO::Handle;
 use POSIX;
 
 # GLOBALs used by this module
-use vars qw(@room_exits @unusual_exits $enemy);
+use vars qw(@room_exits @unusual_exits $enemy $havephantasm $haveelemental $summons);
 @room_exits = ();                     # list of the exits to the current room.
 @unusual_exits = ();
 
@@ -141,20 +141,33 @@ sub gauge ($$$$) {
 }   
 
 my($elementalcounter)=0;
+my($haveelemental) = 0;
+my($havephantasm) = 0;
+my($incombat) = 0;
 my($lastcnc)=0;
+my($summons) = "";
+my($cnc) = 0;
+my($sps) = 0;
+my($mgup) = 0;
+my($linectr) = 0; # lines since the hpbar was seen.
 # This assumes a prompt that looks like this:
 # minHp/maxHp minMana/maxMana minMove/maxMove
 my($breedhp) = qr/^HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+)  Psi: ([0-9]+)\/([0-9]+)/;#  Focus: ([0-9]+)%  E: ([A-Z][a-z]+)/) {
 my($magehp) = qr/^ HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+)S?\/([0-9]+)%\/([0-9]+)% Sat: ([0-9]+)% Cnc: ([0-9]+)% Gols:([0-9]+)\/([0-9]+)% G2N:([0-9]+)%( A)?( S(?!S))?( SS)?( mg)?( PE)?( PG)?( Mon\(...\):(\w\w))?/;
 my($fremenhp) = qr/^HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+) W: ([0-9]+)\/([0-9]+)\(([0-9]+)\) L: ([0-9]+)% P: ([0-9]+)\/([0-9]+)% T: [a-z]+ G: ([0-9]+)/;
 sub check_hpbar {
+    $linectr++;
     if(/$magehp/) {
+        $linectr = 0;
         &main::run("/clear hpbar");
         &main::run("/echo -W hpbar \"HP:  " . sprintf("(%3d/%3d)", $1, $2), &gauge(10, 1, $2, $1) . "\"");
         &main::run("/echo -W hpbar \"SP:  " . sprintf("(%3d/%3d)", $3, $4), &gauge(10, 1, $4, $3) . "\"");
+        $sps = $3;
         &main::run("/echo -W hpbar \"Sat: " . sprintf("(%3d/%3d)", $7, 100), &gauge(10,1, 100, 100-$7) . "\"");
         &main::run("/echo -W hpbar \"Cnc: " . sprintf("(%3d/%3d)", $8, 100), &gauge(10,1, 100, 100-$8) . "\"");
+        $cnc = $8;
         if(defined $18) {
+            $incombat=1;
             my($percent);
             my($estat) = $19;
             if($estat =~ /pe/) { $percent = 100; }
@@ -164,6 +177,7 @@ sub check_hpbar {
             elsif($estat =~ /De/) { $percent = 10; }
             &main::run("/echo -W hpbar \"Enemy" . sprintf("(%7.7s):", $enemy) . &gauge(10,0,100,$percent) . "\"");
         } else {
+            $incombat=0;
             &main::run("/echo -W hpbar \"Enemy(none):            \"");
         }
         if(defined $12) {
@@ -183,8 +197,10 @@ sub check_hpbar {
         }
         if(defined $15) {
             &main::run("/echo -W hpbar \"" . $filledColor . "       Minor Globe       " . $windowColor . "\"");
+            $mgup = 1;
         } else {
             &main::run("/echo -W hpbar \"" . $emptyColor .  "       Minor Globe       " . $windowColor . "\"");
+            $mgup = 0;
         }
         if(defined $16 || defined $17) {
             if(defined $16) {
@@ -195,12 +211,29 @@ sub check_hpbar {
         } else {
             &main::run("/echo -W hpbar \"" . $emptyColor .  "  Protection from Stuff  " . $windowColor . "\"");
         }
-        if($8 > 50 && $lastcnc <= 50) { main::run("say all, begone"); }
-        $lastcnc = $8;
-        #if($3 > 400) { main::run("cast lightning bolt"); }
-#        if($8 == 0 && ($elementalcounter++ % 10) == 0) { main::run("cast conjure elemental"); }
-    } else {
-        # Let a few prompts splip by if creating a character or such
+        if($cnc > 50 && $lastcnc <= 50) { main::run("say elemental, begone"); }
+        $lastcnc = $cnc;
+        if($incombat) {
+            if($sps > 400) { main::run("cast lightning bolt"); }
+        }
+    }
+#    if(/^  --> ((Something|Boring beetle|[A-Za-z]+ golem|[A-Za-z]+ elemental)+:[ABCDE~!+]+(, )?)*.*/) {
+    if(/^  --> (.*)$/ || ($linectr == 2 && /^      (.*)$/)) {
+        $summons = $1;
+        if($summons =~ /elemental/) { 
+            $haveelemental = 1; 
+        } else { $haveelemental = 0; }
+        if($summons =~ /Something/) { 
+            $havephantasm = 1; 
+        } else { $havephantasm = 0; }
+        if($incombat) {
+            if($cnc == 0 && $mgup && $sps > 300 && !$haveelemental) { 
+                main::run("cast conjure elemental"); 
+            }
+#            elsif($sps > 300 && !$havephantasm) { 
+#                main::run("cast phantasmal killer"); 
+#            }
+        }
     }
 }
 

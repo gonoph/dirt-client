@@ -336,8 +336,9 @@ bool Screen::keypress(int key) {
     }
 
     // Pass the keypress further down the chain.
-    if(!this->Window::keypress(key))
-        status->setf("Keycode %d (%s) was not handled by any object", key, key_name(key));
+    this->Window::keypress(key);
+//    if(!this->Window::keypress(key))
+//        status->setf("Keycode %d (%s) was not handled by any object", key, key_name(key));
     
     return true;
 }

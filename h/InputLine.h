@@ -37,10 +37,6 @@ public:
     static bool keypress_arrow_down(string&, void*);
 protected:
     
-    virtual void execute() {}; // Called when data has been inputted
-    
-protected:
-    
     char input_buf[MAX_INPUT_BUF];
     char prompt_buf[MAX_PROMPT_BUF];
     int cursor_pos;     // Where will the next character be inserted?
@@ -67,7 +63,6 @@ class MainInputLine : public InputLine {
 public:
     MainInputLine();
     
-    virtual void execute();
     virtual void set (const char *s); // Set the input line to this
     virtual bool isExpandable() { return true; }
     NAME(MainInputLine);
@@ -80,14 +75,14 @@ public:
     History(int _id);
     ~History();
     
-    void add (const char *s,time_t);			// Add this string
+    void add (const string& s,time_t);			// Add this string
     const char * get (int no, time_t *timestamp);	// Get this string.
 
     int id;						// Id number
     
 private:
     
-    char **strings;					// Array of strings
+    string *strings;					// Array of strings
     time_t *timestamps;
     int max_history;					// Max number of strings
     int current;					// Current place we will insert a new
@@ -110,7 +105,7 @@ public:
         return hist_list[id]->get(count, timestamp);
     }
     
-    void add (history_id id, const char *s, time_t t = 0) {
+    void add (history_id id, const string& s, time_t t = 0) {
         hist_list[id]->add(s,t ? t : current_time);
     }
     
