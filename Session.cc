@@ -13,8 +13,6 @@
 #include "cui.h"
 #include "Session.h"
 #include "Interpreter.h"
-#include "Action.h"
-#include "Alias.h"
 #include "Curses.h"
 #include "Chat.h"
 #include "Hook.h"
@@ -578,27 +576,5 @@ void Session::show_timer() {
 void Session::show_nsw() {
     nsw = new NetworkStateWindow(*this);
     statWindow = new StatWindow(*this);
-}
-
-bool Session::expand_macros(int key) {
-    if (macros_disabled)
-        return false;
-    
-    // This is a bit primitive currently
-    Macro *m = mud.findMacro(key);
-    if (m) {
-        if (config->getOption(opt_echoinput))  {
-            char buf[256];
-            
-            snprintf (buf, sizeof(buf), "%c>> %s -> %s\n",
-                      SOFT_CR, key_name(m->key), ~m->text);
-            print(buf);
-        }
-        
-        interpreter.add(m->text);
-        return true;
-    }
-    
-    return false;
 }
 

@@ -23,8 +23,6 @@ friend bool writeMUDn(string& s);
     
     void show_nsw();						// Show the NSW
     void show_timer();						// Show the Timer Window
-    bool expand_macros(int key);			// Expand this macro key
-//    bool writeMUD (const char *s);	     	// Send this
     
     state_t state;			// Are offline, connecting or connected?
     MUD& mud;

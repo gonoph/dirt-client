@@ -1,9 +1,7 @@
 #include "dirt.h"
 #include <sys/stat.h>
 #include <unistd.h>
-#include "Action.h"
 #include "cui.h"
-#include "Alias.h"
 #include "Plugin.h"
 #include "Interpreter.h"
 #include "Hook.h"
@@ -321,14 +319,8 @@ void    Config::Load (const char *fname)
         rest = one_argument(buf, keyword, true);
         len = 0;
         
-        if (!strcmp(keyword, "macro") ||
-            !strcmp(keyword, "alias") ||
-            !strcmp(keyword, "action") ||
-            !strcmp(keyword, "subst")) {
-            parseMUDLine(keyword, rest, last_mud);
-        }
         // An option? (weirdness so we can have an empty line after =)
-        else if (1 == sscanf (buf, "%[^=] =%n", name, &len) && buf[len-1] == '=') {
+        if (1 == sscanf (buf, "%[^=] =%n", name, &len) && buf[len-1] == '=') {
             int i, option_value;
             value = buf+len;
             while (isspace(*value))
@@ -383,46 +375,6 @@ void    Config::Load (const char *fname)
     fclose (fp);
 }
 
-// Parse this MUD command which can appear within a MUD { } section or in the old-style format
-void Config::parseMUDLine(const char *keyword, const char *buf, MUD *mud) {
-    char name[INPUT_SIZE], value[INPUT_SIZE];
-    
-    if (!strcmp(keyword, "macro")) {
-        if (2 != sscanf (buf, "%s %[^\n]", name, value))
-            error ("Invalid Macro format, must be Macro <key> <command>:\n%s\n", buf);
-        
-        int key = key_lookup(name);
-        
-        if (key < 0)
-            error ("Unknown key in macro definition: %s", buf);
-        mud->macro_list.insert(new Macro(key,value));
-    }
-    else if (!strcmp(keyword, "alias")) {
-        if (2 != sscanf (buf, "%s %[^\n]", name, value)) // alias?
-            error ("Invalid Alias format, must be Alias <name> <commands>:\n%s\n", buf);
-        mud->alias_list[name] = new Alias(name,value);
-    }
-    else if (!strcmp(keyword, "action")) {
-        String res;
-        Action *ac = Action::parse(buf, res, Action::Trigger);
-        
-        if (!ac)
-            error (res);
-        
-        mud->action_list.insert(ac);
-    }
-    else if (!strcmp(keyword, "subst")) {
-        String res;
-        Action *ac = Action::parse(buf, res, Action::Replacement);
-        
-        if (!ac)
-            error (res);
-        
-        mud->action_list.insert(ac);
-    } else
-        error ("Uh, parsedMUDLine() called with invalid keyword %s?!", keyword);
-}
-
 // Read in the data about a MUD
 void Config::readMUD(FILE *fp, const char *mudname) {
     MUD *mud = new MUD(mudname, "", 0, &globalMUD);
@@ -450,12 +402,7 @@ void Config::readMUD(FILE *fp, const char *mudname) {
         
         s = one_argument(s, keyword, true);
         
-        if (!strcmp(keyword, "macro") ||
-            !strcmp(keyword, "alias") ||
-            !strcmp(keyword, "action") ||
-            !strcmp(keyword, "subst")) {
-            parseMUDLine(keyword, s, mud);
-        } else if (!strcmp(keyword, "host")) {
+        if (!strcmp(keyword, "host")) {
             if (2 != sscanf(s, "%s %d", name, &port))
                 error ("Invalid Host line in MUD %s definition: %s", mudname, s);
             mud->setHost(name, port);
@@ -656,19 +603,6 @@ void Config::Save(const char *fname) {
 Config::~Config() {
     if (!getOption(opt_readonly))
         Save();
-}
-
-void Config::compileActions() {
-    for (MUD* mud= mud_list->rewind(); mud; mud = mud_list->next())
-        if (strcmp(mud->name, "temp")) {
-            // Actions
-            FOREACH(Action*, action, mud->action_list)
-                action->compile();
-        }
-    
-    FOREACH(Action*, action2, globalMUD.action_list)
-        action2->compile();
-    
 }
 
 bool Config::command_writeconfig(string& str, void*) {

@@ -6,8 +6,6 @@
 #include "MessageWindow.h"
 #include "Interpreter.h"
 #include "Shell.h"
-#include "Action.h"
-#include "Alias.h"
 #include "Chat.h"
 #include "Session.h"
 #include "MUD.h"
@@ -15,7 +13,6 @@
 
 extern MUD *lastMud;
 
-bool actions_disabled, aliases_disabled, macros_disabled;
 // Pick off one argument, optionally smashing case and place it in buf
 // Eat whitespace, respect "" and ''
 // FIXME This fails for escaped quotes.  From Notes:
@@ -418,113 +415,8 @@ void Interpreter::dirtCommand (const char *s)
     
     s = one_argument(s, cmd, true);
     
-    if (!strcmp(cmd, "alias")) // add alias
-    {
-        char name[MAX_INPUT_BUF];
-        
-        if (!s[0])
-            status->setf ("Press Alt-A to list active aliases; Alt-O then A to list local ones");
-        else 
-        {
-            s = one_argument(s, name, false);
-            Alias *a = globalMUD.findAlias(name);
-            
-            if (!s[0]) {
-                if (!a)
-                    status->setf ("There is no global alias named '%s'", name);
-                else  {
-                    status->setf ("Removed global alias '%s'", name);
-                    globalMUD.alias_list.erase(name);
-                    delete a;
-                }
-            } else {
-                if (a) {
-                    status->setf ("Replaced alias '%s' with %s", a->name.c_str(), s);
-                    a->text = s;
-                } else {
-                    status->setf ("Added new alias %s = %s", name,s);
-                    globalMUD.alias_list[name] = new Alias(name,s);
-                }
-            }
-        }
-    }
-    else if (!strcmp(cmd, "macro")) {
-        char name[MAX_INPUT_BUF];
-        Macro *m;
-        
-        s = one_argument(s, name, true);
-        int key = key_lookup(name);
-        
-        if (key < 0)
-            status->setf ("Unknown key in macro definition: %s", name);
-        else {
-            m = globalMUD.findMacro(key, false);
-            
-            if (!s[0]) { // remove macro
-                if (!m)
-                    status->setf("No such macro");
-                else {
-                    globalMUD.macro_list.remove(m);
-                    status->setf("Removed macro %s => %s", name, ~m->text);
-                    delete m;
-                }
-            } else { // Add new or change existing
-                if (!m) {
-                    m = new Macro(key, s);
-                    status->setf("Added new macro: %s => %s", name,s);
-                    globalMUD.macro_list.append(m);
-                } else {
-                    status->setf("Changed macro %s: from %s to %s", name, ~m->text, s);
-                    m->text = s;
-                }
-            }
-        }
-    }
-    else if (!strcmp(cmd, "action") || !strcmp(cmd, "subst"))
-    {
-        char name[256];
-        s = one_argument(s, name, false);
-        
-        if (!name[0])
-            status->setf ("Add/remove what action?");
-        else if (!s[0]) {
-            FOREACH(Action*, a, globalMUD.action_list)
-                if (a->pattern == name)
-                {
-                    status->setf ("Action %s => %s removed", (const char*) a->pattern, (const char *) a->commands);
-                    globalMUD.action_list.remove(a);
-                    delete a;
-                    return;
-                }
-            
-            status->setf("Action '%s' was not found", name);
-        } else {
-            char buf[MAX_MUD_BUF];
-            String res;
-            
-            sprintf(buf, "\"%s\" %s", name, s);
-            
-            Action *new_action = Action::parse (buf, res, (!strcmp(cmd, "action")) ? Action::Trigger : Action::Replacement);
-            if (!new_action)
-                status->setf ("Error compiling action: %s", ~res);
-            else {
-                FOREACH(Action*,a, globalMUD.action_list)
-                    if (a->pattern == name)  {
-                        status->setf ("Replaced action '%s' with '%s'", (const char*) new_action->pattern, (const char *) new_action->commands);
-                        globalMUD.action_list.remove(a);
-                        delete a;
-                        globalMUD.action_list.insert(new_action);
-                        return;
-                    }
-                
-                globalMUD.action_list.insert(new_action);
-                status->setf ("Added action '%s' => '%s'", (const char*) new_action->pattern, (const char *) new_action->commands);
-            }
-        }
-    }
-    
     // Chat subcommands
-    else if (!strncmp(cmd, "chat.", strlen("chat."))) {
+    if (!strncmp(cmd, "chat.", strlen("chat."))) {
         const char *subcmd = cmd+strlen("chat.");
         if (!chatServerSocket)
             status->setf("CHAT is not active. Set chat.name option in the config file");

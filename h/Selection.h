@@ -47,17 +47,3 @@ private:
     virtual bool keypress(int key);
 };
 
-class AliasSelection : public Selection {
-	public:
-	AliasSelection (Window *_parent, MUD *mud, const char *title);
-};
-
-class ActionSelection : public Selection {
-public:
-    ActionSelection(Window *_parent, const char *title);
-};
-
-class MacroSelection : public Selection {
-public:
-    MacroSelection(Window *_parent, const char *title);
-};

@@ -4,7 +4,6 @@
 #include "InputBox.h"
 #include "ScrollbackSearch.h"
 #include "Interpreter.h"
-#include "Alias.h"
 #include "Session.h"
 #include "Chat.h"
 
@@ -14,18 +13,6 @@ bool Hotkey::keypress (int key)
 {
     switch (key)
     {
-    case key_alt_a:
-        (void) new AliasSelection(screen, currentSession ? &currentSession->mud : &globalMUD, "Aliases");
-        break;
-
-    case key_alt_i:
-        (void) new ActionSelection(screen, "Actions");
-        break;
-
-    case key_alt_m:
-        (void) new MacroSelection(screen, "Macros");
-        break;
-        
     case key_alt_q: 		// Quit
         dirtFinished = true;
         break;

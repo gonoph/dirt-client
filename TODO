@@ -166,6 +166,7 @@ command parser seems to be grabbing the wrong equals sign:
         sub { $_ = "$_"; eval "$command"; }
 Grab Portal mud information:
     http://www.gameaxle.com/PortalMIP8-0.pdf
+Note howto get key name:  key_name(key)  (see old Screen:keypress)
 
 Hook:
 -----

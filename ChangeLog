@@ -32,6 +32,9 @@
 * Fix ANSI split over packet boundary (Session.cc).
 * Fix hook crash due to /enable a hook that isn't defined: /enable blah
     /hook -l blah
+* Made it compile and run with gcc v3 and perl 5.6.1
+* Ripped out Alias, Macro, and Action.  (see /alias, /keypress, and /trig
+    for replacements)
 
 Dirt 0.60.0
 * Made file release on sourceforge.

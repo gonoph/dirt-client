@@ -108,8 +108,6 @@ int main(int argc, char **argv) {
     if (strlen(config->getStringOption(opt_chat_name)) != 0)
         ChatServerSocket::create(config->getOption(opt_chat_baseport));
 
-    config->compileActions();    // compile triggers, this must be done after the embedded interpreter has been initialized
-    
     if (argv[non_option]) {
         lastMud = config->findMud(argv[non_option]);
         if (!lastMud) {

@@ -1,7 +1,6 @@
 #include "dirt.h"
 #include "Interpreter.h"
 #include "cui.h"
-#include "Alias.h"
 
 
 Selection::Selection(Window *_parent, int _w, int _h, int _x, int _y)
@@ -201,13 +200,7 @@ void MUDSelection::doSelect (int no) {
 }
 
 bool MUDSelection::keypress(int key) {
-	if ((key == 'a' || key == key_alt_a) && getSelection() < getCount()) {
-		char buf[256];
-		MUD *mud = (*config->mud_list)[getSelection()];
-		snprintf(buf,256,"Aliases for MUD %s (%s %d)", ~mud->name, mud->getHostname(),mud->getPort());
-		(void)new AliasSelection(screen, mud, buf);
-	}
-	else if (key == key_alt_o)
+	if (key == key_alt_o)
 		status->setf("It's already open!");
 	else
 		return Selection::keypress(key);

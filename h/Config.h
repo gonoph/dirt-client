@@ -53,8 +53,6 @@ typedef enum {
 
 class MUDSelection;
 
-class Macro;
-
 // FIXME why is this extern?
 extern class Config {
     public:
@@ -77,9 +75,7 @@ extern class Config {
     void setStringOption(option_t option, const char* value)
     {   string_options[option] = value;   }
     
-    void compileActions();
     void Save(const char *fname = NULL);
-    void parseMUDLine(const char *keyword, const char *buf, MUD *mud);
     void readMUD(FILE *fp, const char *mudname);
     static bool command_writeconfig(string&,void*);
 

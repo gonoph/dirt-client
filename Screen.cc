@@ -334,11 +334,11 @@ bool Screen::keypress(int key) {
             return true;
         }
     }
-    
-    if (!this->Window::keypress(key)) // this appears to get hosed in this call.
-        if (!currentSession || !currentSession->expand_macros(key))
-            status->setf ("Keycode %d (%s) was not handled by any object", key, key_name(key));
 
+    // Pass the keypress further down the chain.
+    if(!this->Window::keypress(key))
+        status->setf("Keycode %d (%s) was not handled by any object", key, key_name(key));
+    
     return true;
 }
 

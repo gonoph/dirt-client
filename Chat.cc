@@ -26,7 +26,6 @@ static void writeChatCommon(char *s) {
     
     // Actions should probably be in some "chat" MUD
     char out[MAX_MUD_BUF];
-//    if (embed_interp->eval("hook_run('output')", s, out))
     strcpy(out, s);
     hook.run(OUTPUT, out);
         outputWindow->print(out);
