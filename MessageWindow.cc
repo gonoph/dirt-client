@@ -16,6 +16,7 @@
 #include "MUD.h"
 #include "Hook.h"
 
+// Does this duplicate the Window::prev and Window::next pointers?
 vector<MessageWindow*> MessageWindow::list;
 
 MessageWindow::MessageWindow (Window *_parent, string& _alias, string& _logfile, int _w, int _h, int _x, int _y, Style _style, int _timeout, bool _popOnInput, int _color)
@@ -119,7 +120,7 @@ bool MessageWindow::command_window(string& str, void*) {
             status->setf ("%cwindow -s: No such window: %s", CMDCHAR, name.c_str());
         else {
             mw->show(true);
-            mw->popUp();
+//            mw->popUp();
         }
     }
     if(opt.gotOpt('i')) {
@@ -127,7 +128,7 @@ bool MessageWindow::command_window(string& str, void*) {
             status->setf ("%cwindow -s: No such window: %s", CMDCHAR, name.c_str());
         else {
             mw->show(false);
-            mw->popUp();
+//            mw->popUp();
         }
     }
     // Do some sanity checking

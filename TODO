@@ -1,3 +1,7 @@
+Window::popup() is completely fucked.
+    And by extension, Window::insert(), Window::remove().
+    this was removed from /window -s and /window -i...
+
 Screen corruption under xterm...
 
 install should ignore CVS/ directories.
@@ -115,27 +119,6 @@ Crash in Window::~Window when deleting w. (why? does this manifest itself with o
 Lines that wrap are missing the first character on the wrapped line.
 Escaping in regexes is broken:
     /trig -F -t'\*' star = /echo found a star!          gives an error
-Hmm../help is crashing.
-(gdb) where
-#0  0x200005b2d78 in kill () from /lib/libc.so.6.1
-#1  0x200005b2b78 in raise (sig=6) at ../sysdeps/posix/raise.c:27
-#2  0x200005b4990 in abort () at ../sysdeps/generic/abort.c:88
-#3  0x1200e8ddc in Window::check (this=0x1203829e0) at Window.cc:94
-#4  0x1200e8d08 in Window::insert (this=0x1203829e0, window=0x1203828d0) at Window.cc:81
-#5  0x1200eba44 in ProxyWindow::insert (this=0x2, w=0x1203828d0) at Window.cc:687
-#6  0x1200eaa70 in Window::popUp (this=0x1203828d0) at Window.cc:522
-#7  0x1200c0164 in MessageWindow::popUp (this=0x0) at MessageWindow.cc:79
-#8  0x1200c0b28 in MessageWindow::command_window (str=@0x11ffff250)
-    at MessageWindow.cc:122
-#9  0x12008c438 in CommandHookStub::operator() (this=0x120145c20, data=@0x11ffff250)
-        at Hook.cc:491
-#10 0x12008af34 in Hook::run (this=0x2, t=COMMAND, data=@0x11ffff250) at Hook.cc:338
-#11 0x1200ab898 in Interpreter::execute (this=0x120116d00) at Interpreter.cc:281
-#12 0x1200f0fd0 in main (argc=1, argv=0x11ffff3d8) at main.cc:155
-#13 0x2000059908c in __libc_start_main (main=0x1200f04f0 <main>, argc=1, 
-            ubp_av=0x11ffff3d8, init=0x120061ad0 <_init>, fini=0x2000002e400 <_dl_debug_mask>, 
-                rtld_fini=0x4, stack_end=0x11ffff3c0) at ../sysdeps/generic/libc-start.c:129
-
 
 Hook:
 -----
