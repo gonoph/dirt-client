@@ -25,6 +25,16 @@ sub load_configuration {
 sub save_configuration {
     return if $ReadOnly;
     
+    system("cp $CONFIG_FILE.9 $CONFIG_FILE.10");
+    system("cp $CONFIG_FILE.8 $CONFIG_FILE.9");
+    system("cp $CONFIG_FILE.7 $CONFIG_FILE.8");
+    system("cp $CONFIG_FILE.6 $CONFIG_FILE.7");
+    system("cp $CONFIG_FILE.5 $CONFIG_FILE.6");
+    system("cp $CONFIG_FILE.4 $CONFIG_FILE.5");
+    system("cp $CONFIG_FILE.3 $CONFIG_FILE.4");
+    system("cp $CONFIG_FILE.2 $CONFIG_FILE.3");
+    system("cp $CONFIG_FILE.1 $CONFIG_FILE.2");
+    system("cp $CONFIG_FILE $CONFIG_FILE.1");
     open(CONFIG, ">" . $CONFIG_FILE) or die "Could not open $CONFIG_FILE for writing: $!";
     print CONFIG "# Dirt module config file generated on ", scalar(localtime($now)), " by $VERSION\n";
     
