@@ -160,7 +160,7 @@ sub command_disable {
     while(/\G\s+("|'|)([ :\w]+)\1/g) {
         if(defined $Triggers{$2}) {
             $Triggers{$2}->{'D'} = 1;
-	    &main::run("/enable '__DIRT_TRIGGER_$2'");
+	    &main::run("/disable '__DIRT_TRIGGER_$2'");
         }
         # else ignore it...it may be a hook, not a trigger.
     }
