@@ -298,6 +298,21 @@ int ColorConverter::convert (const unsigned char *s, int size) {
             /* Ignore for now. It's usually ugly anyway */
             break;
 
+	case 22: /* bold off */
+	  fBold = false;
+	  break;
+
+	case 27: /* reverse off */	  
+	  break;
+
+	case 39: /* default fg */
+	  last_fg = fg_white;
+	  break;
+	  
+	case 49: /* default bg */
+	  last_bg = bg_black;
+	  break;
+
         case 30 ... 37:
         case 40 ... 47:
             if (code <= 37)
