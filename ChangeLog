@@ -23,6 +23,8 @@
 * Python is disabled by default, fixed python checks in configure.in.
 * Implemented /hook -l <name>
 * Renamed several dirt hooks to be invisible to /hook -l.
+* Remove alt-t restarts dirt.  Just /quit and re-run it.  :)
+* Rewrote Session::inputReady to deal with IAC GA prompts correctly.
 
 Dirt 0.60.0
 * Made file release on sourceforge.

@@ -14,17 +14,9 @@ Repeat -> C++, with inverse last command a la zmud.
 Commands -> static autocomplete
 Perl eval: %
 Evaluating commands ('/') in send
-Each of the keys in InputLine.cc, InputLine::keypress must be turned into a 
-    HookStub (subclass HookStub for keypress events? -- make it a friend of
-    InputLine so it can manipulate input_buf, etc)  I left perl hook_run there
-    for now.
 Actions must be rewritten.  See Session.cc:674, Session::triggerCheck.
 finish removing one_argument, convert to OptionParser.
-Write Variables class, test it with small perl/C++ program.
 Make all keys in InputLine.cc be KEYPRESS hooks.
-/debug command to turn on debugging.  For instance, print which hook catches
-    a line of output.  See Hook.cc:199 (Hook::run).
-    Also, print ${color_code} rather than colors, so people can write regexes that match.
 #ifndef BLAH_H protect all header files.
 Uniform way of handling errors.  report() and error() should be used in the code,
     and configurable so that they are printed to the screen (w/attribs?) or displayed
@@ -81,7 +73,6 @@ Killing help window causes help to misbehave.  Check for window and recreate it 
 /delay, /repeat, or /run command that will let me schedule something to be sent.
 Should Window::focused be static?
 /input, /inputline like command to set input line.
-Aliases don't work at all...
 xterm doesn't send alt- key sequences properly...
 /gag -Ft'^\\s*$' blankline
     doesn't work...because the string to be matched is "", and when it is gagged it is
@@ -107,17 +98,39 @@ Option to use favorite language for /echo?  (i.e. /echo -> /eval print
 Saved.pl should not be clobbered if it has been modified since last loading.
 /alias crap = crap $2 $1
     hangs dirt.
-Aliases are getting evaluated in the wrong order:
-    @ life-forest    .eejjnnw                                     0                                        
-    @ life-magic     life-forest;portal                           0                                        
-    life-magic executes "portal" first!
-    life-forest;portal has same problem...
-    .eejjnnw;portal does not...
 Hooks without a matcher will not have RHS expanded as a quoted string.  Is this bad?
 Numpad doesn't work in xterm.
 up/down doesn't work in eterm.
 /paste /nopaste commands (when /paste is active, all user-typed commands have the 
     argument to /paste prepended)
+/help doesn't behave so well if window is too small.
+SEND, COMMAND hooks: rather than using regexes, grab first argument and then
+    look in hash_map to see if it is a command (/hook -C)
+    problem with multiple hooks with same name?
+Convert usage of "Sprintf"...or not?
+    http://www.bero.org/clap/classString.html
+    child of string that adds useful routines (like sprintf)
+/aliases should be added to static autocomplete list.
+Rip out Alias, Macro, Action:
+    /aliases should be mud-specific.  Mud name is in $mud.  Modify config.pl
+    Define keypad-walking hooks in C++, with group "numpad"
+    Write script to convert existing mclrc files
+/set command to set config variables.  (stuff in dirtrc)
+    /set debug command to turn on debugging.  For instance, print which hook catches
+    a line of output.  See Hook.cc:199 (Hook::run).
+    Also, print ${color_code} rather than colors, so people can write regexes that match.
+I broke snarf_prompt and showprompt on DIKU's (telnet GA prompts)
+        showprompt      print prompt to main screen
+        echoinput       echo typed input
+        snarf_prompt    change prompt when a new one is received
+    What I should do is when (showprompt && echoinput), print the prompt we received and
+    the input rather than '>> blah'.  If (showprompt && !echoinput), just print prompt
+    (with CR!).
+    Need 2 sets of variables, one for out (destined for screen), one for hooks.
+    replace line_begin with out_buf.
+
+Fix up main for session_fd and opt_copyover_value vars from alt-restart.
+
 
 Hook:
 -----
