@@ -18,7 +18,7 @@
 // like "-w25" or "-w 25"), -b,-f are "boolean", and W can take an optional
 // argument.
 
-// Find -- to terminate options.
+// Find -- or = to terminate options (must have spaces on both sides).
 
 // Alternatively:
 // while(s =~ /\s*(?:-([A-Za-z]))?([\'\"])?(\w+)\2/) {
@@ -37,7 +37,7 @@ OptionParser::OptionParser(const string& _s, const string& _options)
     bool newarg = true;     // looking for a new argument
     bool inq = false;       // in single quotes (')
     bool inqq = false;      // in double quotes (")
-    bool lookforopt = true; // haven't found a -- yet.
+    bool lookforopt = true; // haven't found a -- or = yet.
     bool needarg = false;   // need mandatory argument
     bool needoptarg = false;// need optional argument
     bool isoptchar = false; // this character is an option char
@@ -109,7 +109,7 @@ OptionParser::OptionParser(const string& _s, const string& _options)
                     }
                     isoptchar = false;
                 } else if(thisc == '-') {
-                    if(!(inq || inqq || numbs%2 == 1) && lookforopt) {
+                    if(!(inq || inqq || numbs%2 == 1) && (start == pos) && lookforopt) {
                         if(isoptchar) {
                             lookforopt = false; // found --
                             isoptchar = false;
@@ -118,6 +118,12 @@ OptionParser::OptionParser(const string& _s, const string& _options)
                             isoptchar = true; 
                             newarg = false;
                         } // next char is option char.
+                    }
+                } else if(thisc == '=') { // Terminates option processing.
+                    if(!(inq || inqq || numbs%2 == 1) && lookforopt) {
+                        start = pos;
+                        lookforopt = false;
+                        newarg = false;
                     }
                 } else { // thisc is a regular 'ol character.
                     if(newarg) {
