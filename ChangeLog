@@ -20,6 +20,7 @@
     BEGINNING of the command stack.  All other hook types insert commands at
     the END of the command stack.  (makes a;b;c, where a is an /alias not
     mess up the order of the commands)
+* Python is disabled by default, fixed python checks in configure.in.
 
 Dirt 0.60.0
 * Made file release on sourceforge.
