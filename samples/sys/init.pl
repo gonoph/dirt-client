@@ -4,8 +4,8 @@
 use Carp qw(carp cluck croak confess); # verbose warning/error messages.
 use IO::Handle;
 
-open(LOG, ">/tmp/dirtlog") || die "unable to open dirtlog\n";
-LOG->autoflush(1);
+#open(LOG, ">/tmp/dirtlog") || die "unable to open dirtlog\n";
+#LOG->autoflush(1);
 
 # Fallback to global installation
 push @INC, "$ENV{HOME}/.dirt", "/usr/local/lib/dirt", "/usr/lib/dirt";
