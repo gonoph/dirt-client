@@ -406,9 +406,139 @@ void Session::errorEncountered(int) {
     close();
 }
 
+void Session::terminalHandle(unsigned char ch)
+{
+#define ESC 0x1b
+#define CSI 0x9b
+  
+  switch (term_mode) {
+  case 0: 
+    {
+      if (ch=='\a') { ::write(STDOUT_FILENO, "\a", 1); break; }
+      if (ch==ESC) { term_mode = ESC; term_args = ""; break; }
+      if (ch==CSI) { term_mode = CSI; term_args = ""; break; }
+      if (ch == '\n') {
+        hook.run(OUTPUT, term_txt);
+        interpreter.execute(); // If triggers generated any new commands, execute them.
+	print(term_txt.c_str());
+        print("\n"); // We don't want to trigger on the \n
+	term_txt = "";
+      } else {
+          term_txt += ch;
+      }
+      break;
+    }
+  
+  case ESC:
+    if (ch=='[') { term_mode = CSI; term_args = ""; break; }
+    if (ch >= 48 && ch <= 126) { term_mode = 0; break; }
+    term_args += ch;
+    break;
+
+  case CSI:
+    if (ch=='m') {
+      term_args = "\033[" + term_args;
+      int ncolor = colorConverter.convert ((const byte *)term_args.c_str(), term_args.length());
+      if (ncolor > 0) {
+	term_txt += SET_COLOR;
+	term_txt += ncolor;
+      }
+      term_mode = 0;
+      break;
+    }
+
+    if (ch >= 64 && ch <= 126) { term_mode = 0; break; }
+    term_args += ch;
+    break;
+  }
+}
+
+void Session::telnetHandle(unsigned char byte)
+{
+  switch (telnet_mode) {
+    case 0:
+      if (byte==IAC) {
+	telnet_mode = IAC;
+	break;
+      }
+      terminalHandle(byte);
+      break;
+  case IAC:
+    if (byte==IAC) {
+      terminalHandle(byte);
+      telnet_mode = 0;
+      break;
+    }
+    if (byte==WILL || byte == DO || byte == WONT || byte == DONT || byte == SB || byte == SE) {
+      telnet_mode = byte;
+      break;
+    }
+    if (byte==GA || byte==EOR) {
+      hook.run(OUTPUT, (char*)prompt);
+      hook.run(PROMPT, (char*)prompt);
+      if(config->getOption(opt_snarf_prompt))
+        inputLine->set_prompt((char*)prompt);
+      if (config->getOption(opt_showprompt)) {
+        strcpy(out, "\n");
+        print(out_buf); // FIXME print one line.
+      }
+      term_txt = "";
+      telnet_mode = 0;
+      break;
+    }
+    telnet_mode = 0;
+    break;
+  case SB:
+    if (byte==TELOPT_TTYPE) {
+      telnet_mode = TELOPT_TTYPE;
+      telnet_args = "";
+      break;
+    }
+    telnet_mode = 0;
+    break;
+  case SE:
+    if (telnet_args.length()==1 && telnet_args[0]==1) {
+      char blah[40] = {IAC, SB, TELOPT_TTYPE, 'd', 'i', 'r', 't', IAC, SE };
+      /* TODO: encode version number */
+      write(blah, 9);
+    }
+    telnet_mode = 0;
+    break;
+  case TELOPT_TTYPE:
+    if (byte==IAC) {
+      telnet_mode = IAC;
+      break;
+    }
+    telnet_args += byte;
+    break;
+  case WILL:
+    if (byte==TELOPT_EOR) {
+      char blah[] = { IAC, DO, TELOPT_EOR };
+      write (blah, 3);
+      telnet_mode = 0;
+      break;
+    }
+    telnet_mode = 0;
+    break;
+  case WONT:
+    telnet_mode = 0;
+    break;
+  case DO:
+    if (byte==TELOPT_TTYPE) {
+      char b[] = { IAC, WILL, TELOPT_TTYPE };
+      write(b, 3);
+    }
+    telnet_mode = 0;
+    break;
+  case DONT:
+    telnet_mode = 0;
+    break;
+  }
+}
+
 // Data from the MUD has arrived
 void Session::inputReady() {
-    char    temp_buf[MAX_MUD_BUF];
+    char temp_buf[MAX_MUD_BUF];
     unsigned char *lastline = (unsigned char*)input_buffer; // points WRT input_buffer
     int     count;
     int     i;
@@ -419,7 +549,7 @@ void Session::inputReady() {
     stats.bytes_read += count;
     
     // Filter through mudcompress
-    mudcompress_receive(mcinfo, temp_buf, count);
+    mudcompress_receive(mcinfo, (char*)temp_buf, count);
     
     // Error?
     if (mudcompress_error(mcinfo)) {
@@ -444,7 +574,12 @@ void Session::inputReady() {
             chatServerSocket->handleSnooping((char*)(input_buffer+pos), count);
 
         /* Process the buffer */
+#if 1
         for (i = pos; i < count + pos; i++) {
+ 	  telnetHandle(input_buffer[i]);
+ 	}
+     }
+#else
             /* Lose patience of code does not terminate within 16 characters */
             if (code_pos >= 0 && i - code_pos > 16) code_pos = -1;
             
@@ -485,7 +620,8 @@ void Session::inputReady() {
                         i++;
                     else if (input_buffer[i] == IAC) {
                         goto real;
-                   }
+                    }
+
                 }
                 continue;
             }
@@ -499,7 +635,7 @@ void Session::inputReady() {
                 ::write(STDOUT_FILENO, "\a", 1); // use screen->flash() here?
             
             else if (code_pos == -1) { // not inside a color code, real text
-real:
+           real:
                 if (input_buffer[i] == '\n')  {
                     int len = out-line_begin;
                     int old_len = len;
@@ -582,6 +718,7 @@ real:
             }
         }
     } // end while
+#endif
 }
 
 void Session::show_timer() {
@@ -593,3 +730,16 @@ void Session::show_nsw() {
     statWindow = new StatWindow(*this);
 }
 
+// Called when the user hits enter.
+void Session::userInput(const char* str) {
+    if(config->getOption(opt_echoinput)) {
+        // Note that this doesn't go through the OUTPUT hook.
+        // the prompt already went through, and str should go through the
+        // USERINPUT and SEND hooks.
+        printf("%s %s\n", inputLine->get_prompt(), str);
+    }
+    if(config->getOption(opt_undelim_prompt)) {
+        pos = 0;
+        line_begin = out;
+    }
+}

@@ -25,6 +25,7 @@ friend bool writeMUDn(string& s);
     
     void show_nsw();						// Show the NSW
     void show_timer();						// Show the Timer Window
+    void userInput(const char* str);         // Used primarily for the echoinput option.
     
     state_t state;			// Are offline, connecting or connected?
     MUD& mud;
@@ -74,6 +75,14 @@ private:
     virtual void inputReady();
     virtual void errorEncountered(int);
 
+    int telnet_mode;
+    string telnet_args;
+    void telnetHandle(unsigned char byte);
+
+    int term_mode;
+    string term_args;
+    string term_txt;
+    void terminalHandle(unsigned char byte);
 };
 
 extern Session *currentSession;
