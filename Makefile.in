@@ -76,7 +76,7 @@ INC_FILES := $(wildcard h/*.h)
 
 .PHONY: all distclean clean tidy install
 
-all: .depend $(EXE) $(DEPS)
+all: .depend $(OBJ_DIR) $(EXE) $(DEPS)
 
 distclean: clean
 	$(RM) -f config.* Makefile VERSION dirt.spec h/config.h
@@ -94,6 +94,9 @@ tidy:
 
 tags:	$(SRC_FILES) $(INC_FILES)
 	$(CTAGS) $(SRC_FILES) $(INC_FILES)
+
+$(OBJ_DIR):
+	mkdir $(OBJ_DIR)
 
 # Link with $(CC) to avoid the c++ libs to be linked
 $(EXE): $(OBJ_FILES)
