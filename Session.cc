@@ -235,7 +235,7 @@ bool  NetworkStateWindow::keypress(int key) {
 		return false;
 }
 
-Session::Session(MUD& _mud, Window *_window, int _fd) : Socket(_fd), state(disconnected),mud(_mud), window(_window), pos(0),
+Session::Session(MUD& _mud, Window *_window, int _fd) : Socket(_fd), state(disconnected),mud(_mud), window(_window),
 nsw(NULL), timer(NULL),  statWindow(NULL), last_nsw_update(0)
 {
     input_buffer[0] = NUL;
@@ -407,11 +407,17 @@ void Session::errorEncountered(int) {
 
 // Data from the MUD has arrived
 void Session::inputReady() {
-    char    out_buf[MAX_MUD_BUF];
     char    temp_buf[MAX_MUD_BUF];
-    char   *out;
-    int     code_pos = 0;
-    char   *prompt_begin = NULL;   // Points WRT out
+    unsigned char   *lastline = (unsigned char*)input_buffer;
+    // These are used in processing the input.  In case of a partial line, they
+    // are static so they can be used when the rest of the line is received.
+    static int     pos=0;
+    static char    out_buf[MAX_MUD_BUF];
+    static char   *out;                   // points into out_buf
+    static char   *prompt_begin = NULL;   // Points WRT out
+    static int     code_pos = -1;         // indicates where inside an ANSI sequence we are.
+                                   // -1 indicates we're not inside an ansi
+                                   // sequence.
     
     int     count;
     int     i;
@@ -445,17 +451,8 @@ void Session::inputReady() {
         if (count > 0 && chatServerSocket)
             chatServerSocket->handleSnooping((char*)(input_buffer+pos), count);
 
-        prompt_begin = NULL;        // starts out as null
-        out = out_buf;              // starts out at beginning of buffer
-        
-        /* If we have data from last call, this means we got some incomplete ansi */
-        if (pos)
-            code_pos = 0;
-        else
-            code_pos = -1;
-        
         /* Process the buffer */
-        for (i = 0; i < count + pos; i++)
+        for (i = pos; i < count + pos; i++)
         {
             /* Lose patience of code does not terminate within 16 characters */
             if (code_pos >= 0 && i - code_pos > 16)
@@ -463,13 +460,11 @@ void Session::inputReady() {
             
             
             /* IAC: next character is a telnet command */
-            if (input_buffer[i] == IAC)
-            {
-                if (++i < count + pos)	/* just forget it if it appears at the end of a buffer */
-                {
+            if (input_buffer[i] == IAC) {
+                report("Found telnet IAC.\n");
+                if (++i < count + pos) {	/* just forget it if it appears at the end of a buffer */
                     /* spec: handle prompts that split across reads */
-                    if (input_buffer[i] == GA || input_buffer[i] == EOR) /* this is a prompt */
-                    {
+                    if (input_buffer[i] == GA || input_buffer[i] == EOR) { /* this is a prompt */
                         /* if we have a prompt_begin, that's the start of
                          * the prompt. If we don't, then the contents
                          * of the 'prompt' buffer, plus any output we
@@ -483,17 +478,12 @@ void Session::inputReady() {
                                 buf[len] = '\0';
                                 hook.run(PROMPT, buf);
                             }
-                        }
-                        else if (prompt_begin)
-                        {
+                        } else if (prompt_begin) {
                             set_prompt (prompt_begin + 1, out - prompt_begin - 1);
                             if (!config->getOption(opt_showprompt))
                                 out = prompt_begin + 1;
-                        }
-                        else
-                        {
-                            if (prompt[0] || out[0])
-                            {
+                        } else {
+                            if (prompt[0] || out[0]) {
                                 unsigned char   *temp = prompt + strlen ((char*)prompt);
                                 
                                 *out = NUL;
@@ -514,8 +504,7 @@ void Session::inputReady() {
                         prompt_begin = out;         // Mark current position as start of prompt
                     }
                     // React to IAC WILL EOR and send back IAC DO EOR
-                    else if (input_buffer[i] == WILL && (i+1) < count+pos && input_buffer[i+1] == TELOPT_EOR)
-                    {
+                    else if (input_buffer[i] == WILL && (i+1) < count+pos && input_buffer[i+1] == TELOPT_EOR) {
                         i++;
                         
                         // FIXME use telnet.h defines here
@@ -539,43 +528,45 @@ void Session::inputReady() {
             
             else if (code_pos == -1) { // not inside a color code, real text
                 if (input_buffer[i] == '\n')  {
-//report("Before calling triggerCheck(1, %c): %s", *prompt_begin, out_buf);
-                    // Do regexp trigger magic
-                    bool cancel_line = triggerCheck(prompt_begin ? prompt_begin+1 : (char*) out_buf,
-                                                    prompt_begin ? out-prompt_begin-1: out-out_buf, &out);
-//report("After calling triggerCheck(1, %c): %s", *prompt_begin, out_buf);
+                    int len = prompt_begin ? out-prompt_begin-1: out-out_buf;
+                    int old_len = len;
+                    char* line = prompt_begin ? prompt_begin +1 : (char*) out_buf;
+                    
+                    line[len] = NUL;                 // This should replace a \n with a \0
+                    hook.run(OUTPUT, line);
+                    out = line + strlen(line);
+                    len = strlen(line);
+                    interpreter.execute(); // If triggers generated any new commands, execute them.
+
                     prompt_begin = out;
                     *out='\0';      // Make sure it's null terminated
-                    if (cancel_line) {
-                     // We just gagged that line, so the \n which otherwise would be the beginning of the prompt
-                        // is eaten up.
+                    
+                    // if we had a >0 char line and now have 0 line.. the line
+                    // shouldn't be shown at all.
+                    if (old_len > 0 && len == 0) {
                         if (out > out_buf)
                             prompt_begin = out-1;
                         else
                             prompt_begin = NULL;
                         continue;
-//break; // one line at a time.
-                    } else { 
+                    } else {
                         out[0] = '\n';
                         out[1] = '\0';
                         print(out_buf); // FIXME print one line.
-//                        print("\n");
                         prompt_begin=NULL;
                     }
                     out = out_buf;  // reset pointer -- use this buffer over.
-                } else
-                if (input_buffer[i] != '\r')	/* discard those */
+                    lastline = input_buffer + i+1;
+                } else if (input_buffer[i] != '\r')	/* discard those */
                     *out++ = input_buffer[i];	/* Add to output buffer */
             }
             
             /* Check if the code should terminate here */
-            if (code_pos >= 0 && isalpha (input_buffer[i]))
-            {
+            if (code_pos >= 0 && isalpha (input_buffer[i])) {
                 int     color;
                 
                 /* Conver this color code to internal representation */
-                if ((color = colorConverter.convert (input_buffer + code_pos, i - code_pos + 1)) > 0)
-                {
+                if ((color = colorConverter.convert (input_buffer + code_pos, i - code_pos + 1)) > 0) {
                     *out++ = SET_COLOR;
                     *out++ = color;
                 }
@@ -591,43 +582,18 @@ void Session::inputReady() {
         
         *out = NUL;
 
-        // Run triggers on incompletely received lines
-//report("Before calling triggerCheck(2): %s", out_buf);
-//        if(prompt_begin && out-prompt_begin-1 < 0)
-//            report("triggerCheck: is this a prompt: '%s'(%d)\n", out+(out-prompt_begin-1), prompt_begin-out_buf);
-        bool cancel_line = triggerCheck(prompt_begin ? prompt_begin+1 : (char*) out_buf,
-                                        prompt_begin ? out-prompt_begin-1: out-out_buf, &out);
-//report("After calling triggerCheck(2): %s", out_buf);
-        prompt_begin = out;
-        *out = '\0';
-        if (cancel_line) {
-//report("Line was cancelled.");
-            // We just gagged that line, so the \n which otherwise would be the beginning of the prompt
-            // is eaten up.
-            if (out > out_buf) {
-                prompt_begin = out-1;
-//report("prompt_begin is out-1");
-            } else {
-                prompt_begin = NULL;
-//report("prompt_begin is NULL");
-            }
-        } else print (out_buf);
-        out = out_buf;
-        
         /* Do we have some leftover data, an incomplete ANSI sequence? */
-        if (code_pos >= 0)
-        {
-            /* Copy so that the buffer is at the beginning of that code */
-            memcpy (input_buffer, input_buffer + code_pos, count + pos - code_pos);
-            
-            /* Next incoming data will be put there */
-            pos = count + pos - code_pos;
-        }
-        else
+        if(lastline != input_buffer + i) {
+            pos = count+pos-(lastline-(unsigned char*)input_buffer);
+            memcpy(input_buffer, lastline, pos);
+            input_buffer[pos] = '\0';
+        } else {
             pos = 0;
-        
-        
-        
+            if(code_pos != -1) {
+                report_err("We have code_pos but buffer terminates on line-end!\n");
+            }
+        }
+
         /* spec: fix up partial lines for subsequent prompts */
         if (prompt_begin)
             strcpy ((char*)prompt, prompt_begin);
@@ -635,6 +601,7 @@ void Session::inputReady() {
             // guard against too long lines
             strcat((char*)prompt, out_buf);
         }
+        input_buffer[pos] = '\0';
 
 
     } // end while
@@ -669,30 +636,5 @@ bool Session::expand_macros(int key) {
     }
     
     return false;
-}
-
-// Check triggers
-// Also do replacement: if replacing, adjust *out
-bool Session::triggerCheck (char *line, int len, char **new_out) {
-    int old_len = len;
-    
-    // Len can be -1 if all we get is a \nprompt or such
-    if ( len < 0) {
-        report("triggerCheck returning immediately because len < 0\n");
-        return false;
-    }
-    
-    line[len] = NUL;                 // This should replace a \n with a \0
-    hook.run(OUTPUT, line);
-    *new_out = line + strlen(line);
-    len = strlen(line);
-    interpreter.execute(); // If triggers generated any new commands, execute them.
-    
-    // if we had a >0 char line and now have 0 line.. signal back that
-    // the line shouldn't be shown at all
-    if (old_len > 0 && len == 0)
-        return true;
-    else
-        return false;
 }
 

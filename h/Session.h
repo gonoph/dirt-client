@@ -37,7 +37,6 @@ private:
     
     // and this one, partial lines (for prompts) 
     unsigned char prompt[MAX_MUD_BUF];
-    int pos;
     
     NetworkStateWindow *nsw;	// if non-NULL, we display stats there when idle'ing
     TimerWindow *timer;			// Timer window
@@ -61,7 +60,6 @@ private:
     void print(const char *s);				// Write to our output/log
 
     void set_prompt (const char *s, int len);
-    bool triggerCheck (char *line, int len, char **out);
     void establishConnection(bool quick_restore); // run on connect, qr = true if 'hot' boot
     int  convert_color (const unsigned char *s, int size);
 

@@ -10,6 +10,10 @@
 * Fixed escaping in regexes.
 * Wrote doc/Escaping to describe how it works.
 * Renamed samples/ -> scripts/
+* Fixed bug in OptionParser when an argument had an-embedded-dash.
+* OptionParser now uses = as well as -- to terminate option processing.
+* We no longer trigger on incompletely received lines.  We gotta get a \n before
+    we try to trigger on it.
 
 Dirt 0.60.0
 * Made file release on sourceforge.
