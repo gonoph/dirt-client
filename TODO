@@ -84,7 +84,11 @@ Should Window::focused be static?
 Aliases don't work at all...
 xterm doesn't send alt- key sequences properly...
 /gag -Ft'^\\s*$' blankline
-    doesn't work...
+    doesn't work...because the string to be matched is "", and when it is gagged it is
+    replaced with "" -- and dirt detects that they are the same.  Need another way to do
+    gagging since "" is a valid mud output line.  (after crlf stripped -- maybe leave in
+    crlf for triggers?)
+    See Session.cc:693 (Session::triggerCheck)
 Try to initiate a ytalk with the dirt terminal...hang? no...just fucks up the screen.
     Turn mesg n on dirt startup...
 Make a perl class to do a scrollable text box (/help) and one to do a selection 
@@ -100,6 +104,16 @@ Focus mechanism:
         help should trap up/dn to prevent history from popping up.
 Option to use favorite language for /echo?  (i.e. /echo -> /eval print
     "<args>\n" so variable expansions work)
+Triggers seem to randomly fail: run between wayhaven and road portal a bunch of times 
+    (followers not gagged):
+    .15e;leave;.3ejjnjj3e;/save -a hookfail.txt
+    .3wkkskk3w;enter;.15w;/save -a hookfail.txt
+    Can't seem to reproduce this with some debugging on.  I wonder if this is some kind of 
+    race condition?
+    Could highlight be run first, adding ansi and making gag match fail?  (not stripping ansi properly?)
+    Seems to be because of incompletely received lines:
+        @ Hook::run hook highlighter modified (colored) data: 'Beetle follows Zathras into th' -> 'Beetle follos ESC[0;41;37mZathrasESC[0m into th'
+    but why is the line printed correctly at the end?
 
 
 Hook:
