@@ -1,6 +1,8 @@
 #ifndef DIRT_LABEL_H
 #define DIRT_LABEL_H
 
+#include "String.h"
+#include "Color.h"
 
 // A label is just a window displaying a text
 

@@ -2,9 +2,12 @@
 #define DIRT_INPUTLINE_H
 
 #include "Window.h"
+#include "defs.h"
+#include <vector>
+
 
 #define MAX_PROMPT_BUF 80
-
+extern time_t current_time;
 
 // History ids
 typedef enum {hi_none=0, hi_generic, hi_main_input, hi_open_mud, hi_search_scrollback} history_id;

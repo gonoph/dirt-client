@@ -1,7 +1,8 @@
+#include "MUD.h"
+#include "StaticBuffer.h"
 
 #include <string.h>
 #include <time.h>
-#include "dirt.h"
 
 // Class for handling a MUD
 MUD::MUD (const char *_name, const char *_hostname, int _port, MUD *_inherits, const char *_commands) {

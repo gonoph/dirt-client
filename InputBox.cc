@@ -2,8 +2,10 @@
 // Simple dialog box which prompts you about something
 // It centers itself on its parent
 
-#include "dirt.h"
 #include "InputBox.h"
+#include "InputLine.h"
+#include "TTY.h"
+#include "Color.h"
 
 class InputBoxedLine : public InputLine
 {

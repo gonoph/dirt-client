@@ -1,7 +1,8 @@
 #ifndef DIRT_STRING_H
 #define DIRT_STRING_H
 
-
+#include "defs.h"
+#include "cstring"
 // Really simple shared string class
 
 class String {

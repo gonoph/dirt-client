@@ -1,10 +1,12 @@
-#include "dirt.h"
 #include "Window.h"
 #include "ProxyWindow.h"
 #include "Numbered.h"
 #include "MessageBox.h"
 #include "Curses.h"
 #include "Screen.h"
+#include "Config.h"
+#include "Color.h"
+#include "misc.h"
 
 #include <stdarg.h>
 #include <deque>

@@ -1,6 +1,7 @@
 #ifndef DIRT_PIPE_H
 #define DIRT_PIPE_H
 
+#include "Selectable.h"
 
 // Wrapper for pipe()
 class Pipe : public Selectable {

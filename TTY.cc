@@ -1,12 +1,17 @@
-#include "dirt.h"
+#include "misc.h"
 #include "TTY.h"
 #include "Curses.h"
 #include "Screen.h"
+#include "EmbeddedInterpreter.h"
 #include "Hook.h"
 
 #include <termios.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <cerrno>
+
+extern time_t current_time;
+
 
 void TTY::suspend() {
 	set_normal();

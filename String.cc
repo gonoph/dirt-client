@@ -1,8 +1,8 @@
-#include "defs.h"
+#include "String.h"
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#include "String.h"
 
 int String::printf(const char *fmt, ...) {
     char buf[4096];

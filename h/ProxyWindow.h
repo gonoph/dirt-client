@@ -1,6 +1,8 @@
 #ifndef DIRT_PROXYWINDOW_H
 #define DIRT_PROXYWINDOW_H
 
+#include "Window.h"
+#include "String.h"
 
 // A ProxyWindow forwards most requests to it to its child
 // Used for a Border

@@ -8,6 +8,8 @@
 
 #include <deque>
 #include <list>
+#include <string>
+
 typedef unsigned short int attrib;
 
 enum {wh_half = -5000, wh_full = -5001}; // this sucks, plain and simple

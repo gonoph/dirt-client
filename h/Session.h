@@ -2,6 +2,7 @@
 #define DIRT_SESSION_H
 
 #include "mccpDecompress.h"
+#include "misc.h"
 #include "Socket.h"
 
 typedef enum {disconnected, connecting, connected} state_t;

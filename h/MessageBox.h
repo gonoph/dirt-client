@@ -1,6 +1,8 @@
 #ifndef DIRT_MESSAGEBOX_H
 #define DIRT_MESSAGEBOX_H
 
+#include "Window.h"
+#include "String.h"
 
 // The message box displays a message and either
 // 1) Disappears and dies after N seconds
@@ -10,7 +12,7 @@
 // method
 
 
-
+extern time_t current_time;
 #define CENTER "\001"
 
 class MessageBox : public Window

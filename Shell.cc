@@ -1,11 +1,13 @@
-#include "dirt.h"
 #include "Shell.h"
 
 #include <sys/wait.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <cerrno>
+#include <cstdio>
 
+extern time_t current_time;
 
 void Shell::killProcess() {
     if (fd > 0) {

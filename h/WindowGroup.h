@@ -3,6 +3,7 @@
 
 #include "Window.h"
 class InputLine;
+class MUD;
 
 enum val_type {val_quit, val_ok}; // Cancel or OK?
 

@@ -1,8 +1,12 @@
-#include "dirt.h"
 #include "Selection.h"
 #include "Interpreter.h"
 #include "InputLine.h"
 #include "StatusLine.h"
+#include "StaticBuffer.h"
+#include "TTY.h"
+#include "MUD.h"
+#include "Config.h"
+#include "Color.h"
 
 
 Selection::Selection(Window *_parent, int _w, int _h, int _x, int _y)
@@ -165,7 +169,10 @@ void Selection::setCount(int no) {
 void MUDSelection::doChoose(int no, int) {
     MUD *m = (*config->mud_list)[no];
     if (m)
-        interpreter.add(Sprintf("%copen %s", CMDCHAR, m->getName()));
+    {
+	int CmdChar = config->getOption(opt_commandcharacter);
+        interpreter.add(Sprintf("%copen %s", CmdChar, m->getName()));
+    }
     die();
 }
 

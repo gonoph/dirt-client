@@ -1,6 +1,9 @@
 #ifndef DIRT_PLUGIN_H
 #define DIRT_PLUGIN_H
 
+class EmbeddedInterpreter;
+#include <vector>
+
 class Plugin {
 public:
     typedef const char* InitFunction(const char*);

@@ -2,6 +2,9 @@
 #define __CONFIG_H
 
 #include "Hook.h"
+#include "String.h"
+#include <string>
+#include <cstdio>
 
 #define INPUT_SIZE 512
 
@@ -54,9 +57,10 @@ typedef enum {
 } option_t;
 
 class MUDSelection;
+class MUD;
+class MUDList;
 
-// FIXME why is this extern?
-extern class Config {
+class Config {
     public:
     
     Config(const char *fname);
@@ -96,6 +100,8 @@ extern class Config {
 	
     time_t save_time;					// When was .dirtrc last modifed?
 
-} *config;
+};
+
+extern Config* config;
 
 #endif

@@ -1,6 +1,6 @@
-#include "dirt.h"
 #include "Session.h"
 #include "Screen.h"
+#include "Config.h"
 #include "Hotkey.h"
 #include "Pipe.h"
 #include "Interpreter.h"
@@ -13,11 +13,15 @@
 #include "Plugin.h"
 #include "Chat.h"
 #include "Hook.h"
+#include "TTY.h"
+#include "MUD.h"
+#include "StaticBuffer.h"
 
 #include <signal.h>
 #include <unistd.h>
 
 // Some globals
+#define CLEAR_SCREEN "\ec\e[0;0m\e[H\e[J"
 
 Config *config;	 // Global configuration FIXME why is this a pointer, and an extern class?
 time_t current_time;

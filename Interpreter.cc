@@ -1,8 +1,9 @@
 // a class to keep a list of commands and execute them one at a time
 
-#include "dirt.h"
 #include "Interpreter.h"
+#include "EmbeddedInterpreter.h"
 #include "Option.h"
+#include "Config.h"
 #include "MessageWindow.h"
 #include "OutputWindow.h"
 #include "Shell.h"
@@ -12,9 +13,12 @@
 #include "MUD.h"
 #include "Hook.h"
 #include "StatusLine.h"
+#include "StaticBuffer.h"
 #include "InputLine.h"
 
 extern MUD *lastMud;
+extern bool dirtFinished;
+
 
 // Pick off one argument, optionally smashing case and place it in buf
 // Eat whitespace, respect "" and ''
@@ -63,7 +67,8 @@ bool Interpreter::command_echo(string& str, void*, savedmatch*) {
     if(opt.gotOpt('W')) {
         MessageWindow* w = MessageWindow::find(opt['W'].c_str());
         if (!w) {
-            status->setf("%cprint: %s: no such window", CMDCHAR, opt['W'].c_str());
+	    int CmdChar = config->getOption(opt_commandcharacter);
+            status->setf("%cprint: %s: no such window", CmdChar, opt['W'].c_str());
             return true;
         }
         w->addInput(s.c_str());
@@ -78,7 +83,8 @@ bool Interpreter::command_status(string& str, void*, savedmatch*) {
     else {
         MessageWindow* mw = MessageWindow::find(opt['W']);
         if(!mw) { 
-            report_err("%cstatus: unable to find window '%s'\n", CMDCHAR, opt['W'].c_str()); 
+           int CmdChar = config->getOption(opt_commandcharacter);
+	   report_err("%cstatus: unable to find window '%s'\n", CmdChar, opt['W'].c_str()); 
             return true;
         }
         mw->set_bottom_message(opt.restStr().c_str());
@@ -104,18 +110,19 @@ bool Interpreter::command_exec(string& str, void*, savedmatch*) {
     if(opt.gotOpt('t')) t = atoi(opt['t'].c_str());
             
     // Do some sanity checking
+    int CmdChar = config->getOption(opt_commandcharacter);
     if (h < 3)
-        status->setf("%cexec: Value h=%d too low.", CMDCHAR, h);
+        status->setf("%cexec: Value h=%d too low.", CmdChar, h);
     else if (w < 3)
-        status->setf("%cexec: Value w=%d too low.", CMDCHAR, w);
+        status->setf("%cexec: Value w=%d too low.", CmdChar, w);
     else if (x < 0)
-        status->setf("%cexec: Value x=%d too low.", CMDCHAR, x);
+        status->setf("%cexec: Value x=%d too low.", CmdChar, x);
     else if (y < 0)
-        status->setf("%cexec: Value y=%d too low.", CMDCHAR, y);
+        status->setf("%cexec: Value y=%d too low.", CmdChar, y);
     else if (w+x > screen->width)
-        status->setf("%cexec: Value w=%d or x=%d too large.  Window would extend beyond screen.", CMDCHAR, w, x);
+        status->setf("%cexec: Value w=%d or x=%d too large.  Window would extend beyond screen.", CmdChar, w, x);
     else if (y+h > screen->height)
-        status->setf("%cexec: Value y=%d or h=%d too large.  Window would extend beyond screen.", CMDCHAR, y, h);
+        status->setf("%cexec: Value y=%d or h=%d too large.  Window would extend beyond screen.", CmdChar, y, h);
     else
         new Shell(screen, opt.restStr().c_str(), w,h,x,y,t);
     return true; 
@@ -134,8 +141,10 @@ bool Interpreter::command_clear(string& str, void*, savedmatch*) {
     }
     else {
         MessageWindow *w = MessageWindow::find(name);
-        if (!w)
-            status->setf("%cclear: %s: no such window", CMDCHAR, name.c_str());
+        if (!w) {
+	    int CmdChar = config->getOption(opt_commandcharacter);
+            status->setf("%cclear: %s: no such window", CmdChar, name.c_str());
+	}
         else {
             w->clear();
             w->gotoxy(0,0);
@@ -169,11 +178,13 @@ bool Interpreter::command_open(string& str, void*, savedmatch*) {
     OptionParser opt(str, "");
     if(!opt.valid()) return true;
     string name = opt.arg(1);
-    if(opt.argc() < 1) status->setf ("%copen: open a connection to where?", CMDCHAR);
+    int CmdChar = config->getOption(opt_commandcharacter);
+
+    if(opt.argc() < 1) status->setf ("%copen: open a connection to where?", CmdChar);
 
     if (currentSession && currentSession->state != disconnected)
         status->setf ("You are connected to %s, use %cclose first", 
-                currentSession->mud.getName(), CMDCHAR);
+                currentSession->mud.getName(), CmdChar);
     else
     {
         MUD *mud;

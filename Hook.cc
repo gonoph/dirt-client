@@ -8,10 +8,13 @@
  * registered as an 'output hook' will get called once for each line of output.
  */
 
-#include "dirt.h"
 #include "Hook.h"
+#include "misc.h"
+#include "TTY.h"
 #include "Interpreter.h"
+#include "EmbeddedInterpreter.h"
 #include "Option.h"
+#include "Config.h"
 #include "MessageWindow.h"
 #include "InputLine.h"
 
@@ -70,12 +73,13 @@ bool Hook::command_hook(string& s, void* mt, savedmatch*) {
 
     HookType type;
     if(opt.gotOpt('T')) {
+	int CmdChar = config->getOption(opt_commandcharacter);
         if(mythis->types.find(opt['T']) == mythis->types.end()) {
-            report_err("%chook: unknown type: %s\n", CMDCHAR, opt['T'].c_str());
+            report_err("%chook: unknown type: %s\n", CmdChar, opt['T'].c_str());
             return true;
         } else type = mythis->types[opt['T']];
         if(opt.gotOpt('k') && type != KEYPRESS) {
-            report_err("%chook: -k doesn't make sense with -T %s\n", CMDCHAR, opt['T'].c_str());
+            report_err("%chook: -k doesn't make sense with -T %s\n", CmdChar, opt['T'].c_str());
             return true;
         }
     } else {
@@ -84,7 +88,8 @@ bool Hook::command_hook(string& s, void* mt, savedmatch*) {
         else if(opt.gotOpt('t')) type = OUTPUT;
         else type = SEND;
     }
-
+    
+    int CmdChar = config->getOption(opt_commandcharacter);
     if(opt.gotOpt('l')) {
         if(opt.argc() < 2) { // 2 args means there's no = and no definition.
             bool showbuiltin = opt.gotOpt('i');
@@ -129,9 +134,9 @@ bool Hook::command_hook(string& s, void* mt, savedmatch*) {
             return true;
         }
     } else if(opt.gotOpt('t') && opt.gotOpt('C')) { // Trigger regex
-        report_err("%chook: Options -t and -C are mutually exclusive.", CMDCHAR);
+        report_err("%chook: Options -t and -C are mutually exclusive.", CmdChar);
     } else if(opt.gotOpt('t') && type == COMMAND) {
-        report_err("%chook: -t option is incompatible with COMMAND type hook.", CMDCHAR);
+        report_err("%chook: -t option is incompatible with COMMAND type hook.", CmdChar);
     } else if(opt.gotOpt('t')) {
         trigstr = opt['t'];
     } else if(opt.gotOpt('C')) {
@@ -151,7 +156,7 @@ bool Hook::command_hook(string& s, void* mt, savedmatch*) {
             mythis->add_type(opt['N']);
 //            report("%chook: Added new hook type %s", CMDCHAR, opt['N'].c_str());
         } else {
-            report_err("%chook: Hook type %s already defined!\n", CMDCHAR, opt['N'].c_str());
+            report_err("%chook: Hook type %s already defined!\n", CmdChar, opt['N'].c_str());
         }
         return true;
     } else if(opt.gotOpt('d')) {
@@ -159,14 +164,14 @@ bool Hook::command_hook(string& s, void* mt, savedmatch*) {
             mythis->remove(opt['d']);
 //            report("Removed hook %s.\n", opt['d'].c_str());
         } else {
-            report_err("%chook: Hook %s is not defined.\n", CMDCHAR, opt['d'].c_str());
+            report_err("%chook: Hook %s is not defined.\n", CmdChar, opt['d'].c_str());
         }
         return true;
     } else { // This is a definition, -t was not specified, assume empty regex.
         trigstr = "";
     }
     if(opt.argc() < 4) {
-        report_err("%chook: Not enough arguments in command:",CMDCHAR);
+        report_err("%chook: Not enough arguments in command:",CmdChar);
         report_err("\t%s", s.c_str());
         return true;
     }
@@ -177,13 +182,13 @@ bool Hook::command_hook(string& s, void* mt, savedmatch*) {
         action = opt.restStr();
         size_t eqpos     = action.find("=");
         if(equals.compare("=") != 0 && eqpos != string::npos) {
-            report_err("%chook: invalid syntax (equal sign not found) in command:\n", CMDCHAR);
+            report_err("%chook: invalid syntax (equal sign not found) in command:\n", CmdChar);
             report_err("\t%s", s.c_str());
             return true;
         }
         size_t actpos = action.find_first_not_of(" \t\n", eqpos+1);
         if(actpos == string::npos) {
-            report_err("%chook: Unable to find action!\n", CMDCHAR);
+            report_err("%chook: Unable to find action!\n", CmdChar);
             return true;
         }
         action = action.substr(actpos, action.length()-actpos);
@@ -198,7 +203,7 @@ bool Hook::command_hook(string& s, void* mt, savedmatch*) {
             groups, trigstr, action);
     }
     if(stub == NULL) {
-        report_err("%chook: 'new' failed to create new HookStub for hook '%s'!\n", CMDCHAR, name.c_str());
+        report_err("%chook: 'new' failed to create new HookStub for hook '%s'!\n", CmdChar, name.c_str());
     } else {
         hook.add(type, stub);
     }
@@ -213,7 +218,8 @@ bool Hook::command_disable(string& s, void* mt, savedmatch*) {
 
     if(!opt.valid()) return true;
     if(opt.argc() < 2) {
-        report("%cdisable: need the name of a hook to disable\n", CMDCHAR);
+        int CmdChar = config->getOption(opt_commandcharacter);
+	report("%cdisable: need the name of a hook to disable\n", CmdChar);
         return true;
     }
     if(opt.gotOpt('g')) for(int i=1;i<opt.argc();i++) mythis->disableGroup(opt.arg(i));
@@ -249,6 +255,7 @@ bool Hook::command_enable(string& s, void* mt, savedmatch*) {
 bool Hook::command_group(string& s, void* mt, savedmatch*) {
     Hook* mythis = (Hook*)mt;
     OptionParser opt(s, "l:");
+    int CmdChar = config->getOption(opt_commandcharacter);
 
     if(!opt.valid()) return true;
     if(opt.gotOpt('l')) {
@@ -266,7 +273,7 @@ bool Hook::command_group(string& s, void* mt, savedmatch*) {
                 }
             }
         } else {
-            report_err("%cgroup:'%s' is not a known group name!\n", CMDCHAR, opt['l'].c_str());
+            report_err("%cgroup:'%s' is not a known group name!\n", CmdChar, opt['l'].c_str());
         }
     } else if(opt.argc() < 2) {
         report("/group: The following groups are defined:\n");
@@ -283,9 +290,9 @@ bool Hook::command_group(string& s, void* mt, savedmatch*) {
                 }
                 groups += mythis->hooknames[hookname]->groups[i];
             }
-            report("%cgroup: Hook %s is a member of the following groups: %s\n", CMDCHAR, hookname.c_str(), groups.c_str());
+            report("%cgroup: Hook %s is a member of the following groups: %s\n", CmdChar, hookname.c_str(), groups.c_str());
         } else {
-            report("%cgroup: '%s' is not a known hook!\n", CMDCHAR, hookname.c_str());
+            report("%cgroup: '%s' is not a known hook!\n", CmdChar, hookname.c_str());
         }
     }
     return true;

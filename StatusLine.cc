@@ -1,10 +1,12 @@
 // Implementation of a status line
 
-#include "dirt.h"
 #include "StatusLine.h"
+#include "Config.h"
+
 #include <stdarg.h>
 
 #define STATUSLINE_TIMEOUT 5
+extern time_t current_time;
 
 
 StatusLine::StatusLine(Window *_parent)

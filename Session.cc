@@ -1,11 +1,16 @@
 // Sesssion.cc
 // This defines a Session structure which communicates with a MUD
 
-#include "dirt.h"
 #include "Session.h"
 #include "Screen.h"
+#include "Config.h"
+#include "StaticBuffer.h"
 #include "Interpreter.h"
+#include "EmbeddedInterpreter.h"
 #include "Curses.h"
+#include "Color.h"
+#include "MUD.h"
+#include "TTY.h"
 #include "Chat.h"
 #include "Hook.h"
 #include "StatusLine.h"

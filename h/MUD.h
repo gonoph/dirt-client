@@ -1,7 +1,10 @@
 #ifndef DIRT_MUD_H
 #define DIRT_MUD_H
 
-#include <dirt.h>
+#include "dirt.h"
+#include "List.h"
+
+#include <cstdio>
 
 class MUD {
 public:

@@ -4,6 +4,7 @@
 #include "Window.h"
 #include "Selectable.h"
 #include "Numbered.h"
+#include "String.h"
 
 
 // A shell is a Window that is executing some program and showing the results

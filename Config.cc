@@ -1,11 +1,16 @@
-#include "dirt.h"
-#include "Plugin.h"
+#include "Config.h"
+#include "misc.h"
+#include "Color.h"
 #include "Interpreter.h"
-#include "Hook.h"
+#include "MUD.h"
 #include "StatusLine.h"
+#include "StaticBuffer.h"
 
 #include <sys/stat.h>
 #include <unistd.h>
+#include <cerrno>
+
+extern time_t current_time;
 
 // This table contain names of all options, corresponding switch names
 // and the variable that is to be set when the option is given

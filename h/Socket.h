@@ -2,6 +2,8 @@
 #ifndef DIRT_SOCKET_H
 #define DIRT_SOCKET_H
 
+#include "Selectable.h"
+#include "Buffer.h"
 #include <netinet/in.h>
 
 class Socket : public Selectable {

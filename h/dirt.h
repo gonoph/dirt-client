@@ -5,17 +5,6 @@
 #include <defs.h>
 #include <config.h>
 
-// System includes
-#include <stdlib.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <string.h>
-#include <ctype.h>
-#include <string.h>
-#include <stdio.h>
-#include <errno.h>
-#include <assert.h>
-
 // C++ includes
 #include <string>
 #if HAVE_HASH_MAP && !HAVE_EXT_HASH_MAP
@@ -28,9 +17,6 @@ using namespace std;
 #ifdef __GNUC__
 //using namespace __gnu_cxx;
 #endif
-
-extern time_t current_time;
-extern char* tmpbuf;  // temporary buffer for everyone's use.
 
 // Define to 1) print all allocs to stderr
 // 2) put a magic marker before and after all memory allocated
@@ -59,29 +45,4 @@ public:
 }
 //#endif
 
-// Ought to split it up
-#include "Color.h"
-#include "List.h"
-#include "Selectable.h"
-#include "String.h"
-#include "MUD.h"
-#include "Config.h"
-#include "Buffer.h"
-#include "TTY.h"
-#include "misc.h"
-#include "global.h"
-#include "EmbeddedInterpreter.h"
-#include "StaticBuffer.h"
-
-extern EmbeddedInterpreter *embed_interp;
-extern const char *szDefaultPrompt;
-extern bool dirtFinished;
-
-#define CMDCHAR config->getOption(opt_commandcharacter)
-
-// Search for stuff there
-#define DIRT_LOCAL_LIBRARY_PATH "/usr/local/lib/dirt"
-#define DIRT_LIBRARY_PATH "/usr/lib/dirt"
-
-#define CLEAR_SCREEN "\ec\e[0;0m\e[H\e[J"
 #endif

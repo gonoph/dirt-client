@@ -1,6 +1,7 @@
 #include "dirt.h"
 #include "Hotkey.h"
 #include "InputBox.h"
+#include "TTY.h"
 #include "ScrollbackSearch.h"
 #include "Interpreter.h"
 #include "Session.h"
@@ -9,6 +10,7 @@
 #include "StatusLine.h"
 
 Hotkey *hotkey;
+extern bool dirtFinished;
 
 bool Hotkey::keypress (int key)
 {

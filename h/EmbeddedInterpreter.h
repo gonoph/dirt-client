@@ -42,6 +42,8 @@ protected:
 
 };
 
+extern EmbeddedInterpreter *embed_interp;
+
 class StackedInterpreter : public EmbeddedInterpreter {
 public:
     StackedInterpreter(EmbeddedInterpreter *i1, EmbeddedInterpreter *i2);

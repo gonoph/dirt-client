@@ -1,3 +1,8 @@
+#include "misc.h"
+#include "Socket.h"
+#include "Config.h"
+#include "StaticBuffer.h"
+
 #include <ctype.h>
 #include <netdb.h>
 #include <fcntl.h>
@@ -10,8 +15,6 @@
 #include <sys/types.h>
 #include <arpa/telnet.h>
 #include <sys/uio.h>
-#include "dirt.h"
-#include "Socket.h"
 
 Socket::Socket(int _fd, struct sockaddr_in *_remote) {
     if (_fd == -1) {

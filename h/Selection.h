@@ -2,6 +2,7 @@
 #define DIRT_SELECTION_H
 
 #include "Window.h"
+#include "List.h"
 
 typedef void SelectionCallback (void *data, const char *s, int n);
 

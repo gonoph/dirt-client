@@ -3,6 +3,7 @@
 
 #include "Window.h"
 #include "Numbered.h"
+#include "Hook.h"
 #include <string>
 
 // This is a small derivative of Window that is numbered and

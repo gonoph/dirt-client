@@ -1,7 +1,8 @@
-
-#include "dirt.h"
-#include "stdlib.h"
 #include "Option.h"
+#include "misc.h"
+
+#include <cstdlib>
+
 
 //#ifndef report
 //#define report printf

@@ -1,12 +1,16 @@
 // The input line
-#include "dirt.h"
 #include "InputLine.h"
-#include "Hook.h"
+#include "misc.h"
+#include "TTY.h"
 #include "Interpreter.h"
+#include "EmbeddedInterpreter.h"
 #include "Screen.h"
+#include "Config.h"
+#include "Color.h"
 #include "Selection.h"
 #include "OutputWindow.h"
 #include "StatusLine.h"
+#include "StaticBuffer.h"
 #include "MessageBox.h"
 
 #include <sys/stat.h>

@@ -2,19 +2,22 @@
 // can be written to and created by the user and can also dump output
 // coming into it to the log file
 
-#include "dirt.h"
 #include "MessageWindow.h"
 #include "Option.h"
+#include "Config.h"
 #include "Interpreter.h"
 #include "Shell.h"
 #include "Chat.h"
 #include "Session.h"
+#include "Color.h"
 #include "MUD.h"
 #include "Hook.h"
 #include "Screen.h"
 #include "StatusLine.h"
 
 #include <vector>
+
+extern time_t current_time;
 
 
 // Does this duplicate the Window::prev and Window::next pointers?
@@ -108,6 +111,7 @@ bool MessageWindow::command_window(string& str, void*, savedmatch*) {
     
     int min_h = noborder?1:3;
     MessageWindow *mw;
+    int CmdChar = config->getOption(opt_commandcharacter);
 
     if(opt.gotOpt('l')) {
         report("Windows in existence:\n");
@@ -118,7 +122,7 @@ bool MessageWindow::command_window(string& str, void*, savedmatch*) {
     }
     if(opt.gotOpt('s')) {
         if (!(mw = MessageWindow::find(name)))
-            status->setf ("%cwindow -s: No such window: %s", CMDCHAR, name.c_str());
+            status->setf ("%cwindow -s: No such window: %s", CmdChar, name.c_str());
         else {
             mw->show(true);
 //            mw->popUp();
@@ -126,7 +130,7 @@ bool MessageWindow::command_window(string& str, void*, savedmatch*) {
     }
     if(opt.gotOpt('i')) {
         if (!(mw = MessageWindow::find(name)))
-            status->setf ("%cwindow -s: No such window: %s", CMDCHAR, name.c_str());
+            status->setf ("%cwindow -s: No such window: %s", CmdChar, name.c_str());
         else {
             mw->show(false);
 //            mw->popUp();
@@ -134,21 +138,21 @@ bool MessageWindow::command_window(string& str, void*, savedmatch*) {
     }
     // Do some sanity checking
     else if (!name.length())
-        status->setf("%cwindow needs a name", CMDCHAR);
+        status->setf("%cwindow needs a name", CmdChar);
     else if(opt.gotOpt('k')) {
         if (!(mw = MessageWindow::find(name)))
-            status->setf ("%cwindow -k: No such window: %s", CMDCHAR, name.c_str());
+            status->setf ("%cwindow -k: No such window: %s", CmdChar, name.c_str());
         else
             mw->die();
     }
     else if (h < min_h)
-        status->setf("%cwindow: Value h=%d too low.", CMDCHAR, h);
+        status->setf("%cwindow: Value h=%d too low.", CmdChar, h);
     else if (w < min_h)
-        status->setf("%cwindow: Value w=%d too low.", CMDCHAR, w);
+        status->setf("%cwindow: Value w=%d too low.", CmdChar, w);
     else if (w+abs(x) > screen->width)
-        status->setf("%cwindow: Value w=%d or x=%d too large.  Window would extend beyond screen.", CMDCHAR, w, x);
+        status->setf("%cwindow: Value w=%d or x=%d too large.  Window would extend beyond screen.", CmdChar, w, x);
     else if (abs(y)+h > screen->height)
-        status->setf("%cwindow: Value h=%d or y=%d too large.  Window would extend beyond screen.", CMDCHAR, h, y);
+        status->setf("%cwindow: Value h=%d or y=%d too large.  Window would extend beyond screen.", CmdChar, h, y);
     else if (MessageWindow::find(name))
     {
         status->setf("Window %s already exists", name.c_str());

@@ -3,6 +3,8 @@
 
 #include "EmbeddedInterpreter.h"
 #include "dirt.h"
+#include "misc.h"
+
 
 class NullEmbeddedInterpreter : public EmbeddedInterpreter
 {

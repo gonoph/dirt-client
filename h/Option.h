@@ -7,6 +7,7 @@
 #ifndef DIRT_OPTION_H
 #define DIRT_OPTION_H
 
+#include "config.h"
 #include <limits.h>
 #if HAVE_HASH_MAP && !HAVE_EXT_HASH_MAP
 #include <hash_map>

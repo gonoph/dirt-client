@@ -1,11 +1,19 @@
-#include "dirt.h"
 #include "EmbeddedInterpreter.h"
+#include "StaticBuffer.h"
 #include "NullEmbeddedInterpreter.h"
 #include "Plugin.h"
+#include "Config.h"
 #include "Hook.h"
 #include "Interpreter.h"
 #include <dlfcn.h>
 #include <unistd.h>
+
+
+#define DIRT_LOCAL_LIBRARY_PATH "/usr/local/lib/dirt"
+#define DIRT_LIBRARY_PATH "/usr/lib/dirt"
+extern time_t current_time;
+
+
 
 bool EmbeddedInterpreter::constboolfalse = false;
 // Default interpreter if we don't manage to load anything
@@ -330,7 +338,8 @@ bool EmbeddedInterpreter::command_load(string& str, void*, savedmatch*) {
     OptionParser opt(str, "");
     if(!opt.valid()) return true;
     if(!embed_interp->load_file(opt.restStr().c_str())) {
-        report("%cload: Unable to load file: %s\n", CMDCHAR, opt.restStr().c_str());
+	int CmdChar = config->getOption(opt_commandcharacter);
+        report("%cload: Unable to load file: %s\n", CmdChar, opt.restStr().c_str());
     }
     return true;
 }
@@ -341,7 +350,8 @@ bool EmbeddedInterpreter::command_run(string& str, void*, savedmatch* sm) {
     char out[MAX_MUD_BUF]; // FIXME
 
     if(opt.argc() < 2) {
-        report_err("%crun: Please pass a function name to run!\n", CMDCHAR);
+	int CmdChar = config->getOption(opt_commandcharacter);
+        report_err("%crun: Please pass a function name to run!\n", CmdChar);
         return true;
     }
     embed_interp->run(opt.gotOpt('L')?opt['L'].c_str():NULL, opt.restStr().c_str(), NULL, out, sm);
@@ -354,7 +364,11 @@ bool EmbeddedInterpreter::command_eval(string& str, void*, savedmatch* sm) {
     if(!opt.valid()) return true;
     char out[MAX_MUD_BUF];
     embed_interp->eval(opt.gotOpt('L')?opt['L'].c_str():NULL, opt.restStr().c_str(), NULL, out, sm);
-    if(opt.gotOpt('r')) report("%ceval result: %s\n", CMDCHAR, out);
+    if(opt.gotOpt('r'))
+    {
+	int CmdChar = config->getOption(opt_commandcharacter);
+	report("%ceval result: %s\n", CmdChar, out);
+    }
     string strout(out);
     if(opt.gotOpt('s')) interpreter.add(strout);
     return true;

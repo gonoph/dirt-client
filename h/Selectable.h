@@ -1,6 +1,9 @@
 #ifndef DIRT_SELECTABLE_H
 #define DIRT_SELECTABLE_H
 
+#include <sys/types.h>
+#include <vector>
+
 
 // Selectable objects are objects that need to select() on
 // some FDs

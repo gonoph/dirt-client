@@ -1,17 +1,17 @@
 // this is a seperate interface to all thing cursed
 // unfortunately, there is major namespace clash which I can't be bothered fixing
 
+#include "Curses.h"
+#include "defs.h"
+#include "misc.h"
+#include "Color.h"
+
 #include <ncurses.h>
 #include <term.h>
 #include <unistd.h>
 #include <assert.h>
-#include <string.h>
 #include <stdlib.h>
 #include <string.h>
-#include "defs.h"
-#include "misc.h"
-#include "Curses.h"
-#include "Color.h"
 
 // Blargh. For non-linux VC output we need to send smacs before and rmacs after the character
 char special_chars[max_sc];

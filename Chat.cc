@@ -1,12 +1,21 @@
-#include "dirt.h"
+#include "defs.h"
 #include "Chat.h"
+#include "misc.h"
+#include "MUD.h"
+#include "TTY.h"
 #include "Interpreter.h"
+#include "EmbeddedInterpreter.h"
 #include "OutputWindow.h"
+#include "StaticBuffer.h"
 #include "StatusLine.h"
 #include "InputLine.h"
+#include "Color.h"
+#include "Config.h"
 
+#include <cerrno>
 #include <stdarg.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -208,6 +217,7 @@ void ChatServerSocket::call(const char *name, int port, Protocol protocol) {
 }
 
 void ChatServerSocket::handleUserCommand(const char *name, const char *arg) {
+    int CmdChar = config->getOption(opt_commandcharacter);
     if (!strcmp(name, "call")) {
         char hostname[MAX_INPUT_BUF];
         char port_buf[MAX_INPUT_BUF];
@@ -313,7 +323,7 @@ void ChatServerSocket::handleUserCommand(const char *name, const char *arg) {
         }
     } else if (!strcmp(name, "request")) {
         if (!arg[0])
-            writeChat("%cchat.request ALL|<connection name>", CMDCHAR);
+            writeChat("%cchat.request ALL|<connection name>", CmdChar);
         else if (!strcmp(arg, "all")) {
             for(size_t i=0;i<connections.size();i++) {
                 ChatConnection* c = connections[i];
@@ -332,7 +342,7 @@ void ChatServerSocket::handleUserCommand(const char *name, const char *arg) {
         
     } else if (!strcmp(name, "peek")) {
         if (!arg[0])
-            writeChat("%cchat.peek ALL|<connection name>", CMDCHAR);
+            writeChat("%cchat.peek ALL|<connection name>", CmdChar);
         else if (!strcmp(arg, "all")) {
             for(size_t i=0;i<connections.size();i++) {
                 ChatConnection* c = connections[i];
@@ -352,7 +362,7 @@ void ChatServerSocket::handleUserCommand(const char *name, const char *arg) {
         
     } else if (!strcmp(name, "ping")) {
         if (!arg[0])
-            writeChat("%cchat.ping ALL|<connection name>", CMDCHAR);
+            writeChat("%cchat.ping ALL|<connection name>", CmdChar);
         else if (!strcasecmp(arg, "all")) {
             for(size_t i=0;i<connections.size();i++) {
                 connections[i]->sendPing();
@@ -678,7 +688,10 @@ const char* ChatConnection::longDescription(bool verbose) {
         s += sprintf(s, verbose ? "Accepted, awaiting address/port" : "Acc2");
     else if (state == awaiting_confirmation) {
         if (verbose)
-            s += sprintf(s, "Waiting for your accept (%cchat.accept)", CMDCHAR);
+	{
+	    int CmdChar = config->getOption(opt_commandcharacter);
+            s += sprintf(s, "Waiting for your accept (%cchat.accept)", CmdChar);
+	}
         else
             s += sprintf(s, "Cnfr");
     }
@@ -786,8 +799,11 @@ try_again:
                 else if (config->getOption(opt_chat_autoaccept))
                     acceptConnection();
                 // Accept connection based on security phrase/name
-                else {
-                    writeChat("%s has requested a connection. Use %cchat.accept to allow it or %cchat.reject to drop it", shortDescription(), CMDCHAR, CMDCHAR);
+                else 
+		{
+		    int CmdChar = config->getOption(opt_commandcharacter);
+                    writeChat("%s has requested a connection. Use %cchat.accept to allow it or %cchat.reject to drop it",
+			   shortDescription(), CmdChar, CmdChar);
                 }
             }
         }
@@ -1488,8 +1504,11 @@ bool ChatWindow::keypress(int key) {
             c->close("User request");
     } else if (key == key_enter) {
         if (c)
-            inputLine->set(Sprintf("%cchat.to %s ", CMDCHAR, ~c->getName()));
-        die();
+	{
+	    int CmdChar = config->getOption(opt_commandcharacter);
+	    inputLine->set(Sprintf("%cchat.to %s ", CmdChar, ~c->getName()));
+	}
+	die();
         return true;
     }
     

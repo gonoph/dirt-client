@@ -1,4 +1,6 @@
 // Buffer object
+#include "Buffer.h"
+#include "misc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,9 +9,6 @@
 #include <errno.h>
 #include <assert.h>
 #include <stdlib.h>
-#include "defs.h"
-#include "Buffer.h"
-#include "misc.h"
 
 int Buffer::find_mem_size (int min_size) {
 	int i;

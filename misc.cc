@@ -1,11 +1,13 @@
-#include "dirt.h"
 #include "misc.h"
 #include "OutputWindow.h"
+#include "Color.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <algorithm>
+
+#define CLEAR_SCREEN "\ec\e[0;0m\e[H\e[J"
 
 
 void error(const char *fmt, ...) {

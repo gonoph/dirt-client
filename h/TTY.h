@@ -1,6 +1,8 @@
 #ifndef DIRT_TTY_H
 #define DIRT_TTY_H
 
+#include "Selectable.h"
+
 
 // TTY. handles reading keys from the keyboard
 // Control keys are parsed here

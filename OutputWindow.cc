@@ -1,11 +1,17 @@
 // Output window implementation
 
-#include "dirt.h"
 #include "OutputWindow.h"
 #include "InputBox.h"
 #include "ScrollbackSearch.h"
 #include "StatusLine.h"
+#include "Config.h"
+#include "Color.h"
+#include "TTY.h"
 #include "Hook.h"
+#include "misc.h"
+
+#include <cerrno>
+
 
 OutputWindow::OutputWindow(Window *_parent)
 : Window(_parent, wh_full, _parent->height-1), top_line(0)
