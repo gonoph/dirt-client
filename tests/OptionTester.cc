@@ -43,6 +43,27 @@ void report(const char *fmt, ...) {
             
 }
 
+void report_err(const char *fmt, ...) {
+    va_list va;
+    int len = strlen(fmt);
+    char buf[4096];
+    char *newfmt = (char*)malloc(len+25);
+    strcpy(newfmt, "@ [ERROR] ");
+    len = strlen(newfmt);
+    strcpy(newfmt+len, fmt);
+    len = strlen(newfmt);
+    if(newfmt[len-1] != '\n') {
+        newfmt[len] = '\n';
+        newfmt[len+1] = '\0';
+    }
+    va_start(va,fmt);	
+    vsnprintf(buf, sizeof(buf)-1, newfmt,va);
+    va_end(va);
+
+    fprintf(stderr, "%s", buf);
+    free(newfmt);
+}
+
 int main() {
     OptionParser opt1("/blah -w23 -d385 -FART -t'this is my \"trigger' \"blah blah2	-A blah3\"", "AFRTCPw::d:t:");
 
@@ -53,11 +74,12 @@ int main() {
     cout << endl;
     OptionParser opt6("/opt6 -b", "b:");
     cout << endl;
-    OptionParser opt7("/opt7 -w", "");
+    OptionParser opt7("/hook -T SEND -C westforest-road westforest-road = westforest-road;road-ice", "aFilfDt:p:c:n:g:T:L:C:r:N:d:k:W:");
     cout << endl;
 
     OptionParser opt8("/opt8 -r \"asdf 1\"", "r"); // should generate the same restStr.
     OptionParser opt9("/opt9 -r asdf 1", "r");
+    OptionParser opt10("/hook -T INIT -fL perl perl_init = init", "aFilfDt:p:c:n:g:T:L:C:r:N:d:k:W:");
 
     cout << "opt1: " << opt1.str() << endl;
     if(opt1.valid()) {
@@ -127,8 +149,19 @@ int main() {
         cout << "opt4 is not valid." << endl;
     }
 
+    if(opt7.valid()) {
+        cout << "opt7: " << opt7.str() << endl;
+        cout << "opt7 argument r: " << opt7['r'] << endl;
+        cout << "Other arguments: " << endl;
+        for(int i=0;i<opt7.argc();i++) { cout << "\t" << opt7.arg(i) << endl; }
+        cout << "restStr: " << opt7.restStr() << endl;
+        cout << endl;
+    } else {
+        cout << "opt7 is not valid." << endl;
+    }
+
     if(opt8.valid()) {
-        cout << "opt8: " << opt4.str() << endl;
+        cout << "opt8: " << opt8.str() << endl;
         cout << "opt8 argument r: " << opt8['r'] << endl;
         cout << "Other arguments: " << endl;
         for(int i=0;i<opt8.argc();i++) { cout << "\t" << opt8.arg(i) << endl; }
@@ -139,7 +172,7 @@ int main() {
     }
 
     if(opt9.valid()) {
-        cout << "opt9: " << opt4.str() << endl;
+        cout << "opt9: " << opt9.str() << endl;
         cout << "opt9 argument r: " << opt9['r'] << endl;
         cout << "Other arguments: " << endl;
         for(int i=0;i<opt9.argc();i++) { cout << "\t" << opt9.arg(i) << endl; }
@@ -147,6 +180,17 @@ int main() {
         cout << endl;
     } else {
         cout << "opt9 is not valid." << endl;
+    }
+
+    if(opt10.valid()) {
+        cout << "opt10: " << opt10.str() << endl;
+        cout << "opt10 argument r: " << opt10['r'] << endl;
+        cout << "Other arguments: " << endl;
+        for(int i=0;i<opt10.argc();i++) { cout << "\t" << opt10.arg(i) << endl; }
+        cout << "restStr: " << opt10.restStr() << endl;
+        cout << endl;
+    } else {
+        cout << "opt10 is not valid." << endl;
     }
 
 }

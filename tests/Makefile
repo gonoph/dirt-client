@@ -86,8 +86,8 @@ clean: tidy
 	$(RM) -f $(OBJ_FILES) $(EXE) o/plugins/*.so o/plugins/*.o .depend
 
 tidy:
-	$(RM) -f *~ *orig *bak *rej doc/*~ samples/*~
-	$(FIND) samples -name "*~" -print | $(XARGS) $(RM) -f
+	$(RM) -f *~ *orig *bak *rej doc/*~ scripts/*~
+	$(FIND) scripts -name "*~" -print | $(XARGS) $(RM) -f
 
 .depend:
 	$(CXX) -MM -I../h $(SRC_FILES) > .depend
