@@ -1,0 +1,6 @@
+How to write scripts:
+Functions Available:
+    run -- run a mud command (pass through COMMAND and subsequently SEND hooks)
+            aliases, semicolons, speedwalk, etc. will be expanded.
+    report -- Print a message to the user as if it came from the client (i.e.
+            preceede by @)

@@ -1,0 +1,923 @@
+Introduction
+------------
+
+I wrote mcl because I needed a fast MUD client that had scroll back built in.
+I hacked together a scroll back support for tintin, using less, but that
+messed up when color codes were received and it was pretty slow to pipe the
+saved data to less each time it was activated.
+
+Also, tintin had a problem when a line was not received in one packet: it
+would always change to a new line so long outputs looked very weird.
+
+With embedded Perl and Python support, I am confident that mcl can do
+everything tintin (and even most other clients) ever have done.
+
+Requirements
+------------
+
+The fastest mode of operation is under a Virtual Console found under Linux.
+However, since version 0.51.00, mcl supports normal TTY output to any
+VT100/ANSI comptaible console - for example an Xterm. For best results,
+use a black background and white foreground (e.g. xterm -bg black -fg white).
+
+Sine mcl does not depend on /dev/vcsa anymore, it means it can run
+under any Unix OS.
+
+
+Installation
+------------
+
+To compile, follow the steps in INSTALL. That is run:
+
+./configure
+make
+make install
+
+If you want the Perl scripting support, you need glibc as well as a libperl -
+the latter should be in your standard Perl package.
+
+Perl and Python support are compiled as shared object plugins, thus they
+do not take up any memory unless you explicitly load them. Still, you can
+disable them at configure time if you want (see the INSTALL file).
+
+
+Running in Virtual Console Mode
+-------------------------------
+
+Move the 'mcl' binary to some location like /usr/local/bin. If you want
+non-root users to use it in Virtual Console mode (Linux only), execute for
+example:
+
+ chown root.tty mcl                 
+ chmod 2755 mcl                     
+
+Or type 'make install'. NOTE: I've heard that later version of the 'login'
+program automaticall change permissions on /dev/vcsa so that it is no longer
+necessary for mcl to run as SETGID. Also, some versions of RedHat make
+the devices writable by anyone.
+
+This will make mcl be run as group 'tty' when it runs. This assumes that
+your /dev/vcsa* files are owned by group tty though.
+
+Make sure that /dev/vcsa* exist. If you want to run as non-root, make sure
+they are owned by group tty and are writable by that group. If the files do
+not exist, you'll have to create them:
+
+ mknod /dev/vcsa1 c 7 129
+ mknod /dev/vcsa2 c 7 130
+
+etc. The vcsa devices should be available from Linux 1.1.92 onward.
+
+If you are wondering, the vcsa devices allow direct access to the Virtual
+Console Screens and Attributes (there is a set of vcs devices, which do the
+same except they do not show attributes).
+
+You must also move the plugin files to either /usr/local/lib/mcl/plugins/
+or ~/.mcl/plugins/. Make install does that for you automatically too. The
+compiled plugin files are in the subdirectory o/plugins/.
+
+You probably also want to move the contents of the samples/ directory
+distributed with mcl to ~/.mcl and consider which of the scripts in the
+contrib/ subdirectory to autoload (i.e. move to the auto/ directory so
+they are automatically loaded when mcl starts). If a file does not exist
+in the ~/.mcl/ directory, mcl will try to load the script from
+/usr/local/lib/mcl or /usr/lib/mcl.
+
+
+Running in TTY mode
+-------------------
+
+This is somewhat slower. It's bearable in local XTerm, but may not be over
+a telnet connection that is anything but a direct network connection.
+
+mcl uses the two-byte Escape [ control code. If you use mcl from a terminal
+that understands the CSI control code (which is one byte), you can try modifying
+Screen.cc to use the shorter code (look for CSI in the file).
+
+mcl tries to use a scrolling region whenever possible to scroll text. Since
+the TTY Screen is at a much lower level than windows that scroll, it is done
+via heuristics.
+
+mcl uses terminfo to find keyboard combinations. There are some that are
+still missing however, and I'm not sure they can be found using terminfo at
+all.
+
+Under xterm or under rxvt, mcl will modify the title bar of the xterm to
+display connection state. If your terminal understands that escape
+code (CSI 2 ; <text> BEL) and mcl does not send it, you probably need to modify
+Curses.cc and add that to the list of terms that are considered xterms.
+
+If you have problems using Alt and another key under xterm, add the following
+to your ~/.XDefaults file:
+ 
+*XTerm*VT100.eightBitInput: false
+
+For rxvt:
+
+Rxvt*meta8: false
+
+
+Setup
+-----
+
+You need to set up the MUDs you connect to in the file ~/.mcl/mclrc. This is
+best illustrated with an example:
+
+MUD ar {
+  Host abandoned.org 4444
+  Commands Drylock;qwerty; ;
+}
+
+The first line defines a new MUD, "ar". It uses the C-like notation of
+a block, started by { (which must be on the same line!) and ending on
+} (which must be on a line by itself).
+
+The configuration options inside that affect only that MUD.
+
+Host: supplies hostname and portnumber of the MUD
+Commands: Optional. Specifies what commands will be sent to the MUD
+once a connection is established (you could put username/password in here).
+
+Aliases, actions and macros you specify inside the MUD record will be valid
+for that MUD only (and for any MUDs that inherit from this MUD) (see
+later "MUD Inheritance" chapter).
+
+You can specify other information in the configuration file - see the
+"Options" chapter.
+
+You can override the default resource filename by setting the environment
+variable MCLRC to the absolute location (note that you cannot use ~ to
+specify your home directory).
+
+In addition, the embedded script use the  file ~/.mcl/config.lang as a
+place to store their configuration. (i.e. Perl writes to ~/.mcl/config.perl,
+Python to ~/.mcl/config.python etc.)
+
+
+Running
+-------
+
+Then run mcl, with the name of the MUD to connect to as parameter.
+Connecting is asynchronous, so you can do other things in the client while
+waiting. There isn't much to do though, but I thought counting down looked
+nifty :)
+
+The top line is a status line. Messages from the client appear up there. The
+messages disappear after 5 seconds.
+
+The bottom line is the input line. Most editing keywords you'd expect to
+work work: arrow keys to edit the command line, arrow up to enter command
+line history recall window. See "Keys" for a comprehensive list.
+
+If the MUD you want to connect to is not one that is in the database, and
+you do not wish it to be there, you can just specify hostname/port number
+on the command like (eg. "mcl abandoned.org 4444").
+
+If you leave out the MUD name on the command line, you will be able to
+specify it while in the client by using Alt-O or #open.
+
+After mcl starts up, it will load the "sys/init.pl" script file (see the file
+doc/Embedded about embedded language support). You don't want to modify
+that file - modify localinit.pl instead which is called within sys/init.pl.
+
+
+Commands
+--------
+
+There is a number of commands, that start with #, that are not send to the
+MUD but rather interpreted by mcl. You can change the # character into something
+else like / by using the commandcharacter option in the configuration file.
+
+#open <mud name>        Connects to that MUD
+#reopen                 Connects to the last MUD you connected to
+#close                  Stops the current session
+#quit                   Stops the session and leaves the program
+#help                   Not very helpful
+#exec                   Execute a command in a window
+#echo                   Show something in the output window (do not send it)
+#window                 Create a window
+#print                  Print to a window created by #window
+#clear                  Clear above window
+#kill                   Kill a window created by #window
+#send                   Send data to MUD, without newline
+#bell                   Sound the bell
+#status                 Change the status line to the argument given
+#alias                  Remove an alias or add a new alias
+#macro                  Add/remove/change a macro
+#run                    Run the given embedded function (see the file doc/Embedded)
+#eval                   Evaluate any embedded code, print result on screen
+#load                   Load some embedded code from a file
+#prompt                 Set the prompt (useful when you don't have GA/EOR)
+#setinput               Set the input line
+#save                   Save the scrollback. Use the -c switch to save in color.
+#writeconfig            Save the configuration file, even if readonly option is set. If
+                        parameter given, use that as a filename rather than the default
+                        filename
+
+#disable                Disable/Enable one of: actions, aliases, speedwalk, 
+#enable                 and macros. This enables/disables ALL of those, not a single one.
+
+#chat.*                 There is a number of commands that allow you to perform various
+                        tasks related to the built-in peer-to-peer chat system of mcl
+                        They are described in the file doc/Chat.
+
+In addition, a line that starts with \ (which can be changed using the escapecharacter in
+the configuration file) is sent as-is to the MUD.
+
+Keys
+----
+
+Alt-O                   See a menu of MUDs. Return connects, E edits the
+                        currently selected MUD's data. Alt-A shows the
+                        aliases of that MUD.
+
+Alt-C                   Same as #close
+
+Alt-A                   Show currently active aliases. First the aliases for
+                        this particular MUD are shown, the global aliases.
+
+Alt-I                   Show currently active actions.
+
+Alt-M                   Show currently active keyboard macros.
+
+Alt-S                   Toggle network status window
+
+Control-T               Show timer window. Repeated ^T will change the
+                        format of the window, then finally remove it
+
+Alt-V                   Print version information
+
+Alt-H                   Show active chat connections
+
+Alt-Q                   Same as #quit
+
+Alt-R                   Same as #reopen
+
+Alt-T                   Restart. Reexecutes mcl. This feature is mainly
+                        useful for development, but could be helpful if you 
+                        have a read-only config file which you want to
+                        reread. You have to invoke mcl with the full path name
+                        for this to work, or have it in your $PATH.
+
+PageUp                  Scroll one half-page up in scroll back buffer
+
+PageDown                Scroll one half-page down
+
+Arrow Up/Down           In scroll back: scroll one line up/down
+                        Outside: activate command history
+
+Arrow Left/Right        Move cursor left/right on the input line. New text
+                        is inserted where the cursor is, pushing old text to 
+                        the right.
+
+Control-A/Control-E     Go to the beginning/end of the input line
+
+Control-J               Delete until the end of the line
+
+Control-U               Delete until the beginning of the line
+
+Control-C               Delete current line and insert into the command
+                        history, but do NOT send it to the MUD. You can
+                        later recall the command as usual.
+
+Control-W               Delete the word to the left                        
+
+Delete                  Delete the character over the cursor
+
+Backspace               Delete the character to the left of the cursor
+
+Home                    Go to the beginning of buffer
+
+End                     Go to the end and leave scroll back mode
+
+Pause                   Enter scroll back mode, but don't scroll anywhere
+                        This is a toggle, pressing Pause again leaves it.
+
+Escape                  Clear input line
+
+Alt-/                   Search through scrollback backwards from current
+                        position
+
+
+PageUp, PageDown, Home and Pause all enter scroll back mode if it is not
+active already. Pressing PageDown or Arrow Down when at the end of
+scrollback exits it.
+
+You can type commands while in scroll back, though you will not see the
+output.
+
+Pressing Arrow Up will activate a command history window. In that window,
+you can use arrow keys, PageUp/Down and Home/End to move. Typing any letter
+will jump to the first line with that letter. Typing it again will jump to
+the next line (the search wraps, so pressing 'a' on the last line with 'a'
+will take you to the first line with 'a'). Pressing return selects that
+line and executes the command, pressing Escape leaves the window and
+pressing arrow-right selects the line, but does not execute it, so you can
+do further editing on it.
+
+If you don't like the command history window, you can disable it using the
+historywindow option.
+
+History is saved between sessions in the file ~/.mcl/history. This can be
+disabled using the save_history option in .mclrc.
+
+The scrollback buffer allocates memory for 10000 scrollback lines per
+default. If you have a newer libc, the memory will not be allocated until
+actually used (check the resident size on ps). Note that due due to the way
+that previous scrollback is shifted when the scrollback buffer gets full,
+it is not recommended to use more scrollback than physical memory in
+the machine. Each 1000 lines of scrollback occupy 156 kilobyte of memory
+(each 80 character wide line contains 80 characters and 80 attribute bytes).
+
+Although mcl copies the entire screen each time it updates it, CPU usage
+is much better than that of tintin; even with heavy input mcl does not go
+above 0.2% CPU time of a 486dx4-100 (note that with many actions and
+perl scripts active groping the mud output this may no longer be true ;)
+
+The scrollback can be saved using the #save command.
+
+Note that commands that are shorter than 5 characters are not saved in the
+command history. This number can be changed using the -w option.
+
+
+Prompt
+------
+
+mcl understands the TELNET GA sequence. If you enable GA using config
++telnetga (or Prompt +telnetga on AR), mcl will snarf a prompt when it
+appears and place it in the input line. It will start at the GA sequence and
+go back until it finds a newline.  Mcl also understands the telnet EOR
+sequence, behaving in the same way as it does for the GA sequence.
+
+You might want to change your MUD code so that the TELNET GA is sent in more
+places than just the normal prompt, e.g. send it after the pager prompt and
+after asking someone about their password.
+
+Color is stripped from the prompt. Also, mcl resets the color to default
+after receving a prompt, to avoid color bleeding.
+
+Like tinyfuge, mcl responds to a IAC WILL EOR request from a MUD by sending
+IAC DO EOR back. This will typically enable TELNET GA.
+
+The option "showprompt" controls whether the prompt is also echoed in the main
+window.
+
+If your MUD does not send the GA/EOR sequence, you can try extracting
+the prompt yourself. See the file contrib/dumbprompt.pl file.
+
+
+Stat window
+-----------
+
+Using Alt-S (or by setting autostatwindow) you can bring up a network
+connection status window in the upper right corner of the screen. This
+feature was provided by Oliver Jowett, which is the only one that knows
+what those numbers REALLY mean: :)
+
+The network status monitor looks at one of the /proc pseudo-files to get
+information about the internal state of the connection to the mud. Four
+values are displayed:
+
+transmit queue    receive queue     timer/retransmit count
+
+Transmit queue: This is how many characters have been sent by mcl,
+                but are yet to reach the mud.
+
+Receive queue:  This is how many characters have been sent by the mud,
+                but are yet to be processed by mcl. This should always be 0.
+
+The next two values require a small explanation of how TCP works when the
+network begins to fail. The kernel sends a packet to the mud containing
+your command. It then waits for confirmation from the mud that it has
+been received correctly. If the command packet goes missing, then the
+kernel will time out and resend the packet. How long it takes to resend
+the packet increases after each loss, until it's waiting 120s between
+retransmits.
+
+Timer:            This is how long the kernel will wait before sending the
+                  command again.
+Retransmit count: This is how many times the kernel has already resent
+                  this packet without the mud confirming that it has
+                  received it.
+
+If the 'timer' field gets high, then you may be better off disconnecting
+and reconnecting, rather than wait out the lag.
+
+On the far left side of the timer a window, a C will appear if your
+connection to the MUD is compressed.
+
+Beneath the Network Status and timer window is the input/output bytes
+window. This counts the amount of bytes sent from the MUD to you (number
+before the slash) and the amount of bytes received sent from you to the
+MUD (number after the slash). k and m denote kilo and megabytes.
+
+
+Options
+-------
+
+mcl [options] [mud alias]
+
+Each of the options can be specified on the command line as well as in the
+configuration file. The command line options override those in the
+configuration file. The default value is supplied in parens.
+
+histwordsize        -w      Minimum number of characters a command must have to
+                            qualify for saving in history (5)
+
+scrollback          -l      Number of lines in the scrollback buffer (10000)
+
+histsize            -H      Number of history lines saved
+
+showprompt          -s      Should the full prompt be shown in output screen?
+
+echoinput           -e      Should your input be echoed in the output screen?
+
+beep                -b      Beep on error. 0 disables it, 1-10 changes
+                            frequency.
+
+readonly            -r      Don't auto save the configuration file
+
+nodefaults                  When saving the configuration file, do not save
+                            options the value of which is default
+
+historywindow       -W      Number of lines in the history window. If 0, the
+                            old way of history cycling is used.
+
+tabsize             -T      How much space is there between tab stops?
+
+mudbeep             -B      Should beeps from the MUD be honored? If 0, they
+                            are ignored (this does not affect the "beep"
+                            setting)
+
+statcolor                   Color of the connection status window (see
+                            "Color values")
+
+inputcolor                  Color of the input line
+
+statuscolor                 Color of the status line
+
+autostatwin                 Automatically bring up the stat window
+
+speedwalk                   Enable/disable speedwalk
+
+speedwalk_character         What character forces the rest of the string to
+                            be considered a speedwalk. Default is '.'
+
+timercolor                  Color of the clock/timer window
+
+autotimerwin                Automatically bring up the timer window
+
+timerstate                  Select default timer state (0 = full clock and
+                            timer, 1 = clock, full timer, 2 = clock, timer, 
+                            3 = full clock, 4 = clock, 5 = full timer, 
+                            6 = timer)
+
+save_history                Save input line history between sessions in the
+                            file ~/.mcl/history ? (0 or 1, default: 1)
+
+borg                        Should mcl connect to a a central place
+                            (abandoned.org) on startup and check for a new
+                            client version? If this option is set, mcl will
+                            also report some statistics to that place (e.g.
+                            time used, bytes sent/written). This is used for
+                            just that, statistics shown on the mcl page,
+                            but if it bothers you, turn it off.
+
+borg_verbose                Should mcl display more information gained from
+                            the central place than just if a new version has
+                            appeared? This information could be typically:
+                            how many other mcl users are using mcl currently,
+                            how much total time has been spent in mcl etc.
+
+interp_debug           -D   0 or 1 - controls whether those @@ Loading
+                            messages appear.
+
+copyover                    0 or 1. Use the new "hot" restart of mcl
+                            where the descriptor is not closed.
+
+multiinput                  0 or 1 - do you want the input line that grows
+                            as text is typed into it?
+
+snarf_prompt                Change the prompt when a new once is received
+
+expand_semicolon            Usually the ; character (used to execute multiple
+                            commands) is honored only inside aliases. When
+                            this option is set to 1, it is also honored on
+                            the command line. Use \; to escape the character.
+
+plugins                -p   What plugins to load? This decides whether you will
+                            use Perl or Python for scripting. Default is perl.
+                            If you have multiple plugins, seperate the names
+                            by commas.
+
+commandcharacter            Change the leading character from # to something
+                            else (described in detail later)
+
+escapecharacter             Change the escape character that can be used at
+                            the beginning of line (default: \) to something
+                            else
+                       -x   This option executes the command following it
+                            when mcl starts up. It can be specified multiple
+                            times.
+                            
+
+mcl will write the configuration file when you quit it, including all the
+options, so it might be easier just to start mcl up once then quit, and edit
+the ~/.mcl/mclrc file. Note that the modified-time of the configuration file
+is saved when it is loaded: when mcl exits, it verifies that the file has not
+been changed since it was loaded before writing.
+
+Options pertaining to the Chat subsystem are descriged in the file doc/Chat.
+
+
+Color values
+------------
+
+Following values can be used for the color settings:
+
+Color      Normal    Bold
+-----      ------    ----
+Black           0       8
+Blue            1       9
+Green           2       A
+Cyan            3       B
+Red             4       C
+Magenta         5       D
+Yellow          6       E
+White           7       F
+
+
+The first hex digit is the background color, the second foreground. Remember
+to prefix the number with 0x! For example:
+
+statcolor=0x03
+
+will make the window black, with cyan numbers. 0x3E would give a cyan
+background, and bright yellow numbers. Note that the bold code can be used
+only in the foreground: if set in background, it will cause blinking.
+
+
+Aliases
+-------
+
+mcl supports aliases since version 0.41.2. Aliases are typically added by
+hand to the mclrc configuration file.  Aliases placed outside of any MUD
+definitions become global aliases; available in any MUD session. Aliases
+placed just inside a MUD {} section are local to that MUD. An alias is defined
+as follows:
+
+Alias <alias name> <commands>
+
+Alias name is one string of characters. If that word is encountered first on
+a command line, it is replaced with the <commands> part. A few characters
+have special meaning: ; is replaced with a newline, allowing for multiple
+commands to be executed. % allows for argument expansion. %0 means all
+arguments following the command, %n means exactly the nth argument. %-n
+means arguments from 1 to the nth, and %+n arguments n and whatever follows.
+
+The %+n notation is useful for commands that take a word and a string as
+parameter, e.g.:
+
+Alias tell say I told %+2 to %1; tell %1 %+2
+
+You can view currently active aliases by using Alt-A. You can view aliases for
+a specific MUD by using Alt-O to list all MUDs, then pressing Alt-A while
+selecting a MUD.
+
+You can use #commands in aliases, as well as other aliases.
+
+You can also define addition global aliases on the fly while in mcl, using
+the #alias command, which works exactly like Alias in the configuratino file.
+
+If you use an non-alphanumeric character as alias name (e.g. one of .$!@%^&)
+you can use that alias without putting a space after it (I like to alias
+% to #eval for example, so I can do %2**42 to find out what 2 to the 42nd
+power is...)
+
+
+Additional variables that can be expanded
+-----------------------------------------
+
+Certain codes in the form of % followed by a letter have a special meaning.
+They can be used just about everywhere.
+
+Letter              Function
+h                   Hostname of the MUD you are currently connected to
+p                   Remote port of current session
+P                   Local port of current session
+n                   Name of the current session
+f                   mudFTP port of current session (%p + 6)
+H                   Hour, 00-23
+m                   Minute, 00-59
+M                   Abbreviated month name (Jan, Feb)
+w                   Abbreviated weekday name (Mon, Sun)
+t                   Full date and time
+d                   Day of the month
+y                   Year (two last digits)
+Y                   Year (all digits)
+o                   Month number (01 - 12)
+%                   % itself
+
+
+Regular expression: triggers and substitutes
+--------------------------------------------
+
+Since 0.42, triggers and substitutes are possible using regular expressions.
+I will not tell you much about regular expressions here: any UNIX book
+will cover them in-depth. You must have Perl support enabled to use this
+feature - mcl will use Perl's excellent regexp library (see man perlre).
+
+The syntax is as follows:
+
+Action "regular expression" command
+
+Like in aliases, you can use ; to execute multiple commands. In command,
+you can use $1 and up to paste in subexpressions matched, and $0 to paste in
+the whole string. Note that the string that is checked against the regular
+expression has all color stripped from it to make things easier.
+
+Trivial example:
+
+Action "^(.*) tells you '(.*)'" #print tells %m:%H $1: $2
+
+This will log tells you receive into the window 'tells' and then possibly
+to a file.
+
+Substitutions much like this, except that the entire text matched is
+replaced. E.g.:
+
+Subst "Drylock" Drylock (the maker of this great program!)
+Subst "fido" Bless (+hitroll/-ac)
+
+Like with Action, you can use $1..$9 to copy in subexpressions matched.
+
+Subst "^(.*) tells you '(.*)'" Telepathic message from $1: $2
+
+You can also specify a Perl function to be called, by using #run. E.g.
+
+Subst "Testing" #run TestOutput
+
+will run TestOutput and assign the value of $_ after TestOutput runs to
+the part of the string that was "Testing".
+
+
+To gag a line complete, replace the whole line with nothing. E.g.
+Subst ".*You feel hungry.*"
+
+See the doc/Examples file for more examples.
+
+You can view the currently defined aliases/substitutes using Alt-I. Substitutes
+have star to the far left.
+
+Like aliases, you can define actions either outside any MUD definitions (in
+which case they are always active) or inside a MUD definitions.
+
+
+#exec
+-----
+
+Since version 0.42, mcl allows non-interactive execution of programs using
+the #exec command. Simply typing #exec followed by the command (e.g.
+#exec uptime) will bring up the window with the results of that command.
+mcl does not wait until the command finishes: rather, as new input from
+the command arrives, it is shown. If no new input arrives for 10 seconds,
+the window is hidden.
+
+This feature is primarily intended for execution of the Java mudFTP client,
+but can be useful for other things, for example running a traceroute.
+
+The #exec command defaults to making a window of 80x10 characters at the
+position 0,3. The window will be hidden 10 seconds after output arrives.
+The options -h, -w, -x, -y and -t control change of those options, e.g.:
+
+#exec -w80 -h40 -x0 -y0 -t10 finger
+
+would make a window that was almost covering the whole screen, and would
+disappear after 10 seconds.
+
+There are a number of options that can be used as arguments to the #exec test:
+
+%h         Host of the remote MUD you are connected to
+%p         Remote port
+%P         Local port
+%n         MUD name
+%f         Remote ftp port (equals %p + 6)
+
+For the Java mudFTP client, it's probably most useful to use something like this:
+
+#exec -w40 -h6 -x39 -y3 -t5 java %h %f drylock qwerty edit.sh
+
+Where edit.sh contains:
+
+#!/bin/sh
+open -w -s $EDITOR $@
+chvt 1
+
+i.e. run the editor (make sure you set the EDITOR variable to something useful)
+with whatever parameters it will be called with, and when it's finished,
+switch to VT 1 (or whatever VT you usually use for MUD sessions).
+
+The 'open' command will find a free VT to run the $EDITOR on, switch to it (-s)
+and then wait (-w) for completion.
+
+Note that number in square brackets (e.g. [1]) in the title bar of the window:
+using the key combination alt-digit (e.g. alt-1) you can bring the window
+to the foreground when it is hidden.
+
+
+#window
+-------
+
+#window is another new feature introduced in mcl 0.42. It allows you to
+create a named window that pops up on the screen. This window can then
+be written to using the #print command. Like the #exec window, the #window
+disappears after a certain amount of inactivity, and reappears once new input
+to it arrives.
+
+#window takes many of the parameters that #exec takes: -w, -h, -x, -y control
+width, height and placement. -t controls timeout. -L allows attachment of a
+log file to the window. -H is a switch taking no parameters which will make
+the window stay hidden (and only appear when you explicitly use alt-digit
+to bring it up). -B removes border from the window. -c controls background
+color (see section "Color Values").
+
+After the parameters, the name of the window should appear. E.g.:
+
+#window -H -w80 -x0 -y4 -h25 -L/home/root/mud/logs/%n-tells tells
+
+Will create a 80x25 window (assuming you have a 80x50 screen), placed at 0,4.
+The window will use /home/root/mud/logs/%n-tells as a log file - the %n
+will be replaced by the name of the current session. The window will be
+called "tells" and will stay hidden.
+
+Then, you can print to the window using #print:
+
+#print tells Joe told me this and that!
+
+See file doc/Examples for examples.
+
+You can also clear the contents of one of those windows using #clear.
+
+
+Macros
+------
+
+You can define keyboard macros by using the line:
+
+Macro <keyname> <string>
+
+anywhere in the mclrc configuration file. This string is executed as if
+you typed an alias that resulted in this command, i.e. ; seperates multiple
+commands and aliases in the macro are also expanded.
+
+Macros are expanded after the windowing system has had a shot on the key, so
+you cannot override keys that have meaning like 'alt_q'.
+
+
+Example:
+
+Macro alt_b boa
+
+Will send 'boa\n' to the MUD each time you press Alt-B.
+
+
+Here is some useful macros I use (which set the keypad keys to send
+N/S/E/W/U/D and the middle key, to execute the "Exits" command):
+
+Macro kp_8 n
+Macro kp_2 s
+Macro kp_4 w
+Macro kp_6 e
+Macro kp_9 u
+Macro kp_3 d
+Macro kp_5 exits
+
+Here is a (perhaps incomplete) list of keys. Look in tty.c for an updated
+list:
+
+alt_<any letter> alt_slash alt_<digit>
+ctrl_<any letter>
+page_up page_down end home insert delete pause escape
+kp_<any number> (keypad keys)  kp_numlock kp_divide kp_multi kp_minus
+kp_plus kp_minus kp_delete
+f<1 to 12>
+
+Note that some control keys may not be available (e.g. Control-H cannot be
+overridden since it does the same thing as backspace).
+
+Like actions and aliases, macros can (since 0.52.01) be specified either
+inside a MUD definition, making them work on that MUD only, or outside,
+making them global.
+
+
+Speedwalk
+---------
+
+Standard tintin speedwalk is supported. It can be used both on the command
+line as well as inside aliases. A speedwalk command is define as one that
+contains nothing but letters nsewud and digits. E.g. "nseeew" will expand to
+n <return>, s <return>, e <return> etc. n14es will expand to n, then 14
+times e followed by a return each, then s followed by a return.
+
+You can disable speedwalk using the speedwalk configuration option, or
+online using the #disable speedwalk/#enable speedwalk commands.
+
+If you start a command with . and follow it immediately afterwards with
+a set of extended speedwalk letters, it will also be considered a speedwalk.
+Extended speedwalk is normal speedwalk, but you can also use characters h for nw,
+j for ne, k for sw and l for se. This option is not enabled in default speedwalk
+so that it does not clash with any aliases you might have -- with it on,
+something like "kn" would be considered a speedwalk.
+
+Note that the . notation works even if you turn off speedwalk. You can change
+the . character by using the speedwalk_character option in the configuration file.
+
+
+Changing the 'Command Character'
+--------------------------------
+
+Mcl's internal commands are prefixed with the # character by default, for
+example '#open', '#quit', etc.  If you wish to use another character as the
+command character then add/edit the following line in the .mclrc file.
+
+  commandcharacter=#
+
+Replace the '#' with the character you want the internal commands prefixed
+with.  For example:
+
+  commandcharacter=*
+
+The '#quit' command will now be '*quit' and the same for the other internal
+commands.
+
+
+MUD Inheritance
+---------------
+
+Since 0.52.01, MUDs can inherit other MUDs' alias, action, macro and
+hostname/port settings. You could for example, set up a MUD that
+contains aliases common to all your characters on this MUD:
+
+MUD AbandonedReality {
+  Host abandoned.org 4444
+  Alias td tell drylock %0
+}
+
+Then each of your characters would inherit these aliases and the hostname:
+
+MUD bob {
+  Inherit AbandonedReality
+  Commands bob;bobpassword
+}
+
+Say that you have 10 such characters; now if the hostname of Abandoned
+Reality were to change, you need to change it only in one place. If you
+want to add a new alias, action or macro that is only relevant for all
+your character on Abandoned Reality, you need to add it only in this
+one place.
+
+There is no limit for how many levels of inheritances can be done, so one
+could imagine that AbandonedReality could inherit from a "Diku" MUD
+which contains aliases common to DikuMUDs, and that you perhaps have another
+"MOO" MUD which is a basic alias setup for everything MOO.
+
+
+The Chat subsystem
+------------------
+
+Since 0.52.02, mcl has a chat system compatible with that of MudMaster and
+zChat. See the file doc/Chat for more information such as commands and
+configuration options.
+
+
+More commands
+-------------
+
+The document covers only the built-in commands of mcl. Through the embedded
+Perl support, it's possible to achieve incredible customization of mcl.
+Commands and features that are available through those means are described in
+the file doc/Modules.
+
+
+License
+-------
+
+mcl is under GPL. Read the file COPYING. Mail me if you use it, have ideas,
+discover features etc.
+
+Perl is under the Artistic license. You might have received a binary of
+mcl with the Perl library statically linked in. Perl is the product of
+Larry Wall and many others.
+
+Thanks
+------
+
+Thanks to Oliver 'Nemon@AR' Jowett <icecub@ihug.co.nz> for
+debugging and enhancing the C version.
+
+To Rodrigo Parra Novo for packaging up RPMs and creating the autoconf script.
+
+To Patrick Horner for contributed the Python embedded code.
+
+
+

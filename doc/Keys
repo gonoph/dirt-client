@@ -1,0 +1,20 @@
+Keyboard Commands
+
+Alt-o   open a connection to a mud (needs keys -- add, delete, etc)
+
+Alt-t   triggers window (grab all /hook -T OUTPUT)                              (FIXME: /trig)
+Alt-a   aliases window (grab all /hook -T SEND)                                 (FIXME: /alias)
+Alt-h   help window (toggle -- put something in it with /help)                  (/help)
+Alt-c   chat window (needs a header)                                            (FIXME: /chat)
+Alt-k   keys (needs keys -- add, delete, grabkey, etc)                          (FIXME: /key)
+Alt-q   quit                                                                    (/quit)
+Alt-s   toggle session statistics (upper-right corner of screen)                (FIXME: /stats command)
+Alt-l   toggle clock/timer window (upper-right corner of screen)                (FIXME: /clock command)
+            Mnemonic: cLock
+Alt-/   Search through the scrollback for a regexp.                             (FIXME: /search command)
+            Mnemonic: Similar to the '/' search command in vi/more/less
+Alt-n   Jump to (N)ext regular expression match in scrollback (see Alt-/)
+            Mnemonic: Similar to 'n' command in vi/more/less
+Alt-p   Jump to (P)revious regular expression match in scrollback (see Alt-/)
+            Mnemonic: Similar to 'p' command in vi/more/less
+Alt-w   (W)indow list.                                                          (/window)

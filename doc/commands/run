@@ -1,0 +1,20 @@
+/run        Run a function defined for an embedded interpreter
+
+Syntax:
+    /run [-L <language>] <name>
+
+Options:
+    -L      Specity the which language (embedded interpreter) should run the 
+            function.
+
+Notes:
+    Do not format <name> as a function call, just pass the name of the function
+    to be run.  You cannot pass parameters.  If you need to pass parameters,
+    consider using /eval instead.
+
+    If you have two embedded interpreters installed (perl/python) and you do 
+    not specify the -L option, *both* interpreters will attempt to run the 
+    function.
+
+See Also:
+    /load, /eval

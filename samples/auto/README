@@ -1,0 +1,6 @@
+Scripts in this directory are autoloaded.
+
+Directories in this directory have scripts autoloaded that are named the
+same as the directory (e.g. if you have a highlight/ directory,  dirt will
+load the file highlight/highlight.pl from it).
+

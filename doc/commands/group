@@ -1,0 +1,19 @@
+/group      Manipulate groups of hooks
+
+Syntax:
+    /group
+    /group <hookname>
+    /group -l <groupname>
+
+Options:
+    -l      List hooks belonging to group <name>
+
+Notes:
+    With no arguments, /group will list all defined groups.  With a hook name 
+    passed, /group will list all groups the named hook is a member of.
+
+Examples:
+    /group -l "Dirt commands"
+
+See Also:
+    /hook, /enable, /disable

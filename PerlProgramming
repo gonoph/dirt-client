@@ -1,0 +1,18 @@
+Hooks:
+You can call hook_add(<hook name>, ...) to have your function called when one of the following
+events occurs:
+    send 
+    preinput 
+    loselink 
+    prompt 
+    userinput 
+    postoutput 
+    output 
+    done 
+    keypress 
+    connect 
+    command
+
+Dirt commands:
+You can access dirt commands (/print, /send, etc) by calling them with "dirt" prefixed:
+    dirt_print, dirt_send, etc.

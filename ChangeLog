@@ -1,0 +1,92 @@
+Dirt 0.53.00 (First version after fork from mcl 0.53.00)
+
+* Replaced all cmd_ with mclcmd_ to separate client interface from server interface.
+* Added player, room hooks in ThreeKingdoms.pl
+* Modified hooks.pl so that new hooks get pushed onto @Hooks and show up in /show_hooks
+* Made triggers eval() the body of the argument, so things like this work:
+    /trigger "^Irulan attacks (.*)$" kill $1
+* Rewrote config.pl to use Data::Dumper and the config file Saved.pl.  Config file is now
+    straight perl that gets 'require'ed
+* Put modules in their own namespaces.  Vars which must be accessed from outside should
+    be declared with 'use vars'.
+* Added aliases for commands /trigger -> /trig, /highlight -> /hilite
+* Added many more colors in main:: namespace: lower case ($red, $red_black, 
+    $bold_red_black, etc)
+* Made all basic editing keys exit the history selection box and begin editing the 
+    highlighted item.
+* Made /window display its title if it has a border (and alt-O)
+* Made config file be .dirt/dirtrc (note .dirtrc is not valid anymore)
+* Changed all references to "mcl" to be "dirt" (function names, etc) and it works even!
+* Removed struct obsolete_options and related code in Config.cc.
+* Changed some default values for new config files (.dirt/dirtrc)
+* Added __WARN__ and __ERR__ signal handlers from perl, and 'use Carp' (init.pl)
+    for more verbose warning/error messages.
+* Changed PerlEmbeddedInterpreter::load_file so that it will dump line numbers on errors.
+    at load-time.
+* Now obeys INSTALL_ROOT as given by configure for finding perl/python files (no need
+    to copy samples/* to .dirt/)
+* Made /load re-require files.  (note: prints warnings about functions being redefined)
+* Made /print scroll to the next line *after* going past the last column, to enable
+    writing in the last column without scrolling.
+* /trigger now matches UNCOLORED string by default.  (add facility later to match 
+    colored string)
+* EmbeddedInterpreter::eval (and children) now accept input arg.
+* Changed all hook commands output_add -> hook_add("output") because fewer functions = better.
+    C code calls EmbeddedInterpreter::eval("hook_run('<hook name>')"...)
+    This might not be best since python handled hooks won't work.
+* Added priority, fallthrough parameter for hooks.
+* Made auto/mudftp.pl respect $commandCharacter.
+* Changed /run (PerlEmbeddedInterpreter::run) to *not* try to load a file if it
+    can't find the named function.  This is in the interest of predictability 
+    (loading a file and not *knowing* you loaded a file), and avoiding namespace 
+    pollution.
+* Replaced List with STL hash_map for aliases (do Hooks, Macros, etc too)
+    alias lookup is now O(1) instead of O(N)
+* Changed Group -> WindowGroup so that I could use Group as a class to "group"
+    triggers, hooks, aliases, etc.
+* Changed output -> outputWindow (h/OutputWindow.h) to avoid confusion with "OUTPUT"
+    Hook type.  (and for consistency in naming)
+* Fixed typo at end of Pipe.h: outputPine -> outputPipe
+* Removed hook "postoutput" -- don't know what it is, nobody uses it.
+* Removed "Borg" completely.
+* Interpreter rewritten.  Now uses a deque (double-ended queue).  expandSemicolon
+    and expandSpeedwalk are now hooks (SEND) that replace the command by pushing onto
+    the front of the deque.  expandAliases, expandVariables removed (these will be 
+    rewritten in perl -- perl needs access to variables).
+    * can now mix semicolons and speedwalk! : .10nwed;open door;.nnwwd
+    <months of work converting all the commands...>
+* Help system started in doc/commands.  Each file corresponds to a command.
+    Still need to implement the /help command.
+* /complete (perl) converted to new hook system, works great.
+* /window accepts negative values, which measures WRT right/bottom of screen.
+* Removed /kill, /windows commands, use '/window -k' and '/window -l' instead.
+* Moved hook.pl, hook.py into samples/attic, they're no longer used.
+* Escaping now works.  Any command which wishes to interpret a character as "special"
+    need only check that there are an EVEN number of backslashes in front of it.
+    (note zero is even).  If there are an odd number, the character should not be
+    interpreted as special.  Removing excess backslashes is done in writeMUD.
+* Removed disabling of functions.  (via the "hidden" command '/magic enableFunction')
+    Note that hooks can be enabled/disabled with the /enable and /disable commands.
+* Can now specify more than one group to /hook.  Checked that /enable and /disable
+    work too.  (don't do: /disable -g "Dirt commands" ;)
+* /group command: list groups belonging to a hook, and hooks belonging to a group.
+* Dirt now processes commands line-by-line.  That is, when a line is received
+    from the mud, triggers are checked against it, and any commands generated
+    by those triggers are run.  (previous behavior would run commands after an
+    entire buffer -- network packet -- was processed, which could split lines,
+    and cause unpredictable results when using mutiple scripting languages)
+* Save color/restore color ($CSave, $CRestore) now uses a FIFO queue (deque)
+    so that multiple $CSave's and $CRestore's may be used, and it behaves as
+    expected.  (/highlight inside a /highlight)
+* Improved perl error reporting.
+* If hooks fail (there is a script error or the function is not defined), 
+    TrigerHookStub::operator() will disable the hook and print a message (to
+    prevent pages of spammy repeat error messages).
+* Window doesn't drop one character when wrapping anymore.
+* /trig command: "simple" triggers
+    Overloaded /enable, /disable to keep perl data structures consistent.
+* Instead of running sys/init, sys/init is loaded, and the INIT hook is called.
+* MessageWindow's (/window) now scroll with the selected background color, rather 
+    than fg_white|bg_black
+* We now scroll when someone print's a \n.  (i.e. /echo "")
+* ctrl-L now redraws screen immediately, instead after *next* keypress.

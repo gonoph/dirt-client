@@ -1,0 +1,11 @@
+/windows    List the currently existing windows.
+
+Syntax:
+    /windows
+
+Options:
+    None.
+
+Notes:
+    Do not run too often.  It has been known to turn the screen blue and cause
+    your computer to stop responding.

@@ -1,0 +1,24 @@
+/trig
+/trigger
+    -n<number>        number of times to execute
+    -E<expr>          evaluate expression first, if true, do trigger
+                      Note <expr> is evaluated in the context of main::, in perl.
+    -t<regex>         trigger pattern
+    -b<key>           bind to key (string)
+    -B<key>           bind to named key
+    -p<pri>           priority                  (use order instead?)
+    -c<chance>        probability that trigger will execute
+    -F                fall-through (not fall through option?)
+    -a[ngGurfdBbhC]   attributes (normal/gag/norecord/underline/reverse/flash/dim/bold/bell/hilite/Color)
+    -P[<n>][nurfdBhC] partial hilite (<n>th subexpression in regex
+    -i                invisible
+    -A                match ANSI too (ANSI normally stripped and string is straight text)
+    <name> = <body>
+
+/highlight
+/highlite
+/hilite
+    same as /trig -P
+
+/gag
+    same as /trig -ag

@@ -1,0 +1,11 @@
+/quit       Quit (exit) the program
+
+Syntax:
+    /quit
+
+Options:
+    None
+
+Notes:
+    This will not log you off from your mud.  For most muds this will cause
+    you to go "linkdead".

@@ -1,0 +1,9 @@
+/load       Load a script file.
+
+Syntax:
+    /load <filename>
+
+Notes:
+    If you do not specify an extension, the embedded interpreter(s) will look
+    for a file called <filename>.pl and <filename>.py and load them both if
+    they exist.

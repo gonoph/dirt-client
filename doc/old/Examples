@@ -1,0 +1,45 @@
+This file contains example aliases, macros and actions. Feel free to send
+the most useful of your in.
+
+
+Logging tells
+-------------
+
+I use the following few aliases to log tells and other things to a window.
+First, there is the startlog alias, that starts logging to a file (this has
+to of course, be on one line)
+
+Alias startLog #window -H -w80 -x0 -y3 -h10 -lmud/Log/%n-%1 %1;
+#print %1 *** %t -- logged in into %n@%h:%p
+
+When called (e.g. startLog tells), the file will create a new window,
+attached to the file mud/Log/ar-tells (if the current MUD you
+are attached to is called ar). It will also print out a line to that file
+which looks like this:
+
+*** Sun Jan 25 12:00:26 1998 -- logged in into ar@abandoned.org:4444
+
+Then, I do the logging of, for example, tells, which looks like this:
+
+action "^(.*) tells you '(.*)'" #print tells %H:%m $1: $2
+
+This will takes lines which contain "tells you" followed by the text in
+single quotes.
+
+
+Easier perl interface
+---------------------
+
+Alias % #eval %0
+
+will allow you to type things like: %2**20 to find the 20th power of 20,
+rather than #eval 2**20.
+
+Alias ! #eval `%0`
+
+will allow you to do e.g. !finger to run the finger command and send its
+output to the main screen.
+
+Note that you don't need space between % nor ! and the command.
+
+

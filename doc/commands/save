@@ -1,0 +1,7 @@
+/save       Save the scrollback buffer to a file
+
+Syntax:
+    /save -a <filename>
+
+Options:
+    -a      Preserve color (ANSI) codes when the file is saved.

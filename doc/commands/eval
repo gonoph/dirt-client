@@ -1,0 +1,22 @@
+/eval       Evaulate a perl/python expression
+
+Syntax:
+    /eval [-L <language>] [-r] <statements>
+
+Options:
+    -L      Specify the language the statements are in.  Either "perl" or 
+            "python".                                                    (FIXME)
+    -r      print the return value of the expression. 
+                                              (default: ignore the return value)
+    -s      Send the return value of this command to the mud.
+
+Examples:
+    /eval -r 234+1235;
+        prints: @ eval result: 1469
+    /eval print 234+1235;
+        prints: 1469
+    /eval -s "drool\n" x 50;                                              (perl)
+        drool a whole lot: send 50 "drool" commands to the mud.
+
+See Also:
+    /load, /run

@@ -1,0 +1,9 @@
+/echo       Print a string to the screen or a window.
+
+Syntax:
+    /echo [ -n ] [ -W <window name> ] [ message ]
+
+Options:
+    -n      Do not print a trailing newline after the message
+    -W      Specify the name of a window to which the message should be 
+            printed.

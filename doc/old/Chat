@@ -1,0 +1,394 @@
+ZMUD/MudMaster compatible chat system
+=====================================
+
+Since 0.52.02, mcl offers a peer-to-peer chat system, which is
+compatible with the original MudMaster chat protocol as well as zChat's
+extended protocol.
+
+The peer-to-peer nature of the chat system means that there is no
+central server through which your message pass: you call up directly
+the MudMaster, ZChat/ZMUD or mcl client residing on another person's
+machine and communicate directly with them.
+
+
+Stuff currently unimplemented:
+* Configuration file setting (i.e. Chat <person> {  ... }
+* File transfer
+* PGP
+* Snooping
+* connection list requests
+* Setting flags
+* Some of the commands (e.g. chat.deny)
+* Chat list via alt-H
+* Chat actions/substitutes
+
+mcl chat has only been tested together with mcl itself, so it
+probably does not work yet with ZMUD/MudMaster yet.
+
+THIS IS ALPHA QUALITY CODE. There may be holes, buffer overflows,
+whatnot.
+
+
+How it works
+------------
+
+When mcl starts up, it begins to listen on a port (4050). You tell
+your conversation partner your IP address and this port number,
+and he can now call you (using e.g. #chat.call IP 4050).
+
+After he connects, his client requests a connection from yours.
+Unless you are automatically accepting all connections, or have
+set up a passphrase which automatically accepts connections from
+that one particular person, you will be asked to accept this incoming
+connection (using #chat.accept).
+
+Then you are connected; you can see active connections by pressing alt-H.
+You can chat to that person by using "#chatto <name> <message>" (e.g.
+"#chatto Drylock Hi!").
+
+To disconnect someone, use the Alt-H listbox: by selecting a connection
+and pressing Delete you will disconnect the person. You can also set various
+flags on that connection.
+
+There are many additional commands and configurations options. They are covered
+in the following chapters.
+
+
+Configuration options
+---------------------
+
+All configuration options as well as all client commands pertaining
+to the chat subsystem start with "chat." (e.g. "#chat.call").
+
+chat.name       Your nickname. Should be 16 characters. mcl will NOT
+                active the chat system unless you set this configuration
+                option!
+
+chat.baseport   Default: 4050. When mcl starts up, it will try to bind
+                to the baseport and up to 9 of the following ports if
+                the 4050 port is already in use.
+
+chat.autoaccept Normally you are asked to confirm that you want to accept
+                an incoming connection. With this option enabled, you will
+                allow anyone to connect to your client
+
+chat.download   The chat protocol allows for file transfer. This option
+                control where the files downloaded this way go to. Default
+                is ~/.mcl/downloads/
+
+chat.email      Set this to your email address if you want it to be visible
+                to people you chat with.
+
+chat.icon       Path to a Windows BMP containing the icon for your persona.
+                This icon is currently only displayed by zChat.
+
+chat.debug      Set to 1 to get maximal information about incoming requests.                
+
+chat.interfaces A machine can have several IP addresses. For example,
+                all UNIX machine have 127.0.0.1 on the "loopback" interface.
+                They may have another, changing address when they connect
+                to the net via PPP. They may also be in a local network
+                which means they have a third address on the Ethernet interface.
+
+                Using the chat.interfaces option you can tell mcl what interfaces
+                should be looked for to determine your IP address. The default
+                is ppp0 eth0 lo, which means mcl will look at your PPP connection
+                first, then see if you have Ethernet and then finally fall back
+                to loopback in case you are experimenting with the chat protocol
+                on a standalone machine.
+
+                If you start mcl with PPP down then bring up ppp and use #chat.call,
+                mcl will perform the scan again and pick hopefully the PPP address.
+
+chat.protocol   The default protocol, zchat or chat (MudMaster chat). Defaults to
+                zchat. Use 0 for Chat, 1 for zChat.
+
+chat.paranoia	Prefix all messages with their source (e.g. [Drylock@127.0.0.1] Drylock
+                chats "hi"). It is the *sender* that formats the message entirely,
+                including their name (or lack of it).
+
+                Note that mcl automatically prefixes the name/IP if it cannot find
+                the name inside the message.
+
+chat.syscolor   Color of system messages
+chat.chatcolor  Color of chat messages
+                       
+
+Chat definitions
+----------------
+
+In the configuration file, you can specify special parameters for people you
+chat with, like default flags and default IP address. The syntax is following:
+
+Chat <nickname> {
+  Host <hostname or IP address> [port]
+  Password <password>
+  Flags [flag list]
+  Protocol <zchat|chat>
+  Group <group>
+}
+
+As you can see, the syntax is similar to the MUD definition syntax. All the
+lines within are optional, you can specify as man as you want. Following
+configuration options are available:
+
+Host - this sets the hostname and port (defaults to 4050 if left out) of
+your conversation partner. If this is set, you can use #chat.call <nickname>
+rather than specifying the IP address. For this to work correctl, your partner
+must have a static IP address or must use some sort of DynIP-like service
+like the now-dead ml.org
+
+Password - If this is set, and the protocol used is zchat, a user with
+this nickname must present this password when connecting to you.
+
+Flags - list of flags set on this connection. Space-delimitered list of
+flags described in the "Flags" chapter.
+
+Protocol - default protocol used when calling that person.
+
+Group - default chat group
+
+
+Chat commands
+-------------
+
+#chat.call [protocol] <IP address or hostname> [port]
+#chat.call [protocol] <nickname> [IP address] [port]
+
+This initiates a chat session. If you leave out the port, it defaults to 4050.
+You can specify an IP address or a hostname, mcl will look up the hostname then.
+
+You can also specify a nickname. This will retrieve the settings from
+your configuration file. You can still specify an IP address and port to
+complement or override the configuration file settings.
+
+You can specifiy a protocol, either zchat (ZMUD zChat enhanced protocol)
+or chat (the standard MudMaster protocol). For example:
+
+#chat.call zchat foobar.org
+Call host "foobar.org" port 4050, using zchat protocol.
+
+#chat.call bob
+Call the IP address specified in your "bob" nickname entry
+
+#chat.call bob foobar.org
+Call foobar.org port 4050 and use other settings from your "bob" nickname
+entry
+
+
+#chat.ip
+
+Repeat the scan for IP addresses. This is useful when you e.g. have mcl
+running, disconnect from the net via PPP then reconnect but get a different
+IP address. Note that mcl also executes this commane every time you try
+to connect to someone else.
+
+
+#chat.accept [number|name]
+#chat.reject [number|name]
+#chat.deny [number|name]
+#chat.dc [number|name]
+
+After someone connects to you, you must accept their connection using
+#chat.accept. If used without arguments, the command accept the last
+connection to connect. If you DON'T want the connection to be
+accepted, you can use #chat.reject to drop it.
+
+If you use #chat.deny, the connection will be dropped. In addition,
+the IP address will be automatically rejected from connecting to you
+until you exit mcl.
+
+#chat.dc is used to disconnect an already running session.
+
+All 4 commands can either take no arguments (then they affect the
+first appropriate session), a number or the name of the user to
+disconnect.
+
+
+
+#chat.list
+
+Show a list of current connections as well as list of your nicknames.
+This commands prints out the list to the output screen; using Alt-H will
+show you a nice list box.
+
+If your screen is more than 90 characters wide, you will get the
+verbose list, otherwise you get the shortened list. See explanation of
+the lines under the "Chat list" chapter.
+
+
+#chat.to [emote] <name> <message>
+#chat [emote] <name> <message>
+
+Send a private message to this person. "#chat" by itself is an
+alias for this command.
+
+If you specify EMOTE as the first word, your message will be different.
+The default message is e.g. "Drylock chats to you 'Hi!'". With emote,
+sending something like "#chat emote smiles" will send "Drylock smiles.".
+
+
+#chat.reply [emote] <message>
+
+Executes a #chat.to on the last person to send you a personal chat.
+
+
+#chat.all [emote] <message>
+#chatall [emote] <message>
+
+Send a message to everyone you are connected to. "#chatall" is an alias for
+this command. The message looks like this: "Drylock chats to all 'Welcome'".
+If emote is active, it is simplye "Drylock smiles.".
+
+#chat.group <groupname> [emote] <message>
+#chat.setgroup <groupname> <people list...>
+
+Send a message or a emote to a given group. To add members to the
+group, use the #chat.setgroup command (e.g. #chat.setgroup cool Bob Joe
+will add Bob and Joe to the group cool; if either was already there
+they are removed from the group instead).
+
+
+
+#chat.icon <filename>
+
+Change your chat icon. If the file exists, it is sent out to all your
+connections as your new icon. It's not much use for mcl, but I suppose
+someone might make a small animated movie with this command.
+
+
+#chat.flags <connection> <changes...>
+
+Adjust the settings for this connection. E.g. #chat.flags Drylock +private.
+You can specify any number of flag names prefixed with + (to set flag),
+- (to unset flags) or just the flag name (toggling the flag). See the "Flags"
+section for descriptions of what flags do.
+
+
+#chat.request <connection>|ALL
+#chat.peek    <connection>|ALL
+
+Requests the public connections of all the connections you are
+connected to. Upon receiving those connections, mcl will connect to any
+new connections it finds this way.
+
+#chat.peek is similar, but only shows the connections rather than
+connecting to them.
+
+
+#chat.ping <connection>|ALL
+
+Sends a Ping packet to that connection. The client in the other end
+send pack a response and upon its receival, mcl display the roundtrip
+time.
+
+
+
+
+Flags
+-----
+
+These flags can be set with the #chat.flags command.
+
+Private: this connection will not be given out when other people do a
+  #chat.peek or #chat.request.
+
+Serving: You will relay #chat.all and #chat.group that have come from
+  OTHERS to this connection
+
+Commands: You will accept commands from this connection (i.e. the other
+  person can make your mud client execute any command)
+
+Snoop: You will allow this connection to snoop you
+
+Ignored: You will see no #chat/#chat.all/#chat.group from this connection
+
+Files: You will accept files sent from this connection
+
+Snooping:  You are currently snooping that connection
+
+Snooped: You are snooped by that connection
+
+
+
+Chat list
+---------
+
+Pressing Alt-H shows up the current chat list. You can use arrow keys
+to move around as usual. Pressing the flag letter (I for Ignore, P for
+Private, C for Commands, n for Snoop, F for Files, S for Serving, O for
+Snooped, d for Snooping) toggles that flag on/off.
+
+Pressing Delete disconnects that connection.
+
+Pressing Enter allows you to enter a private message to send to that
+connection. Rather than popping up a new window, it simply puts
+"#chat.to <name> " on your input line.
+
+
+
+Connection states
+-----------------
+
+First the long description then in parens the short one. *** is a number.
+
+INVALID STATE (????)
+Something has gone really wrong! This is the state that all connections start
+with but change from very soon.
+
+Connecting (timeout ***) (C***)
+mcl is trying to get a connection to the other client, but no TCP/IP connection
+has been established yet. Perhaps the network connection is overloaded.
+
+Connected, requesting permission (timeout ****) (P***)
+We have achieved a connection and sent our credentials. The remote client must
+now decided whether to let us in or not.
+
+Connected (    )
+Successfull connection has been established. Either side can now send commands
+
+Waiting for * more command header bytes (Cmd*)
+A zChat command contains 4 bytes in the header (command number, data bytes). We
+have not yet received all 4.
+
+Waiting for *** more bytes of command * (D***)
+The command also contains a body which contains a certain number of bytes. Here
+we are waiting for all of them to arrive
+
+Waiting for old style data (D)
+The MudMaster protocol terminates it data with the character 255. Thus it's not
+possible to tell how many more bytes of data may arrive.
+
+Accepted, awaiting protocol/chatname (Acc1)
+Someone has connected to our port but has not said anything yet
+
+Accepted, awaiting address/port (Acc2)
+Someone has connected, but has only told us their protocol and name
+
+Waiting for your accept (Cnfr)
+Someone has connected and now it's up to you to type #chat.accept to let them in
+
+Unknown state: * (I*)
+An invalid state that not even the state-parser knows about.
+
+
+Chat and the embedded interpreter
+---------------------------------
+
+Output from chat goes through the usual "output" type triggers.
+
+After sucessfull startup, the variables chatIP and chatPort point
+at the local IP address and port the chat system is listening on.
+
+
+Actions and substitutes
+-----------------------
+
+If you want all chat-related output to be filtered to actions and
+substitutes, create a MUD called "Chat" in your configuration file,
+and add any actions/substitutes you want to be active to there.
+
+Chat output is filtered through the standard embedded scripting
+channels (i.e. the output hook) so things like highlights and
+gags will work.
+

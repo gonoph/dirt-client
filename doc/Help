@@ -1,0 +1,9 @@
+Help Files:
+-----------
+
+Code is self documenting in the following manner:
+
+// <doc>
+// COMMAND: /commandname
+// SUMMARY:
+// </doc>

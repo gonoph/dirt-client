@@ -1,0 +1,135 @@
+# Dirt - Mud Client for Unix (mcl fork)
+# Makefile.in - this file is processed by configure to create the Makefile
+# created by Rodrigo Parra Novo <rodarvus@conectiva.com.br> - 19990907
+# first based on the Makefile of mcl version 0.5something
+
+# Common autoconf flags
+CC=@CC@
+CXX=@CXX@
+CFLAGS=@CFLAGS@
+CPPFLAGS=@CPPFLAGS@
+CXXFLAGS=@CXXFLAGS@
+DEFS=@DEFS@
+EXE=@PACKAGE@
+INSTALL=@INSTALL@
+LDFLAGS=@LDFLAGS@
+LIBS=@LIBS@
+prefix=@prefix@
+INSTALL_ROOT=@INSTALL_ROOT@
+COMPILED_BY=@COMPILED_BY@
+MODULES=@WITH_PERL@ @WITH_PYTHON@
+
+# Common programs
+LN_S=@LN_S@
+RM=@RM@
+FIND=@FIND@
+XARGS=@XARGS@
+CTAGS=@CTAGS@
+ECHO=@ECHO@
+
+# Compile with perl libraries?
+# Shut up the compiler about something caused by perl 5.6
+PERL=@PERL@
+PERL_CPPFLAGS=@PERL_CPPFLAGS@ -Wno-unused
+PERL_LDFLAGS=@PERL_LDFLAGS@
+
+# Compile with python libraries?
+PYTHON=@PYTHON@
+PYTHON_CPPFLAGS=@PYTHON_CPPFLAGS@
+PYTHON_LDFLAGS=@PYTHON_LDFLAGS@
+
+# Extra libraries
+LIBDL=@LIBDL@
+LIBEFENCE=@LIBEFENCE@
+LIBM=@LIBM@
+LIBNCURSES=@LIBNCURSES@
+LIBPTHREAD=@LIBPTHREAD@
+LIBZ=@LIBZ@
+LIBSTDCPP=@LIBSTDCPP@
+
+# Extra compiler flags
+HAVE_FLAG_NO_RTTI=@HAVE_FLAG_NO_RTTI@
+HAVE_FLAG_NO_EXCEPTIONS=@HAVE_FLAG_NO_EXCEPTIONS@
+LOCAL_CFLAGS=@LOCAL_CFLAGS@
+LOCAL_CPPFLAGS=@LOCAL_CPPFLAGS@
+LOCAL_CXXFLAGS=@LOCAL_CXXFLAGS@
+LOCAL_LDFLAGS=@LOCAL_LDFLAGS@
+LOCAL_LIBS=@LOCAL_LIBS@
+
+# Common flags
+DIRT_CFLAGS=$(CFLAGS) $(CPPFLAGS) $(DEFS) $(LOCAL_CFLAGS) $(LOCAL_CPPFLAGS)
+DIRT_CXXFLAGS=$(CXXFLAGS) $(CPPFLAGS) $(DEFS) $(HAVE_FLAG_NO_RTTI) \
+	$(HAVE_FLAG_NO_EXCEPTIONS) $(LOCAL_CXXFLAGS) $(LOCAL_CPPFLAGS)
+DIRT_LDFLAGS=$(LDFLAGS) $(LOCAL_LDFLAGS)
+DIRT_LIBS=$(LIBS) $(LOCAL_LIBS) $(LIBDL) $(LIBEFENCE) $(LIBM) $(LIBNCURSES) $(LIBZ) $(LIBSTDCPP)
+
+# Source files
+SRC_FILES := $(wildcard *.cc)
+
+# Object files
+OBJ_DIR=o
+OBJ_FILES := $(patsubst %.cc,$(OBJ_DIR)/%.o,$(SRC_FILES)) $(OBJ_DIR)/mccpDecompress.o
+DEPS := $(patsubst %, $(OBJ_DIR)/plugins/%.so, $(MODULES))
+
+# Include files
+INC_FILES := $(wildcard h/*.h)
+
+.PHONY: all distclean clean tidy install
+
+all: .depend $(EXE) $(DEPS)
+
+distclean: clean
+	$(RM) -f config.* Makefile VERSION dirt.spec h/config.h
+
+clean: tidy 
+	$(RM) -f $(OBJ_FILES) $(EXE) o/plugins/*.so o/plugins/*.o .depend
+
+tidy:
+	$(RM) -f *~ *orig *bak *rej doc/*~ samples/*~
+	$(FIND) samples -name "*~" -print | $(XARGS) $(RM) -f
+
+.depend:
+	$(CXX) -MM -Ih $(SRC_FILES) > .depend
+	$(PERL) -i -p -e 's/([^.]+)\.o/o\/\1.o/g' .depend
+
+tags:	$(SRC_FILES) $(INC_FILES)
+	$(CTAGS) $(SRC_FILES) $(INC_FILES)
+
+# Link with $(CC) to avoid the c++ libs to be linked
+$(EXE): $(OBJ_FILES)
+	$(CC) $(DIRT_LDFLAGS) -o $(EXE) $(OBJ_FILES) $(DIRT_LIBS)
+
+$(OBJ_DIR)/%.o: %.cc
+	$(CXX) -c $(DIRT_CXXFLAGS) $< -o $@
+
+$(OBJ_DIR)/mccpDecompress.o: mccpDecompress.c
+	$(CC) -c $(DIRT_CFLAGS) $< -o $@
+
+o/plugins/perl.so: o/plugins/PerlEmbeddedInterpreter.o
+	$(CC) $(LDFLAGS) -shared $< -o $@ $(PERL_LDFLAGS) $(LIBPTHREAD)
+
+o/plugins/PerlEmbeddedInterpreter.o: plugins/PerlEmbeddedInterpreter.cc
+	$(CC) -c $(DIRT_CFLAGS) $(PERL_CPPFLAGS) $< -o $@
+
+o/plugins/python.so: o/plugins/PythonEmbeddedInterpreter.o
+	$(CC) $(LDFLAGS) -shared $< -o $@ $(PYTHON_LDFLAGS) $(LIBPTHREAD)
+
+o/plugins/PythonEmbeddedInterpreter.o: plugins/PythonEmbeddedInterpreter.cc
+	$(CC) -c $(DIRT_CFLAGS) $(PYTHON_CPPFLAGS) $< -o $@
+
+install: $(EXE)
+	$(INSTALL) -d $(INSTALL_ROOT)$(prefix)/{bin,lib/dirt/{auto,contrib,plugins,sys,doc,doc/commands}}
+	$(INSTALL) $(EXE) $(INSTALL_ROOT)$(prefix)/bin
+	$(INSTALL) o/plugins/*.so $(INSTALL_ROOT)$(prefix)/lib/dirt/plugins || : # There may be no plugins to install
+	$(INSTALL) samples/auto/*.* $(INSTALL_ROOT)$(prefix)/lib/dirt/auto/ # The *.* is desired, not a typo
+	$(INSTALL) samples/contrib/*.* $(INSTALL_ROOT)$(prefix)/lib/dirt/contrib/
+	$(INSTALL) samples/sys/*.* $(INSTALL_ROOT)$(prefix)/lib/dirt/sys/
+	$(INSTALL) doc/[A-Z]* $(INSTALL_ROOT)$(prefix)/lib/dirt/doc/
+	$(INSTALL) doc/commands/* $(INSTALL_ROOT)$(prefix)/lib/dirt/doc/commands/
+
+uninstall: 
+	$(RM) -rf $(INSTALL_ROOT)$(prefix)/lib/dirt/
+	$(RM) $(INSTALL_ROOT)$(prefix)/bin/$(EXE)
+
+include admin/Makefile
+include .depend

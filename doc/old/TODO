@@ -1,0 +1,84 @@
+Things that need to be done / bugs that should be fixed:
+
+BUGS:
+
+- Something broke all the dialog boxes
+- xterm? bug in Screen.cc, saved background color problem
+- segfault on unrecognignized config option?
+- #<x> will add the commands at the end of the command list rather than the
+  beginning
+- exit does not correctly clear titlebar on kvt
+- $prefix in configure is not respected (should use $prefix/lib/mcl instead
+  of the hardcoded /usr/[local]/lib/mcl
+- speedwalk_character is removed if a speedwalk is invalid
+- \ will not escape #commands
+
+
+HIGH PRIORITY: (I'd like to do this myself one day)
++ Make #macro usable online
++ Full blown telnet client with VT100 etc. emulation -- and scrollback
++ Make mcl understand SIGWINCH (tough for scrollback!)
+
++ URLGET module: watch for URLs shown in text. URLGET 1 launches a program
+  for the last seen URL (e.g. netscape)
+
++ AutoLearn feature: when telnetting to a new MUD, e.g. foobar.org 4242,
+  allow to create and add a new MUD to the config file with that setup,
+  including e.g. first 10 things sent to the MUD so you can put in
+  character name/password 
+
++ X support. fte does this nicely, I should probably just take the X11 support
+  from there and hack it up. I have no clue about X otherwise.
+
++ #emit command to emit any keypress
+
++ Control-R just like in readline!
+
++ Rewrite lots of the windowing system, there is a lot of junk floating around
+
++ Support long options via getopt_long
+
++ Grouping of aliases/actions/macros and disabling of them group-by-group.
+
++ Multiline aliases e.g.
+
+Alias foo {
+	say Hello!
+	say How are you?
+}
+
++ Split scrollback/output window (so you can scroll back while still looking
+  at current output)
+
+MEDIUM PRIORITY: (Probably)
+
++ Slow replay of commands
+
++ Add the hashtable code and replace the failed list with a hashtable
+
++ Color prompt
+
++ Stable pattern matching so the matches don't kick in until the whole
+  line is done.
+
+LOW PRIORITY: (Doubtful)
+
++ Dialog boxes for configuration.
+
++ Full customization of keyboard commands
+
++ Multiple sessions (unlikely, just run it on two VCs)
+
++ The perl functions relay on global variables for passing arguments
+  back and forth (e.g. keypress uses $Key). This is not good.
+
+Unprioritized wishlist from users:
+
+Forward/backwards a word
+Add timestamp to scrollback
+Learn Keys feature like in Midnight Commander
+Read in file, send to MUD.
+Actions that trigger raw
+Support underline (in slow mode only?)
+
+

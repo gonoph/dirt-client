@@ -1,0 +1,149 @@
+/hook       Add, remove, or list installed hooks.
+
+Syntax:
+    /hook -l [-i]
+    /hook -r [-T <type>] <data>
+    /hook -N <name>
+    /hook -d <name>
+    /hook [-t <regex>] [-iFeDaf] [-p <priority>] [-c <chance>] [-n <shots>] 
+        [-g <group>] [-T <type>] [-L <language>] <name> [= <value>]
+    /hook -C <cmd> [-iFeDaf] [-p <priority>] [-c <chance>] [-n <shots>] 
+        [-g <group>] [-T <type>] [-L <language>] <name> [= <value>]
+    /hook -k <key> [-iFeDaf] [-W <window>] [-t <regex>] [-p <priority>] 
+        [-c <chance>] [-n <shots>] [-g <group>] [-T <type>] [-L <language>] 
+        <name> [= <value>]
+
+
+Options:
+    -l      List the installed hooks. (default, mutually exclusive with -t, -C, -r)
+    -i      List internal hooks (with -l), otherwise make new hook "internal".
+    -r      Run the named hook, with <data> as its argument.
+    -T      Type of hook.                                        (default: SEND)
+    -N      Define a new hook type.
+    -d      Delete a defiend hook.
+    -t      Make a trigger hook, argument is the regular expression to match.
+            Implies -T OUTPUT (but you can specify some other type).
+    -p      Priority of this hook.                                  (default: 0)
+    -c      Chance that this hook will execute.  Should be a floating-point 
+            number between 0.0 and 1.0.                           (default: 1.0)
+    -n      Execute this hook <shots> times.  If <shots> is 0, the hook will
+            never be executed (but it will be defined).  If it is negative,
+            the hook will execute forever.                         (default: -1)
+    -F      Fallthrough to allow hooks of lower priority to be executed.
+                                                                       (default)
+    -D      Create hook disabled.  Hooks are enabled when created by default.
+    -g      Group name with which this hook should be associated.  Multiple
+            groups may be specified by separating them with commas.
+    -C      Command name.  Synonymous with: -t /^<cmd>/ (-C is mutually 
+            exclusive with -t)
+    -f      <value> is a function name to execute instead of a dirt command.
+    -L      The argument <language> is the name of the language in which the 
+            function to be run (-f) is defined.  If -L is specified, -f is 
+            assumed.
+    -a      Match against the COLORED ((A)NSI) string instead of the uncolored
+            string.  You may include variables like ${red} in the matching 
+            string.
+    -k      Make a keypress hook, argument is the key to use.  Implies 
+            -T KEYPRESS.
+    -W      Specify a window for which the KEYPRESS hook should be associated.
+
+Notes:
+    <name> can be any alphanumeric name.  
+
+    <value> is interpreted to be a command to be sent to the mud.  It will be
+    sent through the COMMAND hook (and SEND if it's not a command) hooks,
+    therefore aliases, semicolons, speedwalk, etc will be expanded in it.
+
+    If you do not specify the -a option, and your hook modifies the string,
+    any color codes will be lost!  If you wish to preserve color codes, and
+    also modify the string, you must match against the colored string (-a).
+
+    The available types are:
+        COMMAND   command typed by user, before it's sent to mud.  If something
+                    sent through the COMMAND hooks does not match any hook (or
+                    hooks that match are fallthrough), it will be sent through
+                    the SEND hooks.
+        USERINPUT called after user types 'enter'.  If the user's input doesn't
+                    match any USERINPUT hook (or hooks that match are 
+                    fallthrough), it will be sent through the HOOK.
+        SEND      called just before text is sent to mud.  The lowest priority
+                    SEND hook will forward the text to the mud.
+        OUTPUT    called on any output from mud -- use for triggers
+        LOSELINK  called when link is lost
+        PROMPT    called when a new prompt arrives
+        INIT      called on startup
+        DONE      called when dirt exits. (use to kill procs, save persistent data)
+        KEYPRESS  called for each key pressed by user
+        CONNECT   run when user attempts to connect to a mud.
+        IDLE      run once per second.
+
+    Some options are mutually exclusive (-C and -t, for instance), and not all
+    possible combinations make sense.  -k and -t are not mutually exclusive,
+    nor are -k and -C.  If such a hook is created, -k specifies the key that
+    must be pressed, and -C or -t will be matched against the input line.  
+    (See the completion.pl module for an example of this using <tab> to
+    complete long words by gathering words from the mud's output)
+
+    Hooks are *not* saved when you exit the client.  If you want to write some
+    perl/python scripts that need to set hooks, they should install the hooks
+    they need when they are run.  The following commands define hooks, but also
+    save them persistently: /trig (OUTPUT hooks), /alias (SEND hooks), /key 
+    (KEYPRESS hooks), /command (COMMAND hooks).
+    
+    When you list hooks (-l), the Flags field can have the characters F, D,
+    and C, corresponding respectively to Fallthrough (-F), Disabled (-D), and 
+    Color (-a).
+
+    When a KEYPRESS hook is associated with a window (-W), <value> will only
+    be executed if that window is shown.  If the window is hidden, <value>
+    will not be executed.  Also if <window> is non-existant, the key will not
+    do anything.
+
+    It may be necessary to place <value> in quotes, to prevent switches in it
+    from being interpreted as intended for the /hook command.
+
+    These two hooks are different!  The first will receive the line of output
+    from the mud, the second will not!
+        /hook -T OUTPUT -fL perl blah = blah
+        /hook -T OUTPUT blah = /run blah
+    The second gets fed to the COMMAND hook, as if you had typed '/run blah',
+    and has *no*knowledge* of the data coming from the mud.  (because the /run
+    is a COMMAND hook, and the data it triggers on is the string "/run blah")
+
+    Quoted expressions:
+        When specifying a trigger string, remember that dirt parses the 
+    argument to -t as a quoted expression *before* passing the regex to the
+    matcher.  You should always place the argument to -t in quotes.  So if you
+    want to trigger on something containing a backslash, you must put FOUR
+    backslashes into your regex.  If you want to trigger on something 
+    containing your quote character, you may escape it.
+        /hook -t 'Jose says \'([^\']*)\' -T OUTPUT josesays = 
+            /eval print "Jose told me to $1"
+    Note that the right hand side is also evaluated as a quoted string, and
+    parenthesized expressions are replaced ($1, $2, $3...)
+
+Examples:
+    Here are four equivalent ways to define an alias using hooks:
+
+      /hook -T SEND -t /^jump$/ jumpalias2 = emote jumps into the air!
+      /hook -T SEND -t /^jump$/ jumpalias1 = /eval run "emote jumps into the air!"
+      /hook -T SEND -C jump jumpalias3 = emote jumps into the air!
+      /hook -T SEND -C jump jumpalias4 = /run jumpalias4
+        # Defined in some loaded perl file:
+          sub jumpalias4 { print "emote jumps into the air!"; }
+
+    Here's a trigger:
+      /hook -t"^[A-Za-z]+ says: roll over" rollover = emote rolls over to have 
+        his belly scratched, like a good puppy.
+
+    Here's something that matches against any red-colored line:
+      /hook -a -t"^${red}" redline = /echo got a red line!
+    Note that red ANSI sequence must come first on the line.  If the red occurs
+    at the middle of the line, the above will not match.  If your mud sends a
+    space followed by the red ansi sequence, it will not match either.
+
+    Define a new hook type, ROOM:
+      /hook -N ROOM
+    Ideally, some piece of perl/python code should call
+      /hook -T ROOM -r '$_' ...
+    if it detects that the line contains a room description.

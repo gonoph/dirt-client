@@ -1,0 +1,59 @@
+/window     Open a new window
+
+Syntax:
+    /window [-w <width>] [-h <height>] [-x <x>] [-y <y>] [-t <time>] 
+            [-L <logfile>] [-c <color>] [-HB] <name>
+    /window -k <name>
+    /window -s <name>
+    /window -i <name>
+    /window -l
+
+Options:
+    -w      (w)idth of the window.
+    -h      (h)eight of the window.
+    -x      (x) position (column number) for the window.
+    -y      (y) position (row number) for the window.
+    -t      (t)ime in seconds that the window should persist.  After <time>
+            seconds, the window will disappear.                    (default: 10)
+    -L      (L)og file to save data sent to this window.
+    -c      (c)olor for this window.  (FIXME numeric codes currently -- 
+            symbolic soon)
+    -H      make this window (h)idden.  That is, don't show it when data is 
+            sent to it.
+    -B      make this window (b)order-less. 
+    -k      (k)ill (destroy) an existing window.  <name> must be an 
+            already-defined window.
+    -s      (s)how an existing window.
+    -l      (l)ist the existing windows.
+    -i      H(i)de an existing window (make (i)nvisible, but do not destroy the 
+            window)
+
+Notes:
+    These are simple windows, don't have scrollback capability, and don't bind
+    any keys by default (i.e. you can't scroll around in them).  They're a good
+    place to put incoming tells, keep hitpoint info, etc.  See ThreeKingdoms.pl
+    for an example of a graphical hpbar monitor, and help.pl for an 
+    implementation of a scrolling window (help.pl implements the /help command)
+
+    When using the -B option, unless you make the background a different 
+    color, it will be hard to distinguish it from the other mud output.
+
+    The -t option will cause the window to not be displayed after <time> 
+    seconds, after which the window will still exist, but will not be 
+    visible.  A timeout of zero will cause the window to never disappear.
+
+    Commands which take the -W parameter can manipulate windows (like /echo).
+
+    Positions (-x, -y) are measured with respect to the upper left corner of
+    the screen.  Using negative values will cause them to be measured with
+    respect to the lower right corner.
+
+    Sizes (-w, -h) are absolute.  If negative or zero, they are measured with
+    respect to the width/height of the screen.  (i.e. -w 0 will make the window
+    as wide as the screen)
+
+    The windows created with this command are numbered sequentially, and can
+    be accessed by typing alt-1...alt-9.  
+
+See Also:
+    /echo, /status

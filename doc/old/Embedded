@@ -1,0 +1,359 @@
+Embedded Language Support
+-------------------------
+
+Since version 0.50.00, mcl supports Perl scripting. All scripts executed
+by mcl reside in the ~/.mcl directory and end with .pl. This section assumes
+that you have some knowledge of Perl.
+
+Since version 0.52.00 mcl also supports embedded Python scripts. Those
+scripts end with .py. Pretty much everything below applies to Python: just
+replace .pl with .py.
+
+To choose between Perl or Python, simply supply plugins=perl or plugins=python
+in the configuration file. If you specify multiple interpreters, they are
+stacked. That is, the first interpreter gets the first shot at all triggers
+and then the second one gets called with whatever the result of the first
+pass was. Pattern matching, substitution and variable extraction is only
+called in the first interpreter however.
+
+When mcl starts up, it will execute the init script - i.e.
+~/.mcl/sys/init.pl. You don't want to modify that file - it may be changed
+with new versions of mcl. Instead modify the "localinit.pl" file. Generally,
+files in sys/* are some that will be modified with new versions of mcl.
+
+The init script can contain anything - assignments to variables, definition
+of functions you want available globally, etc.
+
+Also, in the second part of the initialization, mcl will load *all* the
+scripts that are loaded in ~/.mcl/auto/*.
+
+The first time you connect to a MUD, mcl will load the script with its name
+(e.g. ~/.mcl/ar.pl if you connect to 'ar'). This works as the init script.
+
+Before exiting, Perl will run the sys/done.pl script. This can be useful for
+saving custom configuration options. Again, this is a system script and
+you should use various hooks to have things run at exit time.
+
+If ~/.mcl/sys/init.pl is 
+
+
+Running code
+------------
+
+You can run perl code from mcl by several means. The #run command takes
+a function name and an argument. mcl tries to find a function with that name
+amongs the function loaded by the init and mud-specific scripts first. Then,
+if that fails, it will load the file named the same as the function (e.g.
+if you run the function checkConnection, mcl will try to load the file
+~/.mcl/checkConnection.pl). You can use slashes here, so #run extra/test
+will load ~/.mcl/extra/test.pl.
+
+The argument to the function is passed in the default variable, $_ (as is
+the case with just about all embeded functions). This function runs
+synchronously - mcl will not continue until you have returned from the
+function, so don't use e.g. sleep() or blocking calls unless you know what
+you are doing.
+
+The other way to run Perl code is using #eval. #eval takes raw perl code,
+evaluates it and prints out the result on the screen. E.g. #eval 5**5 will
+calculate 5 to the 5th power and print out the result on the screen. The
+full power of perl is available to you here - you could e.g. do
+#eval `cat /etc/group`. Personally, I have % aliased to #run (i.e. Alias %
+#run %0 in mclrc) so I can just type %`cat /etc/passwd`.
+
+The third way is to type any command for which there also is a cmd_name
+function (e.g. you type foobar, and have defined cmd_foobar, so cmd_foobar
+runs. See "Custom commands" for more info).
+
+You can also create a mcl command by creating a mclcmd_foo function. That
+would make mcl react to the #foo command (# being the current command
+character).
+
+Finally, you can use the #load command to load up a file. This works just
+like the initial loading of init.pl, but you specify the filename yourself.
+If you specify an absolute path, Perl will load that file. Otherwise,
+~/.mcl/ will be prepended.
+
+Scope of variables
+------------------
+
+mcl will parse all the perl code you run as one very long Perl script.
+Since Perl employs garbage collection and reference counting, this is
+fairly memory-efficient - things that are not used disappear.
+
+Keep in mind however, that all variables are global unless declared local
+(i.e. via my inside a function, as you should always declare such
+variables - but that is basic Perl that I will not cover here).
+
+You might want to put functions and variables that you do not want
+polluting the global namespace inside a package - see the mudftp.pl script
+for an example.
+
+
+Directory structure
+-------------------
+
+The sample/ directory contains the standard mcl Perl script distribution.
+You should copy the contents of this directory to your ~/.mcl directory.
+
+The sys/ subdirectory contains system scripts (like sys/init.pl) that you
+usually don't want to modify. These scripts will be update with new versions
+of mcl.
+
+The auto/ directory is initially empty. Files that end with *.pl there
+are automatically loaded on startup. In addition, each directory has the
+file named the same as itself loaded (e.g. if you have a directory called
+auto/highlight, the file auto/highlight/highlight.pl is loaded).
+
+The contrib/ directory contains scripts that are not per default part of
+mcl. Usually you want to move those scripts to the auto/ directory. Scripts
+that consist of several parts have a directory for themselves. All the
+scripts are described in the sample/contrib/README file.
+
+Finally, the ~/.mcl directory itself can contain your own functions (or you
+can put them in subdirectories).
+
+
+Programming in Embedded Perl
+----------------------------
+
+Some things to remember:
+
+Don't use require. It will exit mcl if it fails. Use include "file.pl" - it
+will just print an error message.
+
+If you want to print something to the screen, just print it. What happens
+is that standard output is connected to a pipe which mcl reads from and
+displays on the screen.
+
+If you want to run a command, use the run function (e.g. run ("#open ar")).
+This will NOT execute the command right away - it will be put on a queue
+of commands to be run and that queue will be executed when your script
+returns. There are a number of shortcut functions defined which makes
+this easier - basically, for each mcl #function there is a mcl_function.
+E.g. you can use  mcl_open("ar") instead of run("#open ar").
+
+If you make an endless loop in your program, you're screwed.
+
+Alt-T is handy for restarting mcl after changing some configuration or
+script files.
+
+
+Variables set by mcl
+--------------------
+
+mcl will set a number of variables that are available to scripts. These are:
+
+$now			Current time in seconds ($^T is when mcl started)
+$mud			Name of MUD currently connected to
+$VERSION        mcl version
+%MUD			Information about all MUDs: hostname,port,commands
+%Options		All options (e.g. $Options{mudbeep} is value of mudbeep)
+%Aliases		All aliases (trigger => commands)
+%Substitutions	All substitutions
+%Macros			All macros
+
+All these variables are read-only (or rather, changing any of their values
+will not have any effect on mcl).
+
+(Note that all the %hashes are not yet implemented).
+
+
+Callouts
+--------
+
+Using the callout function, you can setup some of your functions to be called
+occasionally. This is programmed almost entirely in Perl - mcl will call
+a function called "idle" every second, and that function goes through the
+list of callout functions and calls them if their time has come.
+
+To add a function:
+
+callout_add(\&function, period);
+
+the period is in seconds.
+
+To remove a function:
+
+callout_remove(\&function).
+
+NOTE that the function will continue to be called until you remove it
+yourself. You can add a one-shot callout by using:
+
+callout_once(\&function, period);
+
+If you want to pass parameters to your functions, use a closure:
+
+{
+	my $var = $_[0];
+	callout_once( sub { my_function($var); }, period);
+}
+
+
+Custom commands
+---------------
+
+Let us say that you have implemented a module that highlights certain strings,
+and you want to be able to add to those strings at runtime, rather than
+having to edit the .pl file and restart mcl.
+
+To do that you probably want to get a command hook. This is easily done this
+way:
+
+command_add ("highlight", highlight_function);
+
+After that, whenever the user types "highlight", your highlight_function
+will be called with whatever comes after highlight in $_.
+
+This works like aliases, so it's recursive (i.e. if you have an alias that
+calls highlight it will work). NOTE: You must end the fuction by
+returning '1' if you want to "stop" the command from being executed.
+Otherwise, the command interpreter in mcl will continue with the command.
+
+Commands can be similarily removed using command_remove().
+
+There is also another, much easier way. You can just define a function
+called cmd_cmdname. E.g. if you want to catch all "highlight" commands,
+you can just declare a sub cmd_highlight. Unlike with hooks, mcl will
+never continue to execute after your subroutine has been called.
+
+The first way to add commands will let you remove them while they are
+permanent in the second case.
+
+
+Custom configuration
+--------------------
+
+Custom configuration is stored in the ~/.mcl/config file. A module of yours
+that wishes to save custom configuration should add a load and save hook:
+
+load_add ("highlight", \&highlight_loader);
+save_add (\&highlight_saver);
+
+Note that you most of the time can get away with using the same function
+for loading as you do for command-line adding. While the configuration
+is loaded, the variable $Loading is set to 1 - you don't want to report
+things too verbosely in that case.
+
+In your save function, you should output a number of lines, all starting
+with a keyword followed by space. What you put on the rest of the line is
+up to you. Note that the filehandle is passed by the standard symbolic
+typeglobbing method.
+
+You can also optionally start with a comment line before writing out
+your functions.
+
+See the sys/highlight.pl file for example of both this and command adding.
+
+Remember to put your configuration keys in in lower case! The configuration
+loader will look for a lower case version.
+
+
+Processing multiple lines of input
+----------------------------------
+
+Instead of using a simple input trigger, you can also hook directly to the
+stream of input from the MUD. This is done using:
+
+input_add("function");
+input_remove("function");
+
+Once you get the input, you can do whatever you want with it. If you set
+$_ to "" there, the line will not be shown at all.
+
+
+Functions called by mcl
+-----------------------
+
+There is a number of functions that mcl will call in your perl scripts
+automatically. mcl will give up after one time of calling this function and
+not finding it - if you want to e.g. remove the idle function to later
+return it, you will have to call enableFunction("idle") to allow mcl
+to search for it again.
+
+You probably DON'T want to register any of those functions yourself!
+Use instead functions provided to ad a hook to list of functions that get
+run. When nothing else is specified, the functions that add/remove a hook
+are called X_add/X_remove (e.g. postinput_add). Remember to pass the function
+as reference - that is either:
+
+input_add(\&function);
+
+or
+
+input_add("function");
+
+Note that all these functions are searched for in the sys/ directory, unless
+they are defined already. 
+
+Following functions are called:
+
+idle			Called every second. See section about callouts longer up.
+
+command			Ran after input has been received from the user - at the same
+				level as aliased, so can be (and is) used to add custom
+				commands.
+
+userinput		Called after the user has typed something on the keyboard and
+				pressed enter. You can modify $_ to modify the text typed.
+
+send			Called when about to write something to the MUD. You can
+				change the text written. Note that userinput and send are
+                not the same - for example "nnnn" will call userinput with
+                $_ set to "nnnn" but then will call send 4 times, with 4_
+                set to "n" each time.
+
+output			Triggered on any output from the mud. Can modify it. Ran
+                after triggers and substitutions.
+
+loselink		Triggered on link loss. Typicall you would add a e.g. 5
+                second calllout and try to reconnect - *unless* quit has
+                been used recently. The reconnect.pl file does exactly that.
+
+prompt			Triggered when a new prompt arrives. By changing the prompt
+                there, you can change what gets displayed in the status line.
+
+postoutput		This is a function that is called after all output the MUD
+				has been received.
+
+init			This is called when mcl starts up. If you have somethin you
+                need loaded then, put it in the auto/ directory or in the
+                localinit.pl file - there are no hooks for this callback.
+
+done			Called when mcl exits (including via alt-t). If you have
+                started any processes, you must kill them here! (see e.g.
+                the spellcheck module).
+
+keypress		Called at every keypress done while on the input line.
+				$_ holds the input line (you can modify this). $Key holds
+                the value of the key pressed - you can modify that as well.
+
+connect         Run when the user attempts to connect to a MUD                
+
+
+Color codes
+-----------
+
+mcl will define a number of color codes for you that you can use in your
+scripts. The full list is in sys/color.pl. You can use them in e.g. print:
+
+print "I am ${Red}Red${Off}.\n";
+
+Note that we use ${Red} here rather than $Red to avoid confusion where the
+variable name starts and ends. $Off just resets to White on Black.
+
+In addition to normal colors, B makes a color bold. E.g. $BRed.
+
+To make a background color you need to use the setColor sub with the
+foreground as the first argument and the background as the second - e.g.
+
+print "You have been", &setColor($Black, $White), "KILLED!${Off}\n"
+
+Finally, you can use the two procedures str_to_color and color_to_str to
+convert colors into saveable strings. str_to color will accept a string like
+"red", "bold_red", "red_blue" (red on blue background) and output the right
+color code, while color_to_str will do exactly the reverse.
+
+
+
+

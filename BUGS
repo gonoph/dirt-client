@@ -1,0 +1,19 @@
+Known bugs (let me know if you can fix these, or have some insight):
+
+* Screen corruption occurs occasionally, caused by the scrolling.  I think
+  the bug is in Screen::refreshTTY(), but that code is somewhat opaque.
+*** Fixed?
+
+* Sometimes the client will "hang".  It seems like it's blocking on I/O
+  or something.  Looking at CPU usage it will jump to 100%, but client
+  will return to normal after a few seconds.
+*** Fixed?
+
+* Window system does not properly keep parent/child relationships.  This is
+  most visibly by typing /help, which will cause dirt to crash because it
+  tries to use one of these bad parent/child pointers.  Some routines should
+  be written to test the consistency of the Window object's parent/child, 
+  prev/next pointers.
+
+* Keypresses are delayed by one key.  (i.e. you have to press pgup twice to
+  begin scrolling) Keypress work is not finished.  

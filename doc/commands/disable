@@ -1,0 +1,10 @@
+/disable        Disable a hook or group of hooks
+
+Syntax
+    /disable [-g] <name> [<name> ...]
+
+Options:
+    -g          Disable a group of hooks, instead of an individual hook.
+
+See Also:
+    /hook, /enable

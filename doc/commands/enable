@@ -1,0 +1,10 @@
+/enable        Enable a hook or group of hooks
+
+Syntax
+    /enable [-g] <name> [<name> ...]
+
+Options:
+    -g          Enable a group of hooks, instead of an individual hook.
+
+See Also:
+    /hook, /enable

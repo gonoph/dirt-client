@@ -1,0 +1,35 @@
+/complete       Configure the auto-word-completion mechanism              [Perl]
+
+Syntax:
+    /complete [ -m <min> ] [ -s <size> ] [ -Ccl ] [ -a <word> ] [ -d <word> ]
+
+Options:
+    -m      Minimum length of words to save.  (i.e. don't add words less than 3
+            characters long)                                       (default: 4)
+    -s      Size of list (number of words to remember)           (default: 200)
+    -c      Smash case.  (when completing convert all words to lower case)
+    -C      Do not smash case.  (when completing, leave the case of the words
+            as they were found)
+    -l      List current parameters and completion lists.
+    -a      Add a word to the "static" completions list.
+    -d      Delete a word from the "static" completions list.
+
+Notes:
+    When turned on, completion will allow you to type <tab> and have words
+    filled in.  For instance, if you type 'look' on your mud, and there's a
+    snufalufagus in the room, you can type 'kill snu<tab>' and the completion
+    mechanism will fill in snufalufagus for you.  If there were more than one
+    thing in the room that started with 'snu', you can hit tab multiple times
+    to cycle through them.  Hitting backspace will cancel the completion.
+
+    There are two kinds of completions, "volatile" and "static".  Volatile
+    completions are taken from mud output.  Every word longer than <min> 
+    (-m option) letters long will be added to the volatile completions list.
+    When completing, more recently seen words will be completed before older
+    words in the completion list.  Static completions are always there
+    regardless of mud output, and are saved when you exit Dirt.  You can add
+    to/delete from the static completions list using the -a and -d options.
+
+    In order to use completions, you must have a line like:
+        require "sys/complete.pl"
+    in sys/init.pl, OR place the complete.pl script in the auto/ directory.

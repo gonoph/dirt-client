@@ -1,0 +1,51 @@
+Plugin API
+==========
+
+As of 0.52.01, mcl supports plugins: shared objects which contain binary code
+that does things.
+
+To load a plugin, specify it using the plugins= option in mclrc.
+Specify the name without the .so extension.
+
+mcl simply looks for certain function names in the shared object and
+then runs them. There is a number of functions common to all types of
+plugins:
+
+NOTE: All these functions should be declared using extern "C", i.e.
+the signature of them is simply the unmangled function name.
+
+
+const char *initFunction(const char *args);
+
+Initiaze the plugin. If successfull, return NULL. If not, return
+an error message. REQUIRED. Arguments may be passed to this module
+(this is done by putting them after the module name in the plugins
+line in mclrc e.g.:
+
+plugins=myplugin 400, otherplugin more arguments, perl, mccp
+
+The initFunction of myplugin would get called with "400", the one
+of otherplugin with "more arguments". 
+
+
+const char *versionFunction();
+
+Return a message describing the plugin. Optional.
+
+
+Specialized functions
+======================
+
+To be really useful, the plugin should provide some of the below
+functions (otherwise it won't be able to do much!). mcl will call each
+of the functions in turn if they exist.
+
+
+EmbeddedInterpreter* createInterpreter();
+
+Create an embedded interpreter object. This object must inherit from
+EmbeddedInterpreter and override the relevant functions. The last
+loaded object will be the one which is used by mcl.
+
+
+

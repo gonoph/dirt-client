@@ -1,0 +1,118 @@
+<h3>Table of contents</h3> <UL>
+</UL>
+<PRE>
+Following modules accompany the standard mcl distribution. Modules marked
+with * are useful enough so they start out inside the auto/ or sys/ directory.
+Others will be found in the contrib/ directory.
+
+Note that with the advent of Python support, some of the modules are Perl
+only.
+
+Authors:
+
+[OJ]            Oliver Jowett <icecube@ihug.co.nz>
+[ERW]           Erwin S. Andreasen <erwin@andreasen.org>
+[PAT]           Patrick Horner
+[JMP]           Juha Pohjalainen <jmp+gate@iki.fi>
+[IVN]           Ivan Nejgebauer <ian@uns.ns.ac.yu>
+profanity       Profanity filter. Replaces nasty words from the MUD (as well
+                those YOU type in!) with *. Includes only a small number
+                of profanities per default. [ERW]
+
+highlight      *Simple highlighting. Use highlight to list, highlight <color>
+                <string> to add a highlight. highlight followed by a number
+                will list numbers and highlights.
+                Color names are white,blue,green,red,yellow,black,cyan,magenta.
+                You can specify bold_ in front to make it bold. You can specify
+                _ followed by another color to change background (e.g.
+                white_blue is white text on blue background, bold_green_red is
+                bold green on red background). [ERW]
+
+reconnect       Automatically reconnect to the MUD if you lose link. This
+                function is quelled for 30 seconds after you type quit. If
+                you need to be able to quit the MUD with any other command,
+                you must edit the reconnect.pl file. This module has some
+                problems... [ERW]
+
+spellcheck      Runs your output through ispell and picks the best words for
+                misspelled ones. Also capitalizes sentences (and "I") and ends
+                them with a . if you don't.
+
+                To add a word to the dictionary, use "addword <word>". To
+                spellcheck some words, use "spellcheck <words>".
+
+                To escape some output from the spellchecker, put `` around it.
+
+                Inside the file spellcheck.pl you will find a list of
+                communication channels this works for; you can add or
+                remove new ones. [ERW, OJ]
+
+mudftp         *Edit strings from the mud locally, if it supports mudftp.
+                Reads a standard ~/.mudftp file - the minimum you need in here
+                is a definition for the editor to run locally, such as:
+
+                    editor open -w -s -- fte %
+
+                % is replaced by the filename to edit.
+
+                Autologin is supported if the mud server also supports it.
+                If autologin is not supported, you will also need to add to
+                .mudftp the login details for each mud:
+
+                    mud mudname host mudftpport username password
+
+                Interoperable with the standalone mudftp client's config                
+                files. [OJ]
+completion     *Performs tab completion. Use complete to list completions
+                then complete followed by a long word that you want completed.
+                Then, pressing tab after having typed a few letters of
+                that word will cycle through all the words you have marked
+                for completion that start with those characters. Pressing
+                backspace after just completing a word deletes the whole
+                thing. [ERW]
+                 
+                NEW! Now with autocompletion that will add to completion
+                list based on input from the MUD. Type autocomplete help
+                for more info [IVN]
+
+gag            *Gagging, i.e. completely erasing a line of input containing
+                certain words. Use gag to view, gag <string> to gag that
+                string (it's actually a regular expression) and gag <number>
+                to remove a certain gag. The gag module keeps a count of how
+                many times each gag has triggered.
+
+ccancel         Cancel compression. This tiny module sends
+                "compress\ncompress\n" to the MUD which turns off then turns
+                on compression. This is useful when playing on a MUD that
+                supports compression, since otherwise the compression buffers
+                would be out of sync when reconnecting using the "copyover"
+                client feature. [ERW]
+
+repeat          This will repeat the command you last entered when you press
+                enter on an empty line. [ERW]
+
+prompt          Sample scripts that shows some stats from the prompt in
+                a gauge in a window. [ERW]
+
+dumpprompt      Displaying a prompt even if your MUD does not support
+                GA/EOR. [ERW]
+
+bot     Example of a bot that cast spells. [PAT]
+
+DynaComplete    Similar to completion, but you do not manually add things to
+                the completions list: everything you type is added. Python only.
+                [JMP]
+
+log             Log things from the mud into .mcl/logs/sessionname/day.gz [ERW]
+
+vars            User-level variables. By using #set name value you set a variable
+                which can be used on the command line by using $name. For example:
+                #set target Bob followed by kill $target would send "kill bob".
+
+        You can also use $(varname) in case you want to put the variable
+                next to some other text.
+
+triggers        Alternative trigger system, where individual triggers can be
+                disabled [IVN]
+
+                </PRE>

@@ -1,0 +1,10 @@
+/open       Open a connection to a mud.
+
+Syntax:
+    /open <mud name>
+
+Options:
+    None.
+
+Notes:
+    Alt-O will open up a menu to allow you to select the mud to /open.

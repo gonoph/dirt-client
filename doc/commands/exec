@@ -1,0 +1,18 @@
+/exec       Execute a shell command and place the output in a window.
+
+Syntax:
+    /exec [-w <width>] [-h <height>] [-x <x>] [-y <y>] [-t <time>] command
+
+Options:
+    -w      Width of the window in which the output will appear.
+    -h      Height of the window in which the output will appear.
+    -x      X position (column number) for the window.
+    -y      Y position (row number) for the window.
+    -t      time in seconds that the window should persist.  After <time>
+            seconds, the window will disappear.
+
+Notes:
+    To prevent dirt's command-line parsing system from messing with your 
+    command line, place the entire command in single or double quotes, like 
+    this:
+        /exec 'ls -la'

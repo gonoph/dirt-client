@@ -1,0 +1,13 @@
+/prompt     Change the prompt that appears in the input line.
+
+Syntax:
+    /prompt <new prompt>
+
+Options:
+    None.
+
+Notes:
+    This is really good to use in a script, if you want to display information
+    in the input line.  For example, assuming you've read your HP and SP from
+    your mud, you could then run:
+        /prompt HP:100 SP:58 >

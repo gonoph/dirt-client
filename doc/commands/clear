@@ -1,0 +1,13 @@
+/clear      Clear a window
+
+Syntax:
+    /clear [ -W ] [ <window name> ]
+
+Options:
+    -W      Specify the name of the window.  
+    
+Notes:
+    The -W option is only present for consistency with other commands that
+    accept the -W option (for instance, /echo).  The behavior of /clear is
+    the same whether it is included or not.  If no window is specified. it 
+    clears the main window.

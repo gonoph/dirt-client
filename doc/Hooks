@@ -1,0 +1,55 @@
+Writing new Hooks (commands or aliases) from C++
+
+The CommandHookStub class (in Hook.h and Hook.cc) is designed for C++ commands
+implemented inside another class.  If you wish to add some functionality to
+Dirt, you should start by writing a C++ class that implements it.  In order to
+implement the commands to go with it, create a static method named
+command_<commandname> with a prototype like this:.
+    static bool command_<commandname>(string& s, void* t);
+The first argument is the command string.  That is, if the user types 
+    /do_stuff -d4 -w1 foobar bleeble
+then this string will be in the first parameter, s.  You do not need to check
+that your command's name is the first identifier in the string (that's done by
+the CommandHookStub class).  The second parameter, t, is a "this" pointer.
+Since the method is static, it has no this pointer of its own, and no instance.
+If you wish to access instance variables in your class, you will have to cast
+the parameter t to a pointer to your class, and access instance data through it.
+Remember that static methods can only access static variables in the class.
+This function, command_<commandname>, must return a bool that indicates whether
+it handled the command.  Almost all command handlers should return true.  If you
+return true, the command string will not be passed to handlers of lower
+priority.  If you return false, it's possible for more than one function to
+handle a given command string.
+
+Ok, Now that your new class is written, you must tell Dirt about it.  You can do
+this through the Hook object (it has a global instance named 'hook') like this:
+    hook.addDirtCommand("do_stuff", &command_do_stuff, (void*)this);
+The first parameter is the name of your command.  The second is the method to be
+called (it must have a prototype like the one above), and the third is the
+instance pointer that will be passed to it.  You could make it NULL if you don't
+need to access instance data.  Your constructor is probably a good place to call
+hook.addDirtCommand(...).  The command gets added as a COMMAND hook with
+name: __DIRT_COMMAND_<command name>, priority -1, "chance" 1.0, num-shots: -1,
+fallthrough: false, enabled: true.  
+
+Note that any dirt command may be overridden by a scripting-language COMMAND
+hook with non-negative priority.
+
+Here's a simple example:
+
+class MyNewClass {
+    int myvar;
+public:
+    MyNewClass() : myvar(0) {
+        hook.addDirtCommand("do_stuff", &command_do_stuff, (void*)this);
+    }
+    command_do_stuff(string& s, void* t) {
+        MyNewClass* mythis = (MyNewClass*)t;    // most compilers probably 
+                                                // won't let you call it "this".
+        mythis->myvar++;
+        return true;
+    }
+}
+
+See also the Interpreter class, which is where most dirt commands are
+implemented.

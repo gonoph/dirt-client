@@ -1,0 +1,481 @@
+
+Colors:
+    black red green yellow blue magenta cyan white
+    bold_fg_bg
+
+    not expanded in /echo or /eval print
+
+Perl functions of note:
+  prompt_add            add a hook to be called whenever a prompt is seen.
+
+Bob's functions/vars of note:
+  &room_add(\&func)      add functions to be called when a room desc is seen.
+  &room_remove(\&func)
+  @room_exits            list of the exits to a room. 
+
+Grouping and Options common for all commands:
+  -n name
+  -g group              
+  -e                    <enabled>
+  -d                    <disabled>
+  /enable -g group
+  /disable -g group
+  /trig -e -g bot
+
+Parsing stuff sent to mud: Interpreter::add
+
+Custom Commands (in Embedded file):
+  The third way is to type any command for which there also is a cmd_name
+  function (e.g. you type foobar, and have defined cmd_foobar, so cmd_foobar
+  runs. See "Custom commands" for more info).
+
+  You can also create a mcl command by creating a mclcmd_foo function. That
+  would make mcl react to the #foo command (# being the current command
+  character).
+
+Commands available (from perl)
+  /complete                                         list/add/delete static completions (saved to file)
+  /autocomplete   (min/size/shashcase/number/help)  set some parameters for autocomplete
+  /gag                                              list/add/delete gags (saved to file)
+  /highlight                                        list/add/delete highlights (saved to file automagically)
+  /mudftp                                           don't know.
+  /trigger        (list/delete/enable/disable/action/add/help/add_dis) Triggers
+  /spellcheck                                       Checks the spelling of its argument
+  /addword                                          Add word to the spellchecker dictionary
+  /set                                              show/set a variable in the %Vars namespace
+  /show_hooks                                       shows the hooks installed.
+Commands (non-perl -- these are accessable from perl by mcl_<name>):
+  /open           (mud name)                        connect to defined mud
+  /reopen                                           reconnect to mud if link was lost
+  /close                                            disconnect from mud
+  /quit                                             exit mcl
+  /help <perl>                                      worthless, remove it.
+  /exec                                             execute a command in a window (calls sh)
+  /window         (-w# -h# -x# -y# -t# -L<logfile>) Create a window (-t is time before it disappears)
+      Make /window use X-like geometry string 50x20+5+2 (etc)
+  /print                                            Print to a window created by #window
+  /clear                                            Clear above window
+  /kill           (window)                          Kill a window created by #window
+  /send                                             Send data to MUD, without newline
+  /bell                                             Sound the bell
+  /status                                           Change the status line to the argument given
+  /alias <perl>                                     Remove an alias or add a new alias
+  /macro                                            Add/remove/change a keyboard macro
+  /run                                              Run the given embedded function (see the file doc/Embedded)
+  /eval                                             Evaluate any embedded code, print result on screen
+  /load  <perl include?>                            Load some embedded code from a file
+  /prompt                                           Set the prompt (useful when you don't have GA/EOR)
+  /setinput                                         Set the input line
+  /save           (-c name)                         Save the scrollback. Use the -c switch to save in color.
+  /writeconfig                                      Save the configuration file, even if readonly option is set. If
+                                                    parameter given, use that as a filename rather than the default
+                                                    filename
+  /disable        (actions/aliases/speedwalk        Disable/Enable one of: actions, aliases, speedwalk,
+  /enable          macros/semicolon)                and macros. This enables/disables ALL of those, not a single one.
+  /chat.*                                           There is a number of commands that allow you to perform various
+                                                    tasks related to the built-in peer-to-peer chat system of mcl
+                                                    They are described in the file doc/Chat.
+%  /chat.name                                        Set my nickname
+%  /chat.baseport                                    set port to which chat should bind.
+%  /chat.autoaccept                                  auto allow other people to connect?
+%  /chat.download                                    allow downloads?
+%  /chat.email                                       my email address
+  /chat.icon                                        windows BMP icon of my person
+%  /chat.debug                                       set to 1 to get debug info
+%* /chat.interfaces                                  which IP interface to bind to
+%* /chat.protocol  (0=chat/1=zchat)                  Set protocol
+%  /chat.paranoia                                    prefix messages with source IP
+%  /chat.syscolor                                    color of system messages
+%  /chat.chatcolor                                   color of chat messages
+  /chat.call      ([protocol] <IP> [port])          place chat call
+  /chat.ip                                          dump the IP I'm bound to
+  /chat.accept    [number|name]                     accept a chat connection
+  /chat.reject    [number|name]                     reject a chat connection
+%  /chat.deny      [number|name]                     deny a chat connection
+%  /chat.dc        [number|name]                     disconnect a chat session
+  /chat.list                                        list current connections
+  /chat.to        [emote] <name> <message>          send a private message
+  /chat           [emote] <name> <message>          send a private message (same as /chat.to)
+%  /chat.reply     [emote] <message>                 reply to last chat message
+  /chat.all       [emote] <message>                 send a message to all connected
+  /chatall        [emote] <message>                 same as chat.all
+  /chat.group     <groupname> [emote] <message>     send a  message to the named group
+  /chat.setgroup  <groupname> <people list...>      put people in the named group
+  /chat.flags     <connection> <changes>            (+-private|serving|commands|snoop|ignored|files|snooping|snooped)
+  /chat.request   <connection>|all                  Request the list of people everyone *else* is (chat) connected to.
+  /chat.peek      <connection>|all                  See who else is (chat) connected to.
+  /chat.ping      <connection>|all                  Ping everyone (measure network latency)
+  /chat.snoop     <connection>
+  /chat.afk       [quiet]                           Tell everyone you're afk.  (FIXME doesn't seem to work)
+                                                    'quiet' argument doesn't tell you you're afk.  ??
+
+  (emotes don't work)
+Keys:
+
+Vars package:
+  Keeps user's variables in a separate namespace (%Vars) and does substitution
+  on input from the user.  HAS ITS OWN SEPARATE COLORS (how annoying)
+  Instead of this, why not just evaluate sent strings in a string context, and
+  then send them?  This would also allow function calls & the full perl syntax.
+
+Bob's save/load stuff (cuz save_add and load_add blow chunks):
+  want to do something like:
+    save("asdf", \$asdf);  # watch scoping with this
+    save("blah", \%blah);
+    save("ThreeKingdoms::hiliteplayers", \$hiliteplayers);
+  in contrib/options.pl
+
+TODO:
+Separate namespace for colors?  (Color::Red, Color::White_Black, Color::Bold_Black_Red)
+Player object.  Collect stats and place into object.
+Groups (should include /complete, /gag, /highlight, and /trigger)
+Rewrite interface for commands like /gag (any arg is add, numeric arg is delete #)
+Remove /alias in favor of perl version
+remove /help, write perl version (use perldoc?)
+Make client output be delimited from mud output. (popup window?)
+script to dump all commands, aliases
+Method to add mud.  (use 3rd party curses windowing package?)
+Add all commands to static autocomplete list
+Make vars use Colors package.
+Chat line grabber/highligher/put-in-other-windower
+print() in triggers sends a 1 to the mud...huh?  (/eval print "shit"; does not send output to the mud)
+keypad is sending n,e when I hit 9 (etc)
+'/window list' command
+autocomplete should know about all built-in commands (ones starting with /)
+Make /echo parse its argument as a perl quoted expression.
+Trigger rhs expansion?  How to do kill lc($1)?
+make Shell.cc trap SIGCHLD.
+Add option to /trigger, /highlight to make them match ANSI.  By default, remove ansi
+  from mud output before passing to triggers.  (Trigger runner should copy string --
+  one ANSI, one plain and use the appropriate one for each trigger)  Which .cc file has /action?
+What is Borg, should I keep it?
+What is /root/ path at end of main.cc?
+Colors that appear in perl strigger string are not ANSI.  What are they?
+What are callouts?  (sys/idle.pl)
+Use glade to describe interfaces in xml.  Allow "extension" interfaces to be 
+  created.  (i.e. stats window)
+If both perl and python are kept, how to handle /eval, /print  (use perl by
+  default since python doesn't have delimited vars)
+Triggering on colors: Session::triggerCheck removes colors.  Can do s///g in perl.
+Screen corruption being caused by Screen::refreshTTY()
+  changed MAX_SCROLL_TRY to 1 (this make make it better or worse...) (didn't fix it)
+  this is probably not the ideal solution.
+  Seem to have fixed it by uncommenting printf("\r\n") in Screen::refreshTTY, but
+  corruption is still occuring in vicinity of upper-right corner.
+  Corruption IS NOT PRESENT when using virtual console.
+Make it work if there are no config files.
+Store timing (Time::HiRes) information about triggers so users can optimize them.
+parameter -l for /eval: /eval -lperl, /eval -lpython to specify language.  Specify
+  default language in config file (also for run).
+DeAnsi function should dump its parameter in ${red_green}blah${off} format, to aid
+  in writing triggers that match colors.  i.e.:
+    /trig /dealt the killing blow/ kwon = /eval print &DeAnsi($_)
+mcl is not finding default include directories.
+  When sys/, auto/, contrib/ are removed, it doesn't load Saved.pl
+  There doesn't seem to be any concept of an "include" path...
+  See PerlEmbeddedInterpreter::load_file
+explicit paths at end of main (dirtRestart) -- removed.  Does restart work?
+Mud connect window (alt-O) should have title (keys at bottom)
+sys/functions.pl initializes sub dirt_* for all mcl functions.
+Change PerlEmbeddedInterpreter::load_file and PerlEmbeddedInterpreter::run_quietly
+  to not use 'eval'.  eval doesn't know the filename or line numbers.  (Alternatively
+  give this info to Carp before running it)
+/load is fucked, reports "ok" on files with syntax errors...huh?
+Function to "give me next (n) lines of output from the mud"
+Allow matches to span several lines.
+Make /eval not report the return value (you can always grab it with something like /eval print {block}.
+Need priorities.  Sometimes grab_room gets brief room before grab prompt, and > appears at
+  beginning of room desc.  (beause it gets colorized)
+Add commands to delete/list/show active windows.
+re /load ing a perl file that registers callback (i.e. &output_add) causes old *and*
+  new callbacks to still be called.
+-c argument to /window expects a decimal number (should accept hex, or even better string)
+perl symbol table dump.
+hilite destroys end-of-ansi at end-of-line (finger z, guild chatline)
+Make negative values for x, y parameters to /window put it on the right/bottom. 
+  (use X-like geometry string instead)
+Defining hooks gets reported as eval n/chunk n, should report line numbers.
+Make /clear by itself clear the main window.
+.<speedwalk>;command doesn't work (doesn't parse ;?)
+action for trigger doesn't get sent through send hooks (i.e. /eval isn't caught)
+save/restore color (hilite etc) can only be used once...use a stack instead.
+Mudlist file, separate login commands to mud-specific "connect" hook.
+EmbeddedInterpreter::run and EmbeddedInterpreter::run_quietly seem to do exactly the
+    same thing?  Only keep run.
+EmbeddedInterpreter::eval -> add input arg.
+** Need to find where hooks are called from C++ (run_quietly("hook name"...)
+    and modify the calls accordingly.  (autocomplete doesn't work, prolly others)
+    triggers not getting called at all...prolly no hooks getting called.
+        InputLine.cc:254
+Egad: Session.cc:683 he runs triggers on imcompletely received lines?!?!?!
+Replace his linked list with libstdc++
+New message: "Recursing alias? Next command would be "/send tp"." from a trigger?
+Continuous ping or TCP header analysis as a measure of link lag?
+Facility/example to trigger on one line and retreive lines that preceede/follow it
+    i.e. install 1-shot for next line or something.
+Make /run accept arguments: /run myshit(1,2,3);  but maybe eval is better.  
+    Maybe /run should go away?
+LynTin has parsing-code-for-docs help files.
+beep or do something obnoxious if the user tries to type a command while in scrollback 
+    (maybe scroll to bottom?)
+Perl/Python issues:
+    priority and fallthrough won't work (unless implemented in C++) since perl
+    hooks don't know about the ones in python and vice/versa.
+    Could do hooks in C++ and then be able to call hooks in any language.
+        implement triggers, gag, hilite in perl.
+
+Universal parameters:
+  Color: -aC<string>      where string is a color name like "red", "blue_black", etc.
+  
+
+NEW Commands Outline:
+---------------------
+*REMOVE*  /complete                                         list/add/delete static completions (saved to file)
+Commands (non-perl -- these are accessable from perl by mcl_<name>):
+MUD manipulation commands:
+  /open           (mud name)                        connect to defined mud
+  /reopen                                           reconnect to mud if link was lost
+  /close                                            disconnect from mud
+  /quit                                             exit mcl
+  /addworld
+        *WRITE
+  /telnet
+        *WRITE
+
+  /help <perl>                                      worthless, remove it.
+WINDOWING commands:
+  /exec                                             execute a command in a window (calls sh)
+        *NEW interface
+  /window         (-w# -h# -x# -y# -t# -L<logfile>) Create a window (-t is time before it disappears)
+        *NEW interface: Make /window use X-like geometry string 50x20+5+2 (etc)
+  /print                                            Print to a window created by #window
+        *REWRITE to be like tf /echo, can have -w<window> parameter
+        *ALIAS to /echo
+  /clear                                            Clear above window
+  /kill           (window)                          Kill a window created by #window
+  /status                                           Change the status line to the argument given
+  /macro                                            Add/remove/change a keyboard macro
+        *RENAME to /bind?
+HELPER interface:
+  /autocomplete   (min/size/smashcase/number/help)  set some parameters for autocomplete
+  /gag                                              list/add/delete gags (saved to file)
+        *ALIAS* to /trig with proper parameters
+  /highlight                                        list/add/delete highlights (saved to file automagically)
+  /mudftp                                           don't know.
+  /trigger        (list/delete/enable/disable/action/add/help/add_dis) Triggers
+        *NEW interface (see comments in trigger.pl)
+  /spellcheck                                       Checks the spelling of its argument
+  /addword                                          Add word to the spellchecker dictionary
+  /set                                              show/set a variable in the %Vars namespace
+        *SET variables in GLOBAL namespace (both perl and python)
+  /show_hooks                                       shows the hooks installed.
+  /send                                             Send data to MUD, without newline
+        *ADD mechanism to go through or skip userinput hooks.
+  /bell                                             Sound the bell
+        *ALIAS to /beep
+  /alias <perl>                                     Remove an alias or add a new alias
+        *WRITE <unwritten>
+  /run                                              Run the given embedded function (see the file doc/Embedded)
+        *ADD language parameter
+  /eval                                             Evaluate any embedded code, print result on screen
+        *ADD language parameter
+  /load  <perl include?>                            Load some embedded code from a file
+        *ADD language parameter
+  /prompt                                           Set the prompt (useful when you don't have GA/EOR)
+  /setinput                                         Set the input line
+  /save           (-c name)                         Save the scrollback. Use the -c switch to save in color.
+  /writeconfig                                      Save the configuration file, even if readonly option is set. If
+                                                    parameter given, use that as a filename rather than the default
+                                                    filename
+  /disable        (actions/aliases/speedwalk        Disable/Enable one of: actions, aliases, speedwalk,
+  /enable          macros/semicolon)                and macros. This enables/disables ALL of those, not a single one.
+  /action
+        *REMOVE
+CHAT interface:
+  /chat.*                                           There is a number of commands that allow you to perform various
+                                                    tasks related to the built-in peer-to-peer chat system of mcl
+                                                    They are described in the file doc/Chat.
+
+
+
+/trig /^Irulan attacks.*? ([A-Za-z0-9]+).?$/ attack = kill lc $1                      #Totally ambiguous
+/trig /^Irulan attacks.*? ([A-Za-z0-9]+).?$/ attack = /eval &send("kill " . lc $1)    #Doesn't work:
+        Double quotes fark up syntax (single quotes work)
+        /eval is not interpreted at all (sent to mud)
+/trig /^Irulan attacks.*? ([A-Za-z0-9]+).?$/ attack = /run &send("kill " . lc $1)    #Will this work?
+
+Useful software url's:
+----------------------
+http://www.swig.org/    Simplified Wrapper and Interface Generator
+Free C++ Regex library: http://www.boost.org/libs/regex/index.htm
+    is this useful?  Or use embedded interpreters to do it all?
+STL: http://www.cs.clemson.edu/~malloy/courses/annotated/
+http://boost.org/libs/python/doc/index.html     Reflect C++ classes into python.
+http://www.johnkeiser.com/perl-xs-c++.html      Using C++ and perl's XS.<
+
+Hooks:
+------
+call like:
+    hook->add_hook(Hook::Type::output, new PerlHookStub(1, 1.0, 0, true, "s/shit/poopies/g;"));
+Need to override HookStub for each interpreter.
+Set up callbacks from perl, python so they can call hook->add, hook->add_type, etc.
+How to deal with hooks being added, then modified, then updated?
+Need code to handle things added with no name.
+C++ member function callbacks:  
+    To use a C++ member function as a callback, the member function must be
+    declared 'static'.  (i.e. no, this pointer)  The function DOES NOT correspond
+    to any particular instance of the class.  It is a function 'static' to the
+    class.  To access an instance of the class, you have to find some other way
+    to get a pointer to that class.a  (Suggestion: create a new stub class that 
+    inherits from HookStub a la CppHookStub, and stores both the function pointer
+    and a pointer to the instance.  Your static callback function should take
+    both a string, and an instance pointer as parameters.)
+COMMAND:
+    Any "command" sent to the mud gets sent through the command hook.  This
+    includes all user input, and commands generated by scripts.  All commands
+    should start with the commandCharacter ('/' unless redefined).
+    COMMAND hooks defined by dirt (by priority):
+        -1          all dirt commands defined in C++.
+                    (to override a default command, use a positive priority with 
+                    non-fallthrough)
+        INT_MIN     any command that reaches here will be turned into a SEND.
+                    If the command starts with commandCharacter, an error message
+                    will be generated instead.
+    All commands (start with /) must have 'fallthrough' false or they will be
+    sent to the mud!  Commands are expected to return true if the command was
+    handled.  (if you return false, the command will be sent to the mud!)
+USERINPUT:
+    Gets called immediately after the user hits "enter".
+        INT_MIN     any userinput that reached shere will be turned into a COMMAND.
+    Any non-fallthrough USERINPUT hook will prevent data from being sent to the mud.
+SEND:
+    Called for data being sent to the mud.  Lowest priority (-INT_MAX) send hook
+    will actually send the data to the mud.  Any non-fallthrough SEND hook will
+    prevent the data from being sent to the mud.  This is the appropriate place
+    to expand variables, semicolons, speedwalk, and generally transform data
+    before being sent to the mud.  Note that aliases should use COMMAND
+    instead.
+    SEND hooks defined by dirt (by priority):
+        INT_MAX     semicolon                   [if enabled]
+        0           speedwalk (.neswhjklud)     [if enabled]
+OUTPUT:
+    Called for each line of output from the mud.
+LOSELINK:
+    Called when link is lost
+PROMPT:
+    Called when a prompt is received.  If your mud has a non-standard prompt,
+    write an OUTPUT hook that will generate a PROMPT hook if it sees a prompt.
+    (see 'sub prompt_grab' in samples/3k/ThreeKingdoms.pl for an example)
+INIT:
+    Called on startup
+DONE:
+    Called on exit
+KEYPRESS:
+    Called for each keypress (use this hook for hot-keys).
+    These hooks should NOT fallthrough (unless you want more than one thing
+    to happen when a given key is pressed).
+CONNECT:
+    Called when you connect to a mud.  Use this hook to initialize mud-specific
+    things.
+IDLE:
+    Called once per second.  Use this (plus possibly a counter) to make things
+    happen on a periodic basis.  For instance, lpmud's have a 'heartbeat'
+    which is usually once every 2 seconds.  If you want to send a command once
+    per heartbeat (once per round of combat), write an IDLE hook that uses a
+    counter to send the command every other time it's called.
+
+/hook -l<language> -t<regexp>
+    -l argument is evaluated as statement in <language>
+    -t Regular expression which much match incoming text for hook to be activated.
+        (note there should also be a /trig command in perl)
+InputLine.cc:526 still uses old hook interface!!!
+
+Groups:
+-------
+aliases, highlights, triggers, hooks should be groupable
+"Group" should be an alphanumeric name.
+    /trig -n name -g group 
+Need links both ways (group -> hook, hook->group).  I.e., 
+    /disable -g group  (from group need to get list of triggers, hooks, etc)
+        should call Hook::disable(group), also for Alias, Trigger, etc.
+
+Global Variables:
+-----------------
+There are lots of them, they are not allocated or handled in a consistent manner.
+Interpreter interpreter;    (Interpreter.cc, extern in Interpreter.h)
+Hook* hook;                 (allocated main.cc, extern in Hook.h)
+OutputWindow* outputWindow; (allocated main.cc,
+
+Names:
+------
+soil, gravel, humus%, loam% , sand; fill, subsoil; terrain%, turf; 
+*    clod
+*   soil
+% available on sourceforge
+
+Interpreter:
+------------
+Interpreter::add adds a command to the end of the queue.  Ways to make this
+non-sensical:
+    .nund;open door
+    north
+Will get translated into
+    north, n, u, n, d, open door
+Need to use a LIFO queue for commands (i.e. Interpreter::add adds to the end 
+of the LIFO), and add a new command Interpreter::insert that adds to the 
+beginning of the queue (for use by semicolon, speedwalk).  semicolon and
+speedwalk should REPLACE themselves with the equivalent set of commands, and
+should not be adding to the end of the LIFO.
+    Interpreter.h:  List<String*> -> deque<string>
+deque has push_front, pop_front, push_back, pop_back.
+Need to process expand_semicolon, expand_speedwalk options from config file.
+Add a function to take the command, parse it, and return argv, argc style arg
+    list?  Should I do option processing too?  (would add to consistency)
+    Maybe return a hash of option->value pairs.
+    i.e. rewrite Option.h, Option.cc
+-Wwindow option for /kill, /print, /clear, 
+Option should use perl matching.
+/restart command?  (replace alt_t, see Hotkey.cc)
+
+Variables:
+----------
+/set needs to set variables.  These should be accessable from python/perl.
+Some variables should be special client variables (like speedwalk, semicolon, 
+pipe, cmdChar, etc).
+Variables class, has hash of var/value pairs (both strings), has set() method, 
+    simple $var expander for command line.  swig wrapper for get/set for
+    embedded languages.  From within perl it should be mapped to %VARS or something,
+    using tie.
+Is this even possible?  Does perl interpreter fork into a separate process?  Is
+C++ code and perl interpreter even in same address space?
+
+Perl:
+-----
+print()     prints to the screen, just like /echo.
+run()       sends a command to the interpreter.
+How about just having print, and that's it.  Modify sys/functions.pl for this.
+samples/sys/idle.pl -- modify to be an IDLE hook.
+
+Chat Interface:
+---------------
+Currently /chat.<command>, implemented in ChatServerSocket::handleUserCommand.
+    Should be hooks instead, all with group 'chat'.
+Group option/config commands into one command (/chatconfig?)
+    /chat.{name,baseport,autoaccept,download,email,icon,debug,interfaces,protocol,
+        paranoia,syscolor,chatcolor,flags}
+Group communication commands:
+    /chat {tell,emote,}
+Group connection commands:
+    /chat.{accept,reject,deny,dc,list,call}
+
+Keys:
+-----
+alt-t   triggers window (grab all /hook -T OUTPUT)
+alt-a   aliases window (grab all /hook -T SEND)
+alt-h   help window (toggle -- put something in it with /help)
+alt-c   chat window (needs a header)
+alt-o   open a connection to a mud (needs keys -- add, delete, etc)
+alt-k   keys (needs keys -- add, delete, grabkey, etc)
+alt-q   quit
+alt-s   toggle session statistics (UR of screen)
+alt-l   toggle clock/timer

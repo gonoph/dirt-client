@@ -1,0 +1,11 @@
+/close      Close the connection to the mud.
+
+Syntax:
+    /close
+
+Options:
+    None
+
+Notes:
+    This will not log you off from your mud.  For most muds this will cause
+    you to go "linkdead".

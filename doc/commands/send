@@ -1,0 +1,18 @@
+/send       Send data directly to the mud, bypassing SEND hooks.
+
+Syntax:
+    /send [-nu] <data>
+
+Options:
+    -n      Do not append a trailing CR (carriage return) to the data.
+    -u      Send unbuffered.
+
+Notes:
+    /send will never cause any hook to be executed.
+
+    Normally Dirt keeps a stack of data that is to be send to the mud.
+    Commands you type, perl scripts, etc add to this stack, and it is sent in
+    LIFO order.  If you send something with -u (unbuffered), it is not added
+    to the command stack, but is sent immediately to the mud.  This can be
+    dangerous, since the order in which commands get executed might not be
+    what you expect.

@@ -1,0 +1,17 @@
+/status     Place a message into the status line.
+
+Syntax:
+    /status [-W <window>] <message>
+
+Options:
+    -W      Specify a window for which the message is destined.
+
+Notes:
+    Your message will be placed in the status bar at the top of the screen,
+    and will persist for several seconds.  This is good for feedback on
+    user-input.
+
+    If you specify a window (-W), the message will be placed on the bottom
+    border of the window.  If the window is borderless, you won't be able to
+    see the message!  To clear the message on a window, do this:
+        /status -W <window> ''

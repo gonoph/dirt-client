@@ -1,0 +1,8 @@
+Command-line input interface:
+-----------------------------
+
+Commands starting with '/' are special dirt commands (see further documentation)
+You can separate commands with semicolons ';'
+To send an actual special character ([/;]), prefix it by a backslash '\'.
+You can create a command that starts with an alphanumeric using the /alias
+facility (see doc/Alias)

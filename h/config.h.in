@@ -1,0 +1,3 @@
+#define VERSION @DIRT_VERSION1@
+#define COMPILED_BY "@COMPILED_BY@"
+#define INSTALL_ROOT "@prefix@"

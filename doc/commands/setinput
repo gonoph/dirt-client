@@ -1,0 +1,7 @@
+/setinput       Place text on the input line
+
+Syntax:
+    /setinput <text>
+
+Notes:
+    Will place <text> in the input line, as if you had typed it.

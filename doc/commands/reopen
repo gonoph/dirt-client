@@ -1,0 +1,7 @@
+/reopen     Re-open a connection to the last mud.
+
+Syntax:
+    /reopen
+
+Notes:
+    Equivalent to /open <last mud name>
