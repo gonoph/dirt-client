@@ -1,5 +1,6 @@
 // a class to keep a list of commands and execute them one at a time
 
+#include <iostream>
 #include "Interpreter.h"
 #include "EmbeddedInterpreter.h"
 #include "Option.h"
@@ -72,7 +73,7 @@ bool Interpreter::command_echo(string& str, void*, savedmatch*) {
             return true;
         }
         w->addInput(s.c_str());
-    } else outputWindow->printf("%s", s.c_str());
+    } else cout << s; //outputWindow->printf("%s", s.c_str());
     return true;
 }
 
@@ -285,21 +286,18 @@ void Interpreter::execute() {
     // FIXME should we process a fixed # of commands and return?  We can always
     // process the rest on the next call, and we need to give the screen a chance
     // to update if we're sending lots of commands.
-    while(commands.size())    
+    while(!commands.empty())    
     {
         pair<string,savedmatch*> line = commands.front();
         commands.pop_front();  // destroy the command on the top of the stack.
-//        report("Interpreter::execute executing command '%s'\n", line.c_str());
-        
         if (line.first.length() > 0 && line.first[0] == commandCharacter) {
             hook.run(COMMAND, line.first, line.second);
             dirtCommand (line.first.c_str() + 1);  // FIXME remove this once all commands are class members
-            //if(line.second) delete line.second; 
-            // FIXME we need to reference count the savedmatch.  This is a big memory leak.
         } else if(currentSession) {
             hook.run(SEND, line.first);
         } else
             status->setf ("You are not connected. Use Alt-O to connect to a MUD.");
+        if(line.second) delete line.second;
     }
 }
 

@@ -144,6 +144,7 @@ bool PerlEmbeddedInterpreter::run(const char*, const char *function, const char 
     bool retval;
     int nret;
     strcpy(buf, function);
+    string cmd = "";
     
 //    report("PerlEmbeddedInterpreter::run(%s, %s, out)", function, arg);
     if(haserror) {
@@ -154,26 +155,13 @@ bool PerlEmbeddedInterpreter::run(const char*, const char *function, const char 
             return false;
         }
     }
-    dSP;
-    ENTER;
-    SAVETMPS;
-    PUSHMARK(SP);
-// parameters here...
-    PUTBACK;
     if(sm) {
-        STRLEN n_a;
-        //report("PerlEmbeddedInterpreter::run: trying to rematch '%s' for function %s with matcher '%s'", sm->data.c_str(), function, SvPV((SV*)sm->matcher, n_a));
         sv_setpv(default_var, sm->data.c_str());
-        nret = perl_call_sv((SV*)sm->matcher, G_EVAL|G_SCALAR|G_NOARGS);
-        SPAGAIN;
-        if(!nret) report_err("Matcher function did not return a value.");
-        else if(!POPi) report_err("PerlEmbeddedInterpreter::run: savedmatch failed to match the second time");
-    }
-    if(arg != NULL) sv_setpv(default_var, arg);
-    nret = perl_call_pv((char*)buf, G_EVAL|G_NOARGS|G_SCALAR|G_KEEPERR);
-    SPAGAIN;
-    if (SvTRUE(ERRSV)) {
-        // Perl handles printing of errors for us...
+        cmd += "/" + backslashify(sm->regex, '/') + "/; ";
+    } else if(arg != NULL) sv_setpv(default_var, arg);
+    cmd += "&" + string(buf) + "(); ";
+    SV* res = perl_eval_pv(cmd.c_str(), FALSE);
+    if (SvTRUE(ERRSV)) { // Perl handles printing of errors for us...
         if(out) strcpy(out, oldarg.c_str()); // return unmodified argument.
         retval = true;  // What to return in this case...
         if(haserror) haserror = true;
@@ -185,20 +173,8 @@ bool PerlEmbeddedInterpreter::run(const char*, const char *function, const char 
                 strcpy(out,s);
             } else *out = '\0';
         }
-        SV* mysv;
-        if(nret == 1) {
-            mysv = POPs;
-            retval = SvTRUE(mysv);
-        }
-        else {
-            retval = false;
-            report("WARNING: perl function '%s' returned the wrong number of arguments.\n", function);
-            if(haserror) haserror = true;
-        }
+        retval = SvTRUE(res);
     }
-    PUTBACK;
-    FREETMPS;
-    LEAVE;
     return retval;
 }
 
@@ -206,13 +182,14 @@ bool PerlEmbeddedInterpreter::run(const char*, const char *function, const char 
 // returns a pointer to an anonym subroutine that does this, does not do
 // anything itself!
 void* PerlEmbeddedInterpreter::match_prepare(const char *pattern, const char *commands) {
-    const char* autofn = "sub { if (/%s/) { $_ = \"%s\"; return 1; } else { $_ = \"\"; return 0; } };";
-//    const char* autofn = "sub { if (/%s/) { if(defined $1) { print(\"---> \\$1: \\n\\t$1\\n\"); } $_ = sprintf(\"%%s\", \"%s\"); print \"\t$_\"; } else { $_ = \"\";} };";
+    const char* autofn = 
+        "sub { if (/%s/) { $_ = \"%s\"; return 1; } else { $_ = \"\"; return 0; } };";
     char* buf = (char*)malloc(strlen(pattern) + strlen(commands) + strlen(autofn));
     sprintf(buf, autofn, backslashify(pattern, '/').c_str(), backslashify(commands, '"').c_str());
     dSP;
     PUSHMARK(SP);
     SV* result = perl_eval_pv(buf, FALSE);
+    free(buf);
     if(SvTRUE(ERRSV)) {
         report_err("Unable to evaluate regular expression: %s\n", pattern);
         report_err("\t%s\n", SvPV(ERRSV, PL_na));
@@ -277,41 +254,30 @@ bool PerlEmbeddedInterpreter::eval(const char*, const char *expr, const char* ar
 //    report("eval got: '%s'", expr);
     int nret;
     bool retval;
+    char tmp[MAX_MUD_BUF];
+    string cmd = "";
 
-    dSP;
-    ENTER;
-    SAVETMPS;
-    PUSHMARK(SP);
-    PUTBACK;
     if(sm) {
         sv_setpv(default_var, sm->data.c_str());
-        nret = perl_call_sv((SV*)sm->matcher, G_EVAL|G_SCALAR|G_NOARGS);
-        if(!nret) report_err("Matcher function did not return a value.");
-        else if(!POPi) report_err("PerlEmbeddedInterpreter::run: savedmatch failed to match the second time");
-    }
-    if(arg) sv_setpv(default_var, arg);
-    SV* res = perl_eval_pv((char*)expr, FALSE);
-    STRLEN len;
+        cmd += "/" + backslashify(sm->regex, '/') + "/; ";
+    } else if(arg != NULL) sv_setpv(default_var, arg);
+    cmd += expr;
+    SV* res = perl_eval_pv(cmd.c_str(), FALSE);
     
-    if (SvTRUE(ERRSV)) { // Perl will provide a warning message for us. (make sure init.pl gets loaded!)
-        if(out) *out = NUL;
+    if (SvTRUE(ERRSV)) {      // Perl will provide a warning message for us. 
+        if(out) *out = NUL;   //(make sure init.pl gets loaded!)
         retval = false;
     }
     else {
         if(out) {
-            if(SvOK(res)) { // make sure result is not undef (or we'll get an Uninitialized value warning)
-                char *s = SvPV(res, len);
+            if(SvOK(default_var)) { // Prevents uninitialized value warnings of $_ = undef;
+                char *s = SvPV(default_var, PL_na);
                 strcpy(out,s);
-                out[len] = '\0';  // Make sure string is null terminated -- sometimes perl strings aren't.
-            } else *out = NUL; 
+            } else *out = '\0';
+            retval = SvTRUE(res);
         }
-        retval = true;
+        retval = SvTRUE(res);
     }
-    SvREFCNT_dec(res);
-    SPAGAIN;
-    PUTBACK;
-    FREETMPS;
-    LEAVE;
     return retval;
 }
 

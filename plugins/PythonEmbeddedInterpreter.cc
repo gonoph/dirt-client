@@ -5,6 +5,7 @@
 #include "Pipe.h"
 #include "Interpreter.h"
 #include "PythonEmbeddedInterpreter.h"
+#include "misc.h"
 
 // Exported functions
 extern "C" EmbeddedInterpreter *createInterpreter() {

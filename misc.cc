@@ -221,7 +221,7 @@ int countChar(const char *s, int c)
 int longestLine (const char *s)
 {
     char buf[MAX_MUD_BUF];
-    unsigned max_len = 0;
+    unsigned long max_len = 0;
     strcpy(buf, s);
 
     s = strtok(buf, "\n");

@@ -533,14 +533,6 @@ bool CommandHookStub::operator() (string& data, savedmatch* sm) {
         && !data.compare(commandname, 1, commandname.length())
 #endif
         && (data.length() == commandname.length() + 1 || data[commandname.length()+1] == ' ')) {
-        //if(sm) {
-        //    // This is expected to return true if the command was handled.
-        //    if(!embed_interp->match(sm->matcher, sm->data.c_str(), NULL)) {
-        //        report_err("savedmatch does not match.");
-        //    }
-        //}
-        // FIXME here I think it's losing $1...$n because /run builds a local perl stack.
-        // may have to pass savedmatch to command_run (etc)
         return(callback(data,instance,sm)); 
     }
     return false;
@@ -566,7 +558,7 @@ TriggerHookStub::TriggerHookStub(int p, float c, int n, bool F, bool en, bool co
 
 bool TriggerHookStub::operator() (string& data, savedmatch* sm) {
     bool retval;
-    char out[std::max(2*command.length(),1024U)]; // FIXME buffer overflow
+    char out[std::max(2*command.length(),1024UL)]; // FIXME buffer overflow
 
     //if(sm) report_err("TriggerHookStub::operator() called with existing savedmatch!");
 
@@ -580,8 +572,8 @@ bool TriggerHookStub::operator() (string& data, savedmatch* sm) {
                 if(type == SEND || type == COMMAND) interpreter.insert(command, sm);
                 else interpreter.add(command, sm);
             } else {
-                if(type == SEND || type == COMMAND) interpreter.insert(command, data, matcher);
-                else interpreter.add(command, data, matcher);
+                if(type == SEND || type == COMMAND) interpreter.insert(command, data, regex);
+                else interpreter.add(command, data, regex);
             }
             retval = true;
         }

@@ -29,9 +29,10 @@
 // This struct stores the MUD string that matched, and the matcher that matched
 // it for the purpose of re-running the match to get $1, $2...later on.
 struct savedmatch {
-    string data;    // Mud string that was matched.  (ALWAYS a mud string)
-    void*  matcher; // Matcher used.
-    savedmatch(string& d, void* m) : data(d), matcher(m) {};
+    string  data;    // Mud string that was matched.  (ALWAYS a mud string)
+    string  regex;   // Regex used
+    savedmatch(string& d, string& re) : data(d), regex(re) {};
+    savedmatch(savedmatch& sm) : data(sm.data), regex(sm.regex) {};
 };
 
 template <class _Tp>

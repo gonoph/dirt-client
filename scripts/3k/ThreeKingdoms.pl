@@ -25,14 +25,16 @@ use vars qw(@room_exits @unusual_exits $enemy $havephantasm $haveelemental $summ
 
 # This replaces the standard prompt hook.
 sub prompt_grab {
+    print "@ prompt_grab got: $_\n";
+    print "@ prompt_grab got 1: $1\n";
     while(s/^> //g) { # In case multiple prompts on one line.  3k's prompts are so stupid.
-#        print "@ prompt_grab found a prompt!\n";
         &main::run("/hook -T PROMPT -r '> '");
     }
+    print "@ prompt_grab left with: $_\n";
     return 1;
 }
 # High priority to supercede all other hooks/triggers.
-&main::run("/hook -F -a -p 2147483646 -T OUTPUT -t'^> ' prompt_grab = /run -Lperl ThreeKingdoms::prompt_grab");
+&main::run("/hook -F -a -p 2147483646 -T OUTPUT -t'^(> )' prompt_grab = /run -Lperl ThreeKingdoms::prompt_grab");
 
 ############################# ROOMS ###########################################
 my(@dirs) = ("n", "e", "s", "w", "ne", "nw", "se", "sw", "u", "d", "vortex",

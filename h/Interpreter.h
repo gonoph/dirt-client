@@ -10,23 +10,27 @@ class Interpreter {
 public:
     Interpreter();
     // add a command to the end of the stack.
-    void add(string& s, string& data, void* matcher) { 
-        commands.push_back(pair<string,savedmatch*>(s, new savedmatch(data, matcher))); 
+    void add(string& s, string& data, string regex) { 
+        commands.push_back(pair<string,savedmatch*>(s, new savedmatch(data, regex))); 
     };  // This gets deleted in Interpreter::execute
     void add(string& s) { commands.push_back(pair<string,savedmatch*>(s,NULL)); }; 
-    void add(const char* s, string& data, void* matcher) { string str(s); add(str, data, matcher); };
+    void add(const char* s, string& data, string regex) { string str(s); add(str, data, regex); };
     void add(const char* s) { string str(s); add(str); }
-    void add(string& s, savedmatch* sm) { commands.push_back(pair<string,savedmatch*>(s, sm)); }
+    void add(string& s, savedmatch* sm) { 
+        commands.push_back(pair<string,savedmatch*>(s, new savedmatch(*sm))); 
+    }
     // insert a command on the beginning of the stack
-    void insert(string& s, string& data, void* matcher) { 
-        commands.push_front(pair<string,savedmatch*>(s, new savedmatch(data, matcher))); 
+    void insert(string& s, string& data, string regex) { 
+        commands.push_front(pair<string,savedmatch*>(s, new savedmatch(data, regex))); 
     };  // This gets deleted in Interpreter::execute
     void insert(string& s) { commands.push_front(pair<string,savedmatch*>(s,NULL)); }; 
-    void insert(const char* s, string& data, void* matcher) { 
-        string str(s); insert(str, data, matcher); 
+    void insert(const char* s, string& data, string regex) { 
+        string str(s); insert(str, data, regex); 
     };
     void insert(const char* s) { string str(s); insert(str); }
-    void insert(string& s, savedmatch* sm) { commands.push_front(pair<string,savedmatch*>(s, sm)); }
+    void insert(string& s, savedmatch* sm) { 
+        commands.push_front(pair<string,savedmatch*>(s, new savedmatch(*sm))); 
+    }
     void dump_stack(void);                          // dump the command stack to the screen.
     void execute();
     void dirtCommand (const char *command);

@@ -80,6 +80,17 @@ void HistorySet::saveHistory() {
 
 void HistorySet::loadHistory() {
     if (config->getOption(opt_save_history)) {
+         FILE *fp = fopen(Sprintf("%s/.dirt/history", getenv("HOME")), "r");
+         if (fp) {
+             int id;
+             time_t t;
+             char buf[4096];
+
+             while (3 == fscanf(fp, "%d %ld %1024[^\n]", &id, &t, buf))
+                hist_list[id]->add(buf,t);
+             fclose(fp);
+         }
+/*
         ifstream hin(Sprintf("%s/.dirt/history", getenv("HOME")));
         if (hin.is_open()) {
             int id;
@@ -98,6 +109,7 @@ void HistorySet::loadHistory() {
             }
             hin.close();
         }
+*/
     }
 }
 
