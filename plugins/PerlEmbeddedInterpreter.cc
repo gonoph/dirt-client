@@ -139,7 +139,8 @@ bool PerlEmbeddedInterpreter::run_quietly(const char* lang, const char *path, co
 // when done. return false if parse error ocurred or if function doesn't exist
 bool PerlEmbeddedInterpreter::run(const char*, const char *function, const char *arg, 
         char *out, savedmatch* sm, bool& haserror) {
-    string oldarg(arg); // save it
+    string oldarg; // save it
+    if(arg) oldarg = arg;
     char buf[MAX_MUD_BUF]; // FIXME
     bool retval;
     int nret;

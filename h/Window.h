@@ -10,6 +10,8 @@
 #include <list>
 #include <string>
 
+using namespace std;
+
 typedef unsigned short int attrib;
 
 enum {wh_half = -5000, wh_full = -5001}; // this sucks, plain and simple

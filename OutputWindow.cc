@@ -11,7 +11,11 @@
 #include "misc.h"
 
 #include <cerrno>
-
+#if __GNUC__ >= 3
+#include <locale>       // isspace
+#else
+#include <ctype.h>
+#endif
 
 OutputWindow::OutputWindow(Window *_parent)
 : Window(_parent, wh_full, _parent->height-1), top_line(0)

@@ -14,8 +14,8 @@
 #endif
 
 using namespace std;
-#ifdef __GNUC__
-//using namespace __gnu_cxx;
+#if __GNUC__ == 3 && __GNUC_MINOR__ >= 1
+using namespace __gnu_cxx;
 #endif
 
 // Define to 1) print all allocs to stderr
@@ -29,20 +29,18 @@ void operator delete (void *ptr);
 
 //#if !HAVE_HASH_STRING && HAVE_HASH_MAP  // gcc 3.X has hash<string>, 2.9.X does not
 // This is not provided by g++ (2.9.X) ... it should be.
-//#ifdef __GNUC__
+#if __GNUC__ == 3 && __GNUC_MINOR__ >= 1
+namespace __gnu_cxx {
+#else
 namespace std {
-//#endif
+#endif
 template <>     // create a hashing algorithm for string that uses the const char* hashing algo.
-class hash<string>
+struct hash<string>
 {
-public:
-    inline size_t operator()(string const &str) const {
-        hash<char const *> h;
-        return (h(str.c_str()));
+    size_t operator()(string const &str) const {
+        return __stl_hash_string(str.c_str());
     }
 };
-//#ifdef __GNUC__
 }
-//#endif
 
 #endif

@@ -7,6 +7,11 @@
 #include "Interpreter.h"
 #include <dlfcn.h>
 #include <unistd.h>
+#if __GNUC__ >= 3
+#include <locale>       // isspace
+#else
+#include <ctype.h>
+#endif
 
 
 #define DIRT_LOCAL_LIBRARY_PATH "/usr/local/lib/dirt"

@@ -260,6 +260,16 @@ PerlEmbeddedInterpreter::match determines if the match was successful by grabbin
 Maybe an option to /hook to cause the RHS to be evaluated immediately, rather
 than being added to the command stack, with a warning that this may cause things
 to happen out of order?
+    /hook -Ft 'shit' -p 1 myshit1 = say one
+    /hook -Ft 'shit' -p 2 myshit2 = /eval run("say two")
+    /hook -Ft 'shit' -p 3 myshit3 = say three
+    You say: shit
+    You say: three
+    You say: one
+    You say: two
+    ....I think this is because the perl commands are read from the socket
+    *after* all commands have been processed.  There's no way of knowing which
+    order they came in.
 
 Hook:
 -----

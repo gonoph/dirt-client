@@ -2,7 +2,7 @@
 dnl Dirt - Mud Client for Unix (mcl fork)
 dnl process this file with autoconf to produce a configure script.
 
-AC_REVISION($Revision: 1.1 $)
+AC_REVISION($Revision: 1.2 $)
 AC_INIT(main.cc)
 AC_CONFIG_AUX_DIR(admin)
 AC_LANG(C++)
@@ -164,7 +164,7 @@ fi
 dnl do we have python installed in this system
 case "x$enable_python" in
 	"xyes")
-	AC_PATH_PROGS(PYTHON,python python2.0 python1.6 python1.5 python1.4 python1.3,no)
+	AC_PATH_PROGS(PYTHON,python python2.2 python2.1 python2.0 python1.6 python1.5 python1.4 python1.3,no)
         ;;
         "xno")
 	echo "python scripting support disabled in command line"

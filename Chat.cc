@@ -20,6 +20,11 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <net/if.h>
+#if __GNUC__ >= 3
+#include <locale>       // isspace
+#else
+#include <ctype.h>
+#endif
 
 ChatServerSocket *chatServerSocket;
 MUD *chatMUD;

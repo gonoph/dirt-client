@@ -9,6 +9,11 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <cerrno>
+#if __GNUC__ >= 3
+#include <locale>       // isspace
+#else
+#include <ctype.h>
+#endif
 
 extern time_t current_time;
 

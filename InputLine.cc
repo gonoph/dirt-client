@@ -16,7 +16,6 @@
 #include <sys/stat.h>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 
 History::History(int _id) : id (_id), current(0) {
     max_history = config->getOption(opt_histsize);

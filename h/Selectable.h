@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <vector>
 
+using namespace std;
 
 // Selectable objects are objects that need to select() on
 // some FDs

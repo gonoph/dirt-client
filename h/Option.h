@@ -7,6 +7,7 @@
 #ifndef DIRT_OPTION_H
 #define DIRT_OPTION_H
 
+#include "dirt.h"
 #include "config.h"
 #include <limits.h>
 #if HAVE_HASH_MAP && !HAVE_EXT_HASH_MAP
@@ -16,6 +17,8 @@
 #endif
 #include <string>
 #include <vector>
+
+using namespace std;
 
 class OptionParser
 {

@@ -6,6 +6,11 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <algorithm>
+#if __GNUC__ >= 3
+#include <locale>       // isspace
+#else
+#include <ctype.h>
+#endif
 
 #define CLEAR_SCREEN "\ec\e[0;0m\e[H\e[J"
 
@@ -221,7 +226,7 @@ int countChar(const char *s, int c)
 int longestLine (const char *s)
 {
     char buf[MAX_MUD_BUF];
-    unsigned long max_len = 0;
+    size_t max_len = 0;
     strcpy(buf, s);
 
     s = strtok(buf, "\n");
