@@ -105,6 +105,15 @@ Focus mechanism:
 Option to use favorite language for /echo?  (i.e. /echo -> /eval print
     "<args>\n" so variable expansions work)
 Saved.pl should not be clobbered if it has been modified since last loading.
+/alias crap = crap $2 $1
+    hangs dirt.
+Aliases are getting evaluated in the wrong order:
+    @ life-forest    .eejjnnw                                     0                                        
+    @ life-magic     life-forest;portal                           0                                        
+    life-magic executes "portal" first!
+    life-forest;portal has same problem...
+    .eejjnnw;portal does not...
+Hooks without a matcher will not have RHS expanded as a quoted string.  Is this bad?
 
 Hook:
 -----

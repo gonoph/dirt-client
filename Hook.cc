@@ -519,9 +519,12 @@ bool TriggerHookStub::operator() (string& data) {
                 }
                 data = out;
             } else {
+                // SEND and COMMAND hooks must be inserted at the beginning of
+                // the command stack, otherwise we will be reversing the
+                // command order!  i.e. a;b -> b;a if there is a SEND hook on a.
+                if(type == SEND || type == COMMAND) interpreter.insert(myfun.c_str());
 // FIXME          hook.run(COMMAND, matchfun);
-// this should work instead of interpreter.add
-                interpreter.add(myfun.c_str());
+                else interpreter.add(myfun.c_str());
                 retval = true;
             }
         }
@@ -536,7 +539,8 @@ bool TriggerHookStub::operator() (string& data) {
             data = out;
         } else {
             strcpy(out, command.c_str()); // Have to copy in case someone
-            interpreter.add(command.c_str());
+            if(type == SEND || type == COMMAND) interpreter.insert(command.c_str());
+            else interpreter.add(command.c_str());
             retval = true;
 // FIXME      hook.run(COMMAND, out);       // modifies out.  (c_str is const)
 // this should work instead of interpreter.add

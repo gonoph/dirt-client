@@ -553,3 +553,12 @@ char Interpreter::getCommandCharacter() {
   return commandCharacter;
 }
 
+void Interpreter::dump_stack(void) {
+    string s;
+    for(deque<string>::iterator it = commands.begin();it != commands.end();it++) {
+        s.append(*it);
+        s.append(",");
+    }
+    report("Interpreter::commands: %s\n", s.c_str());
+}
+

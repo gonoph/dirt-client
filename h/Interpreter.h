@@ -8,8 +8,11 @@
 class Interpreter {
 public:
     Interpreter();
-    void add(string& s) { commands.push_back(s); };
+    void add(string& s) { commands.push_back(s); };         // add a command to the end of the stack.
     void add(const char* s) { string str(s); add(str); };
+    void insert(string& s) { commands.push_front(s); };     // insert a command on the beginning of the stack
+    void insert(const char* s) { string str(s); insert(str); };
+    void dump_stack(void);                                  // dump the command stack to the screen.
     void execute();
     void dirtCommand (const char *command);
     void setCommandCharacter (int c);

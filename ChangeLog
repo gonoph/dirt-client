@@ -16,6 +16,10 @@
 * We no longer trigger on incompletely received lines.  We gotta get a \n before
     we try to trigger on it.
 * Fix segfault in previous bug fix.
+* Fix SEND and COMMAND type triggers so they insert new commands at the
+    BEGINNING of the command stack.  All other hook types insert commands at
+    the END of the command stack.  (makes a;b;c, where a is an /alias not
+    mess up the order of the commands)
 
 Dirt 0.60.0
 * Made file release on sourceforge.
