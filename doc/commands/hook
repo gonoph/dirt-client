@@ -158,4 +158,19 @@ Examples:
     You can '/enable paste', paste a bunch of stuff (use the x-windows middle
     mouse button paste), then '/disable paste'.  It will "say" what you paste.
 
+    The following will cause any command preceeded by '=' to be evaluated as a
+    perl quoted expression before sending it:
+        /hook -TSEND -t'^=(.*)' autoperl = /eval -Lperl run("$1")
+    This allows you to:
+        =say This is in ${red}COLOR${off}
+    The following will cause ALL commands to be evaluated as a perl quoted 
+    expression before sending:
+        /hook -TSEND -t'^(.*)$' -p -2147483647 autoperl2 
+            = /eval run('/send "' . &backslashify("$1",'"') . '"')
+    It has a very low priority so that it doesn't interfere with other hooks.
+    Be careful with this one.  If you ever use characters like [$%&@#] in your
+    commands, they will fail if you try to evaluate everything as perl quoted
+    expressions.  (But note that you can precede these special characters by a
+    backslash '\' to have perl not treat them as special)
+
 See Also: /trig, /alias, /gag
