@@ -7,21 +7,21 @@
 
 // Class for handling a MUD
 MUD::MUD (const char *_name, const char *_hostname, int _port, MUD *_inherits, const char *_commands) {
-	name = _name;
-	hostname = _hostname;
-	port = _port;
+    name = _name;
+    hostname = _hostname;
+    port = _port;
     commands = _commands;
     inherits = _inherits;
     loaded = false;
 }
 
 MUD * MUDList::find(const char *_name) {
-	for (MUD *mud = rewind(); mud; mud = next()) {
-		if (!strcasecmp(mud->name, _name))
-			return mud;
-	}
-	
-	return NULL;
+    for (MUD *mud = rewind(); mud; mud = next()) {
+        if (!strcasecmp(mud->name, _name))
+            return mud;
+    }
+
+    return NULL;
 }
 
 void MUD::setHost(const char *_host, int _port) {
