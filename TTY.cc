@@ -84,8 +84,13 @@ void TTY::check_fdset(fd_set *set, fd_set*) {
         int key = get_key();
         last_activity = current_time;
         embed_interp->set("Key", key);
-        hook.run(KEYPRESS, inputLine->get());
-        screen->keypress(key); // FIXME KEYPRESS hook instead?
+//  hook.run depends on inputLine::lastkey to be set.
+//        inputLine->keypress(key); // We call inputLine::keypress in any case 
+                              // since lots of stuff depends on InputLine::getlastkey()
+//        if(!hook.run(KEYPRESS, inputLine->get())) {
+//            cout << "Running OLD keypress method." << endl;
+            screen->keypress(key); // FIXME KEYPRESS hook instead?
+//        }
 //FIXME        cout << "Activity on keyboard...\n";
     }
 }

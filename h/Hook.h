@@ -133,10 +133,13 @@ public:
     bool disableGroup(string group);
     bool enable(string name);
     bool enableGroup(string group);
+    // FIXME the following bool return types are only needed for KEYPRESS hooks and
+    // their interaction with the OLD keypress system.  They can be changed to void
+    // when the old keypress system is removed.
     void run(HookType type, string& data);           // data may be modified.
     void run(HookType type, char* data = NULL);
-    void run(string const type, string& data) { run(types[type], data); };
-    void run(string const type, char* data = NULL) { run(types[type], data); };
+    void run(string const type, string& data) { return run(types[type], data); };
+    void run(string const type, char* data = NULL) { return run(types[type], data); };
     static bool command_hook(string&,void*);
     static bool command_disable(string&,void*);
     static bool command_enable(string&,void*);

@@ -140,8 +140,8 @@ Window::~Window()
         assert(w != this);
         assert(this != parent);
         cerr << "   Killing a child: " << w->getName() << endl;
-    //    w->die();
-        w->check();
+//        w->die();
+//        w->check();
         assert(this == w->parent);
         delete w;  // At this point, window has a deleted child in its list.
     }
@@ -527,7 +527,8 @@ void Window::die() {
     delete this; 
     if (p) {
         p->deathNotify(this);
-//FIXME (bob)        p->remove(this);
+//FIXME (bob)        
+//p->remove(this);
     }
 }
 

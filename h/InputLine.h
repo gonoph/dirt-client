@@ -19,9 +19,9 @@ public:
     virtual void set (const char *s); // Set the input line to this
     virtual char* get () { return input_buf; }
     NAME(InputLine);   
+    virtual bool keypress(int key); // FIXME remove after key transition complete.
 protected:
     
-    virtual bool keypress(int key);
     virtual void execute() {}; // Called when data has been inputted
     
 protected:

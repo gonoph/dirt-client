@@ -353,6 +353,7 @@ void Hook::run(HookType t, string& data) {
                 if(!stub->fallthrough && caught) {
                     if(stub->type == KEYPRESS) {
 //DEBUG report("    %s: %s\n", stub->name.c_str(), data.c_str());
+                    } else {
                     }
                     done = true;
                     break; // don't process lower priority hooks
@@ -574,12 +575,12 @@ bool KeypressHookStub::operator() (string& data) {
     if(key == inputLine->getlastkey()) {
         if(window.length()) {
             if((mw = MessageWindow::find(window)) && mw->is_visible()) {
-    //                report("Running TriggerHookStub for window '%s'\n", window.c_str());
+//                    report("Running KeypressHookStub for window '%s'\n", window.c_str());
                 if(callback) return callback(data, instance);
                 else return TriggerHookStub::operator()(data);
             } // else return false;
         } else {
-    //        report("Running TriggerHookStub (no window:'%s')\n", window.c_str());
+//            report("Running KeypressHookStub (no window:'%s')\n", window.c_str());
             if(callback) return callback(data, instance);
             else return TriggerHookStub::operator()(data);
         }

@@ -254,7 +254,7 @@ bool InputLine::keypress(int key) {
     int prev_len = max_pos;
     
 //    report("calling hook.run(KEYPRESS, %s)", input_buf);
-//    hook.run(KEYPRESS, input_buf); // MOVED to TTY::check_fdset
+    hook.run(KEYPRESS, input_buf); // FIXME MOVE to TTY::check_fdset
 //    report("returned from hook.run(KEYPRESS, %s)", input_buf);
     // This is tough - what do we adjust here
     int new_len = strlen(input_buf);
