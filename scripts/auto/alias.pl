@@ -8,7 +8,7 @@ if(!defined %Aliases) {
 }
 my($regexdelim) = qr/[\#\/\%\&!,=:]/;           # regex delimiters
 my($aliasargs)  = "(?:\\\\s+([^\\\\s]+))?" x 20;# set the regex that automatically matches alias arguments
-   $aliasargs   = qr/$aliasargs/;
+#   $aliasargs   = $aliasargs;
     
 &main::run("/hook -T INIT -F -fL perl definealiases = Alias::definealiases");
 sub definealiases {
@@ -23,7 +23,7 @@ sub definealiases {
                 }
             }
         }
-        $hookcmd .= " -t'$name$aliasargs' '__DIRT_ALIAS_" . $name . "' = " . $Aliases{$name}->{'action'};
+        $hookcmd .= " -t'^$name$aliasargs\$' '__DIRT_ALIAS_" . $name . "' = " . $Aliases{$name}->{'action'};
         &main::run($hookcmd);
     }
     &main::run($main::commandCharacter . "hook -d definealiases"); # delete myself from INIT list.
@@ -103,7 +103,7 @@ sub command_alias {
     }
     $name = $ARGV[0];
     $aliashash{'action'} = join(" ", @ARGV[2..$#ARGV]);
-    $hookcmd .= "-t'$name$aliasargs' '__DIRT_ALIAS_" . $name . "' = " . $aliashash{'action'};
+    $hookcmd .= "-t'^$name$aliasargs\$' '__DIRT_ALIAS_" . $name . "' = " . $aliashash{'action'};
     &main::run($hookcmd);
     $Aliases{$name} = \%aliashash;  # main::save will save complex data structures for us!
     return 1;
