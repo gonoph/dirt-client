@@ -4,6 +4,7 @@
 #include "Plugin.h"
 #include "Config.h"
 #include "Hook.h"
+#include "Pipe.h"
 #include "Interpreter.h"
 #include <dlfcn.h>
 #include <unistd.h>
@@ -87,6 +88,7 @@ bool StackedInterpreter::run(const char* lang, const char *function, const char 
     haserror = err_somewhere;
 
     if (out) strcpy(out, buf[i-1]);  // minus one?!?!?!?
+    if(interpreterPipe->have_data()) interpreterPipe->inputReady();
     return res;
 }
 
@@ -102,7 +104,9 @@ bool StackedInterpreter::load_file(const char* filename, bool suppress) {
 bool StackedInterpreter::eval(const char* lang, const char* expr, const char* arg, 
         char* out, savedmatch* sm) {
     if(!lang) lang = DEFAULT_INTERP; // In case it's null.
-    return interpreters[lang]->eval(lang, expr, arg, out, sm);
+    bool retval = interpreters[lang]->eval(lang, expr, arg, out, sm);
+    if(interpreterPipe->have_data()) interpreterPipe->inputReady();
+    return retval;
 }
 
 void *StackedInterpreter::match_prepare(const char* pattern, const char* replacement) {
@@ -156,9 +160,8 @@ bool StackedInterpreter::run_quietly(const char* lang, const char* path, const c
         }
     }
 
-    if (out && res)
-        strcpy(out, buf[i-1]);
-
+    if (out && res) strcpy(out, buf[i-1]);
+    if(interpreterPipe->have_data()) interpreterPipe->inputReady();
     return res;
 }
 
@@ -360,7 +363,8 @@ bool EmbeddedInterpreter::command_run(string& str, void*, savedmatch* sm) {
         return true;
     }
     embed_interp->run(opt.gotOpt('L')?opt['L'].c_str():NULL, opt.restStr().c_str(), NULL, out, sm);
-    str = out;
+    if(sm) sm->data = out;
+    else str = out;
     return true;
 }
     
@@ -369,11 +373,12 @@ bool EmbeddedInterpreter::command_eval(string& str, void*, savedmatch* sm) {
     if(!opt.valid()) return true;
     char out[MAX_MUD_BUF];
     embed_interp->eval(opt.gotOpt('L')?opt['L'].c_str():NULL, opt.restStr().c_str(), NULL, out, sm);
-    if(opt.gotOpt('r'))
-    {
+    if(opt.gotOpt('r')) {
 	int CmdChar = config->getOption(opt_commandcharacter);
 	report("%ceval result: %s\n", CmdChar, out);
     }
+    if(sm) sm->data = out;
+    else str = out;
     string strout(out);
     if(opt.gotOpt('s')) interpreter.add(strout);
     return true;

@@ -24,7 +24,7 @@ public:
     int getFile(End e);
         
 
-private:
+protected:
     int fds[2];
 };
 
@@ -33,6 +33,7 @@ class InterpreterPipe : public Pipe {
 public:
     InterpreterPipe();
     virtual void inputReady();
+    bool have_data();
 
 private:
     char line_buf[4096];

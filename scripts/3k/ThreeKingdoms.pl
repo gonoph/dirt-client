@@ -25,12 +25,9 @@ use vars qw(@room_exits @unusual_exits $enemy $havephantasm $haveelemental $summ
 
 # This replaces the standard prompt hook.
 sub prompt_grab {
-    print "@ prompt_grab got: $_\n";
-    print "@ prompt_grab got 1: $1\n";
     while(s/^> //g) { # In case multiple prompts on one line.  3k's prompts are so stupid.
         &main::run("/hook -T PROMPT -r '> '");
     }
-    print "@ prompt_grab left with: $_\n";
     return 1;
 }
 # High priority to supercede all other hooks/triggers.

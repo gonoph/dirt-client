@@ -1,3 +1,10 @@
+* Fixed problems with things happening or being printed out of order.
+* /hook -fL is gone, in favor of properly implemented /run and /eval.  Anywhere
+      you previously used: /hook -fL perl -t'stuff' mystuff = do_mystuff
+      (where do_mystuff is a perl procedure), you can now use:
+          /hook -t'stuff mystuff = /run -Lperl do_mystuff
+      and it should behave the same as -fL
+* Changed /echo to use cout.  Fixes (one) ordering of output problem.
 * Rearranged some variables in Session.cc to enable multi-session.
 * Changes to configure.in, Makefile.in for debug/optimized builds, install depends
   on all, and make perl required.

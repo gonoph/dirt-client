@@ -17,6 +17,7 @@
 #include "Config.h"
 #include "MessageWindow.h"
 #include "InputLine.h"
+#include "Pipe.h"
 
 #include <iomanip>
 #include <algorithm>  // min(), max()
@@ -360,12 +361,12 @@ void Hook::run(HookType t, string& data, savedmatch* sm) {
     hookstubset_type* hookset = hooks[t];
     HookStub *stub;
     bool done = false;
-    string uncolored = data;
-    uncolored = uncolorize(data);
+    string uncolored = uncolorize(data);
     string olduncolored = uncolored;  // To check if it changes.
     string olddata = data;
 
     for(hookstubset_type::iterator it = hookset->begin(); it != hookset->end(); it++) {
+        interpreter.mark();
         for(size_t i=0;i<(*it)->size();i++) {  // Iterate over hooks of same priority
             stub = (*(*it))[i];
             if(stub == NULL) {
@@ -378,6 +379,7 @@ void Hook::run(HookType t, string& data, savedmatch* sm) {
               (stub->chance == 1.0 || (float)rand()/(float)RAND_MAX <= stub->chance)) {
                 bool caught = false;
                 if(stub->color) {
+                    // If we have a savematch, the data of 
                     caught = stub->operator()(data, sm);  // call HookStub::operator()
                     if(data != olddata) {
                         uncolored = olduncolored = uncolorize(data);
@@ -386,8 +388,7 @@ void Hook::run(HookType t, string& data, savedmatch* sm) {
                 } else {
                     caught = stub->operator()(uncolored, sm);        // call HookStub::operator()
                     if(uncolored != olduncolored) {
-                        data = uncolored;
-                        olddata = data;
+                        olddata = data = uncolored;
                         uncolored = olduncolored = uncolorize(data);
                     }
                 }
@@ -398,7 +399,9 @@ void Hook::run(HookType t, string& data, savedmatch* sm) {
                 }
             }
         }
+        interpreter.execute(data);
         if(done) break; // gotta break out of both loops.
+        // We should also do a select and print anything perl/python may have printed.
     }
 }
 

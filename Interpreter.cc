@@ -210,7 +210,7 @@ bool Interpreter::command_reopen(string&, void* mt, savedmatch*) {
     {
         string s = "/open ";
         s += lastMud->getName();
-        mythis->commands.push_back(pair<string,savedmatch*>(s,NULL));
+        mythis->commands->push_back(pair<string,savedmatch*>(s,NULL));
     }
     return true;
 }
@@ -280,16 +280,18 @@ Interpreter::Interpreter() {
         "__DIRT_BUILTIN_expandSemicolon", vector<string>(1,"Dirt builtins"), &Interpreter::expandSemicolon));
     hook.add(SEND, new CppHookStub(INT_MAX-1, 1.0, -1, false, true, true,// FIXME command to toggle this?
         "__DIRT_BUILTIN_expandSpeedwalk", vector<string>(1,"Dirt builtins"), &Interpreter::expandSpeedwalk));
+    commands = new deque<pair<string,savedmatch*> >;
+    command_stack.push_back(commands);
 }
 
 void Interpreter::execute() {
+    //report("Interpreter::execute() stop mark is: %s\n", stopmark->first.c_str());
     // FIXME should we process a fixed # of commands and return?  We can always
     // process the rest on the next call, and we need to give the screen a chance
-    // to update if we're sending lots of commands.
-    while(!commands.empty())    
-    {
-        pair<string,savedmatch*> line = commands.front();
-        commands.pop_front();  // destroy the command on the top of the stack.
+    // to update if we're sending lots of commands->
+    while(!commands->empty())    {
+        pair<string,savedmatch*> line = commands->front();
+        commands->pop_front();  // destroy the command on the top of the stack.
         if (line.first.length() > 0 && line.first[0] == commandCharacter) {
             hook.run(COMMAND, line.first, line.second);
             dirtCommand (line.first.c_str() + 1);  // FIXME remove this once all commands are class members
@@ -298,6 +300,38 @@ void Interpreter::execute() {
         } else
             status->setf ("You are not connected. Use Alt-O to connect to a MUD.");
         if(line.second) delete line.second;
+    }
+    if(command_stack.size() > 1) {
+        delete commands;
+        commands = command_stack.back();
+        command_stack.pop_back();
+    }
+}
+
+void Interpreter::execute(string& data) {
+    // FIXME should we process a fixed # of commands and return?  We can always
+    // process the rest on the next call, and we need to give the screen a chance
+    // to update if we're sending lots of commands->
+    while(!commands->empty())    
+    {
+        string nore("");
+        savedmatch sm(data, nore);
+        pair<string,savedmatch*> line = commands->front();
+        commands->pop_front();  // destroy the command on the top of the stack.
+        if (line.first.length() > 0 && line.first[0] == commandCharacter) {
+            hook.run(COMMAND, line.first, &sm);
+            if(sm.data != data) data = sm.data;
+            dirtCommand (line.first.c_str() + 1);  // FIXME remove this once all commands are class members
+        } else if(currentSession) {
+            hook.run(SEND, line.first);
+        } else
+            status->setf ("You are not connected. Use Alt-O to connect to a MUD.");
+        if(line.second) delete line.second;
+    }
+    if(command_stack.size() > 1) {
+        delete commands;
+        commands = command_stack.back();
+        command_stack.pop_back();
     }
 }
 
@@ -384,7 +418,7 @@ bool Interpreter::expandSpeedwalk(string& str)
                     repeat = 10*repeat + str[i] - '0';
             }
         }
-        interpreter.commands.insert(interpreter.commands.begin(), replacement.begin(), 
+        interpreter.commands->insert(interpreter.commands->begin(), replacement.begin(), 
             replacement.end());
         return true;  // non-fallthrough will prevent other hooks from processing this command
     }
@@ -419,7 +453,7 @@ bool Interpreter::expandSemicolon(string& str) {
     if(retval) {
         replacement.push_back(pair<string,savedmatch*>(str,NULL));
     }
-    interpreter.commands.insert(interpreter.commands.begin(), replacement.begin(), 
+    interpreter.commands->insert(interpreter.commands->begin(), replacement.begin(), 
         replacement.end());
     return retval;
 }
@@ -461,11 +495,20 @@ char Interpreter::getCommandCharacter() {
     return commandCharacter;
 }
 
+void Interpreter::mark() {
+    command_stack.push_back(commands);
+    commands = new deque<pair<string,savedmatch*> >;
+}
+
 void Interpreter::dump_stack(void) {
     string s;
-    for(deque<pair<string,savedmatch*> >::iterator it = commands.begin();it != commands.end();it++) {
-        s.append(it->first);
-        s.append(",");
+    size_t i;
+    for(i=0;i<command_stack.size();i++) {
+        for(deque<pair<string,savedmatch*> >::iterator it = command_stack[i]->begin();it != command_stack[i]->end();it++) {
+            s.append(it->first);
+            s.append(", ");
+        }
+        s.append(" | ");
     }
     report("Interpreter::commands: %s\n", s.c_str());
 }

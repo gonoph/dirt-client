@@ -5,6 +5,7 @@
 
 #include <unistd.h>
 #include <limits.h>
+#include <sys/poll.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 
@@ -78,6 +79,15 @@ void InterpreterPipe::inputReady() {
         pos -= len+1;
         interpreter.add(buf);
     }
+}
+
+bool InterpreterPipe::have_data() {
+    pollfd myfd;
+    myfd.fd = fds[0];  // My read fd
+    myfd.events = 0;
+    myfd.events |= POLLIN;
+    poll(&myfd, 1, 0);
+    return(myfd.revents & POLLIN);
 }
 
 OutputPipe::OutputPipe() : Pipe(-1, STDOUT_FILENO) {

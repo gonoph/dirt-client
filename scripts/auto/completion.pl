@@ -18,7 +18,7 @@ $AutocompleteMin = 5;
 &main::save("Completion::AutocompleteMin", \$AutocompleteMin);
 $AutocompleteSize = 200;
 &main::save("Completion::AutocompleteSize", \$AutocompleteSize);
-$AutocompleteSmashCase = 0;
+$AutocompleteSmashCase = 1;
 &main::save("Completion::AutocompleteSmashCase", \$AutocompleteSmashCase);
 
 # Looks through @Volatile (created from mud output) and offers completions
