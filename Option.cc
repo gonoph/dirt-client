@@ -186,6 +186,7 @@ string OptionParser::restStr()
 {
     // nonOptions[0] is the /command.
     if(nonOptions.size() == 2) return nonOptions[1];
+    if(nonOptions.size() == 1) return "";
     else return s_nonopt;
 }
 
