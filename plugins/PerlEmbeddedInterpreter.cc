@@ -212,7 +212,7 @@ void* PerlEmbeddedInterpreter::match_prepare(const char *pattern, const char *co
     PUSHMARK(SP);
     SV* result = perl_eval_pv(buf, FALSE);
     if(SvTRUE(ERRSV)) {
-        report_err("Error evaluating regular expression: %s\n", pattern);
+        report_err("Unable to evaluate regular expression: %s\n", pattern);
         report_err("\t%s\n", SvPV(ERRSV, PL_na));
         return NULL;
     }
@@ -230,7 +230,7 @@ bool PerlEmbeddedInterpreter::match(void *perlsub, const char *str, char *&out) 
     
     perl_call_sv((SV*)perlsub, G_EVAL|G_VOID|G_NOARGS|G_DISCARD);
     if (SvTRUE(ERRSV)) {
-        report("Error evaluating autocreated function: %s",
+        report_err("Unable to evaluate autocreated function: %s",
                SvPV(ERRSV, PL_na));
         return false;
     }
