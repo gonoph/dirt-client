@@ -142,7 +142,7 @@ sub gauge ($$$$) {
 # This assumes a prompt that looks like this:
 # minHp/maxHp minMana/maxMana minMove/maxMove
 my($breedhp) = qr/^HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+)  Psi: ([0-9]+)\/([0-9]+)/;#  Focus: ([0-9]+)%  E: ([A-Z][a-z]+)/) {
-my($magehp) = qr/^ HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+)S?\/([0-9]+)% Sat: ([0-9]+)% Cnc: ([0-9]+)% Gols:([0-9]+)\/([0-9]+)% G2N:([0-9]+)%/;
+my($magehp) = qr/^ HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+)S?\/([0-9]+)%\/([0-9]+)% Sat: ([0-9]+)% Cnc: ([0-9]+)% Gols:([0-9]+)\/([0-9]+)% G2N:([0-9]+)%/;
 my($fremenhp) = qr/^HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+) W: ([0-9]+)\/([0-9]+)\(([0-9]+)\) L: ([0-9]+)%
 P: ([0-9]+)\/([0-9]+)% T: [a-z]+ G: ([0-9]+)/;
 sub check_hpbar {
@@ -151,7 +151,7 @@ sub check_hpbar {
         &main::run("/echo -W hpbar \"HP:  " . sprintf("(%3d/%3d)", $1, $2), &gauge(10, 1, $2, $1) . "\"");
         &main::run("/echo -W hpbar \"SP:  " . sprintf("(%3d/%3d)", $3, $4), &gauge(10, 1, $4, $3) . "\"");
         &main::run("/echo -W hpbar \"Sat: " . sprintf("(%3d/%3d)", $6, 100), &gauge(10,1, 100, 100-$6) . "\"");
-        &main::run("/echo -W hpbar \"Cnc: " . sprintf("(%3d/%3d)", $7, 100), &gauge(10,1, 100, 100-$7) . "\"");
+        &main::run("/echo -W hpbar \"Cnc: " . sprintf("(%3d/%3d)", $8, 100), &gauge(10,1, 100, 100-$8) . "\"");
     } else {
         # Let a few prompts splip by if creating a character or such
     }

@@ -73,7 +73,7 @@ sub command_help {
         if(-f "$DOCPATH/$1") { $fname = "$DOCPATH/$1"; }
         if(-f "$DOCPATH/commands/$1") { $fname = "$DOCPATH/commands/$1"; }
         if(!open(FILE, "<$fname")) { 
-            &main::report_err($commandCharacter . "help: '$1' is not a valid help topic!"); 
+            &main::report_err($main::commandCharacter . "help: '$1' is not a valid help topic!"); 
             return(1); 
         }
         chomp(@helpcontents = <FILE>);
