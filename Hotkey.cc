@@ -10,8 +10,6 @@
 
 Hotkey *hotkey;
 
-bool dirtRestart = false; // If true, restart the process when finished
-
 bool Hotkey::keypress (int key)
 {
     switch (key)
@@ -26,11 +24,6 @@ bool Hotkey::keypress (int key)
 
     case key_alt_m:
         (void) new MacroSelection(screen, "Macros");
-        break;
-        
-    case key_alt_t:			// reexec
-        dirtRestart = true;
-        dirtFinished = true;
         break;
         
     case key_alt_q: 		// Quit
