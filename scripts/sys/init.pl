@@ -17,7 +17,7 @@ if (-f "/etc/debian_version") {
 require "sys/functions.pl"; # Lots of utility functions
 
 # FIXME make this an INIT hook instead?
-&run($commandCharacter . "hook -T INIT -fL perl perl_init = init");
+&run($commandCharacter . "hook -T INIT perl_init = /run -Lperl init");
 sub init {
     require "sys/color.pl";     # Color code definitions
     require "sys/idle.pl";      # Callouts

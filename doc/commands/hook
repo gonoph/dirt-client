@@ -36,11 +36,7 @@ Options:
     -g      Group name with which this hook should be associated.  Multiple
             groups may be specified by separating them with commas.
     -C      Command name.  Synonymous with: -t /^<cmd>/ (-C is mutually 
-            exclusive with -t)
-    -f      <value> is a function name to execute instead of a dirt command.
-    -L      The argument <language> is the name of the language in which the 
-            function to be run (-f) is defined.  If -L is specified, -f is 
-            assumed.
+            exclusive with -t)  Implies -T COMMAND.
     -a      Match against the COLORED ((A)NSI) string instead of the uncolored
             string.  You may include variables like ${red} in the matching 
             string.
@@ -199,7 +195,7 @@ Examples:
         /hook -t'^sh (.*)' sh = /eval -s -Lperl return join("say ", `$1`)
 
     This implements /paste and /nopaste similar to what exists in TinyFugue
-        /hook -t'^(.*)$' -DT SEND -p100 paste = /send "say $1"
+        /hook -t'^(.*)$' -DT SEND -p100 paste = say $1
     You can '/enable paste', paste a bunch of stuff (use the x-windows middle
     mouse button paste), then '/disable paste'.  It will "say" what you paste.
 

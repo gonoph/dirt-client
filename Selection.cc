@@ -163,7 +163,7 @@ void Selection::setCount(int no) {
 void MUDSelection::doChoose(int no, int) {
     MUD *m = (*config->mud_list)[no];
     if (m)
-        interpreter.add(Sprintf("%copen %s", CMDCHAR, ~m->name));
+        interpreter.add(Sprintf("%copen %s", CMDCHAR, m->getName()));
     die();
 }
 
@@ -182,9 +182,10 @@ const char * MUDSelection::getData(int no) {
 
     if (mud) {
         if (strlen(mud->getHostname()))
-            snprintf (buf, min(width,256), "%-20s %-20s %4d %s", ~mud->name, mud->getHostname(), mud->getPort(), ~mud->commands);
+            snprintf (buf, min(width,256), "%-20s %-20s %4d %s", mud->getName(), 
+                    mud->getHostname(), mud->getPort(), mud->getCommands());
         else
-            snprintf (buf, min(width,256), "%s", ~mud->name);
+            snprintf (buf, min(width,256), "%s", mud->getName());
         return buf;
     } else
         return "";
@@ -194,7 +195,7 @@ void MUDSelection::doSelect (int no) {
   	char buf[128];
 
     if ((*config->mud_list)[no]) {
-        sprintf (buf, "This mud's name: %s", ~(*config->mud_list)[no]->name);
+        sprintf (buf, "This mud's name: %s", (*config->mud_list)[no]->getName());
         set_bottom_message (buf);
     }
 }

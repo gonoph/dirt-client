@@ -14,7 +14,7 @@ $windowColor = &main::str_to_color('white_blue');
 &main::run("/window -x 0 -y 10 -w -1 -h $height -H -t 0 -c 31 help");
 
 # open the help window when alt-h is pressed.
-&main::run("/hook -g 'Dirt keys' -k alt_h -fL perl __DIRT_HELP_open = Help::openhelpwindow");
+&main::run("/hook -g 'Dirt keys' -k alt_h __DIRT_HELP_open = /run -Lperl Help::openhelpwindow");
 sub openhelpwindow {
     &main::run("/window -s help");
     &main::run("/disable __DIRT_HELP_open");
@@ -22,13 +22,13 @@ sub openhelpwindow {
 }
 
 # Close the help window when either esc or alt-h are pressed.
-&main::run("/hook -g 'Dirt keys' -k alt_h -W help -fL perl __DIRT_HELP_alt_h_close = Help::closehelpwindow");
+&main::run("/hook -g 'Dirt keys' -k alt_h -W help __DIRT_HELP_alt_h_close = /run -Lperl Help::closehelpwindow");
 sub closehelpwindow {
     &main::run("/window -i help");
     &main::run("/enable __DIRT_HELP_open");
     return 1;
 }
-&main::run("/hook -g 'Dirt keys' -k escape -W help -fL perl __DIRT_HELP_esc_close = Help::closehelpwindow");
+&main::run("/hook -g 'Dirt keys' -k escape -W help __DIRT_HELP_esc_close = /run -Lperl Help::closehelpwindow");
 
 # Redraw window
 sub redraw {
@@ -47,7 +47,7 @@ sub redraw {
 }
 
 # Scrolling with page_down key
-&main::run("/hook -g 'Dirt keys' -k page_down -W help -fL perl __DIRT_HELP_pgdn = Help::pgdn");
+&main::run("/hook -g 'Dirt keys' -k page_down -W help __DIRT_HELP_pgdn = /run -Lperl Help::pgdn");
 sub pgdn {
     &main::run("/clear help");
     if($height-2 > $#helpcontents) { $viewpos = 0; }
@@ -65,7 +65,7 @@ sub pgdn {
 }
 
 # Scrolling with page_up key
-&main::run("/hook -g 'Dirt keys' -k page_up -W help -fL perl help_pgup = Help::pgup");
+&main::run("/hook -g 'Dirt keys' -k page_up -W help help_pgup = /run -Lperl Help::pgup");
 sub pgup {
     &main::run("/clear help");
     $viewpos -= $height - 4; # 2 for border, 2 overlap
@@ -86,7 +86,7 @@ sub arrow_up {
     $viewpos -= 1;
 }
 
-&main::run("/hook -g 'Dirt commands' -T COMMAND -C help -fL perl __DIRT_HELP_command = Help::command_help");
+&main::run("/hook -g 'Dirt commands' -T COMMAND -C help __DIRT_HELP_command = /run -Lperl Help::command_help");
 sub command_help {
     &main::run("/clear help");
     if(/^.help (\w+)/) {

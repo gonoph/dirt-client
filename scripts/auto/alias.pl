@@ -10,7 +10,7 @@ my($regexdelim) = qr/[\#\/\%\&!,=:]/;           # regex delimiters
 my($aliasargs)  = "(?:\\\\s+([^\\\\s]+))?" x 20;# set the regex that automatically matches alias arguments
    $aliasargs   = qr/$aliasargs/;
     
-&main::run("/hook -T INIT -F -fL perl definealiases = Alias::definealiases");
+&main::run("/hook -T INIT -F definealiases = /run -Lperl Alias::definealiases");
 sub definealiases {
     foreach my $name (keys %Aliases) {
         my($hookcmd) = "/hook -T SEND";
@@ -30,7 +30,7 @@ sub definealiases {
 }
 &main::save("Alias::Aliases", \%Aliases);
 
-&main::run("/hook -T COMMAND -fL perl -C alias alias = Alias::command_alias");
+&main::run("/hook -T COMMAND -C alias alias = /run -Lperl Alias::command_alias");
 sub command_alias {
     my(%opts);
     my(%aliashash);
@@ -61,7 +61,7 @@ sub command_alias {
     if(defined pos && pos != length) {
         &main::report_err($main::commandCharacter . "alias: did not reach end of argument string. \n");
     }
-    getopts('d:DfFg:lL:p:', \%opts);
+    getopts('d:DFg:lp:', \%opts);
     my($fallthrough) = (0);
     my($hookcmd) = "/hook -T SEND ";
 
@@ -85,14 +85,10 @@ sub command_alias {
     }
     if(defined $opts{D}) { $hookcmd .= "-D "; $aliashash{D} = 1; }
     else { $aliashash{D} = ""; }
-    if(defined $opts{f}) { $hookcmd .= "-f "; $aliashash{f} = 1; }
-    else { $aliashash{f} = 0; }
     if(defined $opts{F}) { $hookcmd .= "-F "; $aliashash{F} = 1; }
     else { $aliashash{F} = 0; }
     if(defined $opts{g}) { $hookcmd .= "-g '$opts{g}' "; $aliashash{g} = $opts{g}; }
     else { $aliashash{g} = ""; }
-    if(defined $opts{L}) { $hookcmd .= "-L '$opts{L}' "; $aliashash{L} = $opts{L}; }
-    else { $aliashash{L} = ""; }
     if(defined $opts{p}) { $hookcmd .= "-p '$opts{p}' "; $aliashash{p} = $opts{p}; }
     else { $aliashash{p} = 0; } # default priority
 
@@ -110,7 +106,7 @@ sub command_alias {
 }
 
 # Intercept /enable and /disable to keep our %Aliases hash accurate
-&main::run("/hook -T COMMAND -fL perl -C enable Alias::command_enable = Alias::command_enable");
+&main::run("/hook -T COMMAND -C enable Alias::command_enable = /run -Lperl Alias::command_enable");
 sub command_enable {
     @ARGV = (); # reset it.
     if(!/^${main::commandCharacter}enable/g) { 
@@ -130,7 +126,7 @@ sub command_enable {
     return 1;
 }
 
-&main::run("/hook -T COMMAND -fL perl -C disable Alias::command_disable = Alias::command_disable");
+&main::run("/hook -T COMMAND -C disable Alias::command_disable = /run -Lperl Alias::command_disable");
 sub command_disable {
     @ARGV = (); # reset it.
     if(!/${main::commandCharacter}disable/g) { 

@@ -26,7 +26,7 @@
 
 using namespace std;
 #ifdef __GNUC__
-using namespace __gnu_cxx;
+//using namespace __gnu_cxx;
 #endif
 
 extern time_t current_time;
@@ -50,9 +50,9 @@ inline int min(int a, int b) {
 
 //#if !HAVE_HASH_STRING && HAVE_HASH_MAP  // gcc 3.X has hash<string>, 2.9.X does not
 // This is not provided by g++ (2.9.X) ... it should be.
-#ifdef __GNUC__
-namespace __gnu_cxx {
-#endif
+//#ifdef __GNUC__
+namespace std {
+//#endif
 template <>     // create a hashing algorithm for string that uses the const char* hashing algo.
 class hash<string>
 {
@@ -62,9 +62,9 @@ public:
         return (h(str.c_str()));
     }
 };
-#ifdef __GNUC__
+//#ifdef __GNUC__
 }
-#endif
+//#endif
 
 // Ought to split it up
 #include "Color.h"

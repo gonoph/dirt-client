@@ -178,11 +178,64 @@ autocomplete does not move cursor to end of line (again, perl needs to see curso
         string& mudname; // CONNECT
         void* subex; // pointer to a perl list of ($1, $2, $3...)  what about python?
                      // can we count '(' to determine how many subexpressions?  How about string[] instead?
+                     // $#+ returns number of subgroups in last successful match
+                     // Need to store ($1...${$#+}, $&, $', $`, @-, @+)
+                     // or just store mud line and trigger regex, and re-do matching just before
+                     // calling the perl function.
         string& data;
     } hook_args;
     Hook::run(HookType type, string& data, hook_args arg)
     How to pass this to perl?  (as arguments?)
     Can save regex results with @shit = ($line =~ /$regex/) plus %&, $', $`
+    The command stack needs another void*. 
+        dequeue<pair<string,void*> > commands;  // Interpreter.h:39
+    Is one extra piece of data enough?
+                            string              void*
+        COMMAND   = 0,   // /command            string& re
+        USERINPUT = 1,   // what she typed      string& re
+        SEND      = 2,   // c-ogres             string& re
+        OUTPUT    = 3,   // The small box sh... string& re
+        LOSELINK  = 4,   // mud name
+        PROMPT    = 5,   // >                   string& re
+        INIT      = 6,   // 
+        DONE      = 7,   // 
+        KEYPRESS  = 8,   // input line          key, cursor_pos (make cursor_pos global?)
+        CONNECT   = 9,   // mud name
+        IDLE      = 10   // time
+    Provide PerlEmbeddedInterpreter::submatch(int n) that returns $n.
+    Get rid of /hook -fL if /eval and /run are properly implemented:
+        /hook -T OUTPUT stuff = /run myfunc             should get mud line as $_.
+        /hook -T OUTPUT stuff = /eval print $_          should print mud line.
+        /hook -T OUTPUT -t'stuff' = /run myfunc         needs 3 strings: mudline, regex, /run myfunc
+        /hook -T COMMAND -t'mycmd' = /run myfunc
+    struct storedmatch { string& data, void* matcher; };
+    make all CommandHookStub's take storedmatch* (hmmm but this makes them
+    different from other hooks...) **##*#$*@$)*&^$!($%!@&^!$)!^&
+    Evaluate string as perl quoted expression in writeMUD.  (end of SEND hooks)
+        make a config option for this for people that want to send [$@%&] to their mud.
+    Hook argument: -q evaluate RHS as a quoted expression.  :)
+
+    The RHS of a hook will be evaluated as a quoted string UNLESS the first 
+    char is a '/'.  If it is a '/' then the mud line and matcher will be saved
+    for the point at which the RHS is evaluated.
+    
+    Add note in docs that you can't combine /commands and mud commands with semicolons:
+        drool;/echo $foo;fart
+
+I don't think I like Saved.pl.  Make a stream-out and stream-in so that .dirt/Aliases,
+    .dirt/Triggers, etc. have same format as people type them (/alias blah = blah).
+/bell;/bell doesn't work.  Also need /beep that is same as /bell.
+Comment out Option.cc:194?  Not needed?  Is s_nonopt already unquoted?
+For COMMAND hooks, -t should ignore leading / (so that switching cmdChar doesn't
+    hose all your perl scripts).
+Place arguments in @ARGV to discourage people from doing:
+    /hook -T COMMAND -t'/mycmd ([a-z]+) ([a-z]+)' twoargs = /run mycmd
+    Make -t mutually exclusive with COMMAND
+Remove dirtCommand
+Tokenizer (use in Option.cc?) http://www.boost.org/libs/tokenizer/index.htm
+PerlEmbeddedInterpreter::match determines if the match was successful by grabbing $_
+    and seeing if it is empty.  This will FAIL if commands is empty...
+
 
 Hook:
 -----

@@ -99,7 +99,7 @@ void* StackedInterpreter::substitute_prepare(const char* pattern, const char* re
     return interpreters[""]->match_prepare(pattern,replacement);
 }
 
-bool StackedInterpreter::match(void *perlsub, const char *str, char *&out) {
+bool StackedInterpreter::match(void *perlsub, const char *str, char * const & out) {
     return interpreters[""]->match(perlsub, str, out);
 }
 
@@ -337,17 +337,13 @@ bool EmbeddedInterpreter::command_load(string& str, void*) {
 bool EmbeddedInterpreter::command_run(string& str, void*) {
     OptionParser opt(str, "L:");
     if(!opt.valid()) return true;
-    char out[1024];
-//    char fun[1024];
+    char out[1024]; // FIXME
 
-//    cout << "\n@@ " << str << endl;;
     if(opt.argc() < 2) {
         report_err("%crun: Please pass a function name to run!\n", CMDCHAR);
         return true;
     }
-//    strcpy(fun, opt.arg(1).c_str());
-//    cout << "@@ function name is: " << fun << endl;
-    embed_interp->run(opt.gotOpt('L')?opt['L'].c_str():NULL, opt.arg(1).c_str(), NULL, out);  // FIXME second argument is incorrect.
+    embed_interp->run(opt.gotOpt('L')?opt['L'].c_str():NULL, opt.restStr().c_str(), NULL, out);
     str = out;
     return true;
 }

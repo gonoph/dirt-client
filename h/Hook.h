@@ -26,6 +26,14 @@
 #include <ext/hash_map>
 #endif
 
+// This struct stores the MUD string that matched, and the matcher that matched
+// it for the purpose of re-running the match to get $1, $2...later on.
+struct savedmatch {
+    string data;    // Mud string that was matched.  (ALWAYS a mud string)
+    void*  matcher; // Matcher used.
+    savedmatch(string& d, void* m) : data(d), matcher(m) {};
+};
+
 template <class _Tp>
 struct priority_less : public binary_function<_Tp,_Tp,bool> 
 {
@@ -66,7 +74,7 @@ protected:
     HookType type;
 public:                 // is defined *after* HookStub).
     HookStub(int p, float c, int n, bool F, bool en, bool col, string nm, vector<string> g);
-    virtual bool operator() (string& data) = 0; // Children must override this.
+    virtual bool operator() (string& data, savedmatch* sm = NULL) = 0; // Children must override this.
     virtual void print() = 0;
     // needed to put this into an ordered container (i.e. priority_queue<int>).
     bool operator< (const HookStub& b) const { return(priority < b.priority); }
@@ -78,7 +86,7 @@ class CppHookStub : public HookStub {
     bool (*callback)(string&);
 public:
     CppHookStub(int p, float c, int n, bool F, bool en, bool col, string nm, vector<string> g, bool (*cbk)(string&));
-    virtual bool operator() (string& data);
+    virtual bool operator() (string& data, savedmatch* sm = NULL);
     virtual void print();
     virtual ~CppHookStub() {};
 };
@@ -93,7 +101,7 @@ class CommandHookStub : public HookStub {
 public:
     CommandHookStub(int p, float c, int n, bool F, bool en, bool col, string nm, vector<string> g, 
                 string cmdname, bool (*cbk)(string&,void*), void* ins);
-    virtual bool operator() (string& data);
+    virtual bool operator() (string& data, savedmatch* sm = NULL);
     virtual void print();
     virtual ~CommandHookStub() {};
 };
@@ -105,11 +113,10 @@ class TriggerHookStub : public HookStub {
     void*   matcher;    // perl sub that does the match and returns evaluated-in-quoted-context command.
     string  regex;      // regex to match
     string  command;    // command to run on match.
-    char*   language;   // command is a perl/python function.
 public:
     TriggerHookStub(int p, float c, int n, bool F, bool en, bool col, string nm, vector<string> g,
-            string regex, string arg, const char* lang);
-    virtual bool operator() (string& data);
+            string regex, string arg);
+    virtual bool operator() (string& data, savedmatch* sm = NULL);
     virtual void print();
     virtual ~TriggerHookStub() {};
 };
@@ -123,9 +130,9 @@ class KeypressHookStub : public TriggerHookStub {
     void *instance;
 public:
     KeypressHookStub(int p, float c, int n, bool F, bool en, bool col, string nm, vector<string> g,
-            string regex, string arg, const char* lang, int k, string w, bool (*cbk)(string&,void*) = NULL, 
+            string regex, string arg, int k, string w, bool (*cbk)(string&,void*) = NULL, 
             void* ins = NULL);
-    virtual bool operator() (string& data);
+    virtual bool operator() (string& data, savedmatch* sm = NULL);
     virtual void print();
     virtual ~KeypressHookStub() {};
 };
@@ -146,14 +153,18 @@ public:
     // FIXME the following bool return types are only needed for KEYPRESS hooks and
     // their interaction with the OLD keypress system.  They can be changed to void
     // when the old keypress system is removed.
-    void run(HookType type, string& data);           // data may be modified.
-    void run(HookType type, char* data = NULL);
-    void run(string const type, string& data) { return run(types[type], data); };
-    void run(string const type, char* data = NULL) { return run(types[type], data); };
-    static bool command_hook(string&,void*);
+    void run(HookType type, string& data, savedmatch* sm = NULL);           // data may be modified.
+    void run(HookType type, char* data = NULL, savedmatch* sm = NULL);
+    void run(string const type, string& data, savedmatch* sm = NULL) { 
+        return run(types[type], data, sm); 
+    };
+    void run(string const type, char* data = NULL, savedmatch* sm = NULL) { 
+        return run(types[type], data, sm); 
+    };
+    static bool command_hook(string&,   void*);
     static bool command_disable(string&,void*);
-    static bool command_enable(string&,void*);
-    static bool command_group(string&,void*);
+    static bool command_enable(string&, void*);
+    static bool command_group(string&,  void*);
     ~Hook();        // Will destroy everything in hooks
 private:
     int max_type;   // = IDLE

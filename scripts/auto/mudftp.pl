@@ -526,10 +526,10 @@ sub Detect {
 
 &ReadConfig();
 #&main::hook_add("output", "mudFTP::Detect", \&Detect);
-&main::run($main::commandCharacter . "hook -T OUTPUT -F -fL perl mudFTP_detect = mudFTP::Detect");
+&main::run($main::commandCharacter . "hook -T OUTPUT -F mudFTP_detect = /run -Lperl mudFTP::Detect");
 &main::callout_add(\&Idle, 1);
 #&main::hook_add("done", "mudFTP::Shutdown", \&Shutdown);
-&main::run($main::commandCharacter . "hook -T DONE -F -fL perl mudFTP_shutdown = mudFTP::Shutdown");
+&main::run($main::commandCharacter . "hook -T DONE -F mudFTP_shutdown = /run -Lperl mudFTP::Shutdown");
 
 package main;
 

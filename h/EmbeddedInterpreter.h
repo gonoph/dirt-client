@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include "Option.h"
+#include "Hook.h"
 
 bool load_shared_object(const char *filename);
 //FIXME unused? extern vector<string> modules_loaded;
@@ -20,7 +21,7 @@ class EmbeddedInterpreter
                               bool suppres = true) = 0;
     virtual void *match_prepare(const char*, const char*) = 0;
     virtual void *substitute_prepare(const char*, const char*) = 0;
-    virtual bool match(void*, const char*, char*&) = 0;
+    virtual bool match(void*, const char*, char* const &) = 0;
     virtual void set(const char*, int) = 0;
     virtual void set(const char*, const char*) = 0;
     virtual int  get_int(const char*) = 0;
@@ -53,7 +54,7 @@ public:
     virtual bool run_quietly(const char*, const char*, const char*, char*, bool suppres = true);
     virtual void *match_prepare(const char*, const char*);
     virtual void *substitute_prepare(const char*, const char*) ;
-    virtual bool match(void*, const char*, char*&) ;
+    virtual bool match(void*, const char*, char* const &) ;
     virtual void set(const char*, int);
     virtual void set(const char*, const char*);
     virtual int  get_int(const char*);

@@ -15,7 +15,7 @@ MUD::MUD (const char *_name, const char *_hostname, int _port, MUD *_inherits, c
 
 MUD * MUDList::find(const char *_name) {
     for (MUD *mud = rewind(); mud; mud = next()) {
-        if (!strcasecmp(mud->name, _name))
+        if (!strcasecmp(mud->getName(), _name))
             return mud;
     }
 
@@ -28,9 +28,9 @@ void MUD::setHost(const char *_host, int _port) {
 }
 
 const char* MUD::getHostname() const {
-    if (hostname.len() == 0)
+    if (hostname.length() == 0)
         return inherits ? inherits->getHostname() : "";
-    return hostname;
+    return hostname.c_str();
 }
 
 int MUD::getPort() const {
@@ -46,18 +46,18 @@ void MUD::write(FILE *fp, bool global) {
     const char *indent;
     
     if (!global) {
-        fprintf(fp, "Mud %s {\n", ~name);
+        fprintf(fp, "Mud %s {\n", name.c_str());
         indent = "  ";
     } else
         indent = "";
 
     if (!global) {
-        if (hostname.len())
-            fprintf(fp, "  Host %s %d\n", ~hostname, port);
-        if (commands.len())
-            fprintf(fp, "  Commands %s\n", ~commands);
+        if (hostname.length())
+            fprintf(fp, "  Host %s %d\n", hostname.c_str(), port);
+        if (commands.length())
+            fprintf(fp, "  Commands %s\n", commands.c_str());
         if (inherits && inherits != &globalMUD)
-            fprintf(fp, "  Inherit %s\n", ~inherits->name);
+            fprintf(fp, "  Inherit %s\n", inherits->getName());
     }
 
     if (!global)
@@ -65,7 +65,5 @@ void MUD::write(FILE *fp, bool global) {
 }
 
 const char *MUD::getFullName() const {
-    return Sprintf("%s@%s:%d", ~name, ~hostname, port);
+    return Sprintf("%s@%s:%d", name.c_str(), hostname.c_str(), port);
 }
-    
-

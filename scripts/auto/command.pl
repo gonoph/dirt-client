@@ -8,7 +8,7 @@ if(!defined %Commands) {
 }
 my($regexdelim) = qr/[\#\/\%\&!,=:]/;           # regex delimiters
     
-&main::run("/hook -T INIT -F -fL perl definecommands = Command::definecommands");
+&main::run("/hook -T INIT -F definecommands = /run -Lperl Command::definecommands");
 sub definecommands {
     foreach my $name (keys %Commands) {
         my($hookcmd) = "/hook -T COMMAND";
@@ -28,8 +28,8 @@ sub definecommands {
 }
 &main::save("Command::Commands", \%Commands);
 
-&main::run("/hook -T COMMAND -fL perl -C command command = Command::command_command");
-&main::run("/hook -T COMMAND -fL perl -C com com = Command::command_command"); # abbreviation
+&main::run("/hook -T COMMAND -C command command = /run -Lperl Command::command_command");
+&main::run("/hook -T COMMAND -C com com = /run -Lperl Command::command_command"); # abbreviation
 sub command_command {
     my(%opts);
     my(%commandhash);
@@ -60,7 +60,7 @@ sub command_command {
     if(defined pos && pos != length) {
         &main::report_err($main::commandCharacter . "command: did not reach end of argument string. \n");
     }
-    getopts('d:DfFg:lL:p:', \%opts);
+    getopts('d:DFg:lp:', \%opts);
     my($fallthrough) = (0);
     my($hookcmd) = "/hook -T COMMAND ";
 
@@ -84,14 +84,10 @@ sub command_command {
     }
     if(defined $opts{D}) { $hookcmd .= "-D "; $commandhash{D} = 1; }
     else { $commandhash{D} = ""; }
-    if(defined $opts{f}) { $hookcmd .= "-f "; $commandhash{f} = 1; }
-    else { $commandhash{f} = 0; }
     if(defined $opts{F}) { $hookcmd .= "-F "; $commandhash{F} = 1; }
     else { $commandhash{F} = 0; }
     if(defined $opts{g}) { $hookcmd .= "-g '$opts{g}' "; $commandhash{g} = $opts{g}; }
     else { $commandhash{g} = ""; }
-    if(defined $opts{L}) { $hookcmd .= "-L '$opts{L}' "; $commandhash{L} = $opts{L}; }
-    else { $commandhash{L} = ""; }
     if(defined $opts{p}) { $hookcmd .= "-p '$opts{p}' "; $commandhash{p} = $opts{p}; }
     else { $commandhash{p} = 0; } # default priority
 
@@ -109,7 +105,7 @@ sub command_command {
 }
 
 # Intercept /enable and /disable to keep our %Commands hash accurate
-&main::run("/hook -T COMMAND -fL perl -C enable Command::command_enable = Command::command_enable");
+&main::run("/hook -T COMMAND -C enable Command::command_enable = /run -Lperl Command::command_enable");
 sub command_enable {
     @ARGV = (); # reset it.
     if(!/^${main::commandCharacter}enable/g) { 
@@ -129,7 +125,7 @@ sub command_enable {
     return 1;
 }
 
-&main::run("/hook -T COMMAND -fL perl -C disable Command::command_disable = Command::command_disable");
+&main::run("/hook -T COMMAND -C disable Command::command_disable = /run -Lperl Command::command_disable");
 sub command_disable {
     @ARGV = (); # reset it.
     if(!/${main::commandCharacter}disable/g) { 

@@ -410,9 +410,9 @@ void Config::readMUD(FILE *fp, const char *mudname) {
             MUD *parent = mud_list->find(s);
             if (!parent)
                 error ("Parent MUD %s not found in MUD %s definition", s, mudname);
-            mud->inherits = parent;
+            mud->setInherits(parent);
         } else if (!strcmp(keyword, "commands")) {
-            mud->commands = s;
+            mud->setCommands(s);
         } else
             error ("Invalid keyword %s within mud %s definition:\n%s\n", keyword, mudname, buf);
     }
@@ -591,7 +591,7 @@ void Config::Save(const char *fname) {
         
         // Save all MUDs but those marked as temporary
         FOREACH(MUD*, mud, (*mud_list))
-            if (mud->name != "temp") {
+            if (mud->getName() != "temp") {
                 fprintf(fp, "\n");
                 mud->write(fp, false);
             }

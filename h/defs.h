@@ -2,7 +2,7 @@
 #define __DEFS_H
 
 #define VERSION 6000
-#define COMPILED_BY "mcelrath@draal.physics.wisc.edu"
+#define COMPILED_BY "mcelrath@draal"
 #define INSTALL_ROOT "/usr/local"
 #undef HAVE_HASH_STRING
 

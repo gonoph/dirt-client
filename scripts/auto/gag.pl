@@ -9,7 +9,7 @@ if(!defined %Gags) {
 }
 my($regexdelim) = qr/[\#\/\%\&!,=:]/;           # regex delimiters
 
-&main::run("/hook -T INIT -F -fL perl definegags = Gag::definegags");
+&main::run("/hook -T INIT -F definegags = /run -Lperl Gag::definegags");
 sub definegags {
     foreach my $name (keys %Gags) {
         my($hookcmd) = "/hook -T OUTPUT";
@@ -22,7 +22,7 @@ sub definegags {
                 }
             }
         }
-        $hookcmd .= " " ." -p $pri -fL perl '__DIRT_GAG_" . $name . "' = Gag::gagit";
+        $hookcmd .= " " ." -p $pri '__DIRT_GAG_" . $name . "' = /run -Lperl Gag::gagit";
         &main::run($hookcmd);
     }
     &main::run($main::commandCharacter . "hook -d definegags"); # delete myself from INIT list.
@@ -33,7 +33,7 @@ sub gagit {
     $_ = "";
 }
 
-&main::run("/hook -T COMMAND -fL perl -C gag gag = Gag::command_gag");
+&main::run("/hook -T COMMAND -C gag gag = /run -Lperl Gag::command_gag");
 
 # command '/gag' (list/add/delete gags)
 sub command_gag {
@@ -69,7 +69,7 @@ sub command_gag {
     }
     getopts('ad:DFln:g:t:', \%opts);
     my($fallthrough) = (0);
-    my($hookcmd) = "/hook -T OUTPUT -fL perl -p $pri ";
+    my($hookcmd) = "/hook -T OUTPUT -p $pri ";
 
     if(defined $opts{l} && $opts{l}) {
         &main::report(sprintf("%-35s%6s%6s %s\n", "Name", "Shots", "Flags", "Groups"));
@@ -107,14 +107,14 @@ sub command_gag {
         return 1;
     }
     $name = $ARGV[0];
-    $hookcmd .= "'__DIRT_GAG_" . $name . "' = Gag::gagit";
+    $hookcmd .= "'__DIRT_GAG_" . $name . "' = /run -Lperl Gag::gagit";
     &main::run($hookcmd);
     $Gags{$name} = \%gaghash;  # main::save will save complex data structures for us!
     return 1;
 }
 
 # Intercept /enable and /disable to keep our %Gags hash accurate
-&main::run("/hook -T COMMAND -fL perl -C enable Gag::command_enable = Gag::command_enable");
+&main::run("/hook -T COMMAND -C enable Gag::command_enable = /run -Lperl Gag::command_enable");
 sub command_enable {
     @ARGV = (); # reset it.
     if(!/^${main::commandCharacter}enable/g) { 
@@ -134,7 +134,7 @@ sub command_enable {
     return 1;
 }
 
-&main::run("/hook -T COMMAND -fL perl -C disable Gag::command_disable = Gag::command_disable");
+&main::run("/hook -T COMMAND -C disable Gag::command_disable = /run -Lperl Gag::command_disable");
 sub command_disable {
     @ARGV = (); # reset it.
     if(!/${main::commandCharacter}disable/g) { 

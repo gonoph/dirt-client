@@ -8,7 +8,7 @@ if(!defined %Triggers) {
 }
 my($regexdelim) = qr/[\#\/\%\&!,=:]/;           # regex delimiters
     
-&main::run("/hook -T INIT -F -fL perl definetriggers = Trigger::definetriggers");
+&main::run("/hook -T INIT -F definetriggers = /run -Lperl Trigger::definetriggers");
 sub definetriggers {
     foreach my $name (keys %Triggers) {
         my($hookcmd) = "/hook -T OUTPUT";
@@ -28,15 +28,15 @@ sub definetriggers {
 }
 &main::save("Trigger::Triggers", \%Triggers);
 
-&main::run("/hook -T COMMAND -fL perl -C trigger trigger = Trigger::command_trigger");
-&main::run("/hook -T COMMAND -fL perl -C trig trig = Trigger::command_trigger");   # abbreviation
+&main::run("/hook -T COMMAND -C trigger trigger = /run -Lperl Trigger::command_trigger");
+&main::run("/hook -T COMMAND -C trig    trig    = /run -Lperl Trigger::command_trigger");   # abbreviation
 sub command_trigger {
     my(%opts);
     my(%trighash);
     my($name);
     @ARGV = (); # reset it.
     if(/${main::commandCharacter}trig(?:ger)?(.*)/) { $_ = $1; }
-    else { report_err("This doesn't seem to be a /trig command!\n"); }
+    else { &main::report_err("This doesn't seem to be a /trig command!\n"); }
     while(/\G\s+(?:(-[A-Za-z]+)?\s*([\"'])(.*?[^\\](?:\\\\)*|)\2|(=)|(-[A-Za-z]*t) *($regexdelim)(.*?[^\\](?:\\\\)*)?\6|([^ \t\n"']+))/g) {
         if(defined $1) { 
             push @ARGV, $1; 
@@ -60,7 +60,7 @@ sub command_trigger {
     if(defined pos && pos != length) {
         &main::report_err($main::commandCharacter . "trig: did not reach end of argument string. \n");
     }
-    getopts('ac:d:DfFg:lL:n:p:t:', \%opts);
+    getopts('ac:d:DFg:ln:p:t:', \%opts);
     my($fallthrough) = (0);
     my($hookcmd) = "/hook -T OUTPUT ";
 
@@ -90,16 +90,12 @@ sub command_trigger {
     else { $trighash{c} = 1.0; } # default chance
     if(defined $opts{D}) { $hookcmd .= "-D "; $trighash{D} = 1; }
     else { $trighash{D} = ""; }
-    if(defined $opts{f}) { $hookcmd .= "-f "; $trighash{f} = 1; }
-    else { $trighash{f} = 0; }
     if(defined $opts{F}) { $hookcmd .= "-F "; $trighash{F} = 1; }
     else { $trighash{F} = 0; }
     if(defined $opts{g}) { $hookcmd .= "-g '$opts{g}' "; $trighash{g} = $opts{g}; }
     else { $trighash{g} = ""; }
     if(defined $opts{n}) { $hookcmd .= "-n '$opts{n}' "; $trighash{n} = $opts{n}; }
     else { $trighash{n} = -1; } # default shots = infinite
-    if(defined $opts{L}) { $hookcmd .= "-L '$opts{L}' "; $trighash{L} = $opts{L}; }
-    else { $trighash{L} = ""; }
     if(defined $opts{p}) { $hookcmd .= "-p '$opts{p}' "; $trighash{p} = $opts{p}; }
     else { $trighash{p} = 0; } # default priority
     if(defined $opts{t}) { $hookcmd .= "-t '" . &main::backslashify($opts{t}, "'") . "' "; $trighash{t} = $opts{t}; }
@@ -119,7 +115,7 @@ sub command_trigger {
 }
 
 # Intercept /enable and /disable to keep our %Triggers hash accurate
-&main::run("/hook -T COMMAND -fL perl -C enable Trigger::command_enable = Trigger::command_enable");
+&main::run("/hook -T COMMAND -C enable Trigger::command_enable = /run -Lperl Trigger::command_enable");
 sub command_enable {
     @ARGV = (); # reset it.
     if(!/^${main::commandCharacter}enable/g) { 
@@ -139,7 +135,7 @@ sub command_enable {
     return 1;
 }
 
-&main::run("/hook -T COMMAND -fL perl -C disable Trigger::command_disable = Trigger::command_disable");
+&main::run("/hook -T COMMAND -C disable Trigger::command_disable = /run -Lperl Trigger::command_disable");
 sub command_disable {
     @ARGV = (); # reset it.
     if(!/${main::commandCharacter}disable/g) { 

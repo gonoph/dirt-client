@@ -38,6 +38,17 @@
 * Converted keys in InputLine::keypress to KeypressHookStub (not finished)
     Need KeypressHookStub to handle more than one key...
 * Replaced List<> in Selectable.cc
+* Fixed HistorySet::loadHistory so that it doesn't segfault if the history 
+    file contains a long line.
+* Changed the behavior of hooks:  If the RHS of a hook is a mud command, it is
+    evaluated as a quoted expression and then added to the command stack.  If
+    it is a /command, the match is saved so that when the RHS is executed, the
+    perl match variables $1...$n are available (properly) in perl.
+* Removed the -f and -L options from hook/alias/command/trig/keypress since
+    this should now work instead:
+        /hook -t'stuff' mystuff = /run -Lperl stuff_function
+* Fixed PerlEmbeddedInterpreter::match so that it will return the correct
+    value match even if there is no command given.
 
 Dirt 0.60.0
 * Made file release on sourceforge.

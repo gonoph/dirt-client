@@ -153,7 +153,8 @@ bool Interpreter::command_close(string&, void*) {
         status->setf ("You are not connected - nothing to close");
     else
     {
-        status->setf ("Closing link to %s@%s:%d", ~currentSession->mud.name, currentSession->mud.getHostname(), currentSession->mud.getPort());
+        status->setf ("Closing link to %s@%s:%d", currentSession->mud.getName(), 
+                currentSession->mud.getHostname(), currentSession->mud.getPort());
         inputLine->set_default_prompt();
         delete currentSession;
         currentSession = NULL;
@@ -168,7 +169,8 @@ bool Interpreter::command_open(string& str, void*) {
     if(opt.argc() < 1) status->setf ("%copen: open a connection to where?", CMDCHAR);
 
     if (currentSession && currentSession->state != disconnected)
-        status->setf ("You are connected to %s, use %cclose first", ~currentSession->mud.name, CMDCHAR);
+        status->setf ("You are connected to %s, use %cclose first", 
+                currentSession->mud.getName(), CMDCHAR);
     else
     {
         MUD *mud;
@@ -192,8 +194,8 @@ bool Interpreter::command_reopen(string&, void* mt) {
     else
     {
         string s = "/open ";
-        s += ~lastMud->name;
-        mythis->commands.push_back(s);
+        s += lastMud->getName();
+        mythis->commands.push_back(pair<string,savedmatch*>(s,NULL));
     }
     return true;
 }
@@ -271,15 +273,16 @@ void Interpreter::execute() {
     // to update if we're sending lots of commands.
     while(commands.size())    
     {
-        string line = commands.front();
+        pair<string,savedmatch*> line = commands.front();
         commands.pop_front();  // destroy the command on the top of the stack.
 //        report("Interpreter::execute executing command '%s'\n", line.c_str());
         
-        if (line.length() > 0 && line[0] == commandCharacter) {
-            hook.run(COMMAND, line);
-            dirtCommand (line.c_str() + 1);  // FIXME remove this once all commands are class members
+        if (line.first.length() > 0 && line.first[0] == commandCharacter) {
+            hook.run(COMMAND, line.first, line.second);
+            dirtCommand (line.first.c_str() + 1);  // FIXME remove this once all commands are class members
+            if(line.second) delete line.second;
         } else if(currentSession) {
-            hook.run(SEND, line);
+            hook.run(SEND, line.first);
         } else
             status->setf ("You are not connected. Use Alt-O to connect to a MUD.");
     }
@@ -308,59 +311,59 @@ bool Interpreter::expandSpeedwalk(string& str)
     if (try_speedwalk)
     {
         int repeat = 0,j = 0;
-        deque<string> replacement;
+        deque<pair<string,savedmatch*> > replacement;
         for(unsigned int i=start;i<str.length();i++) {
             switch (str[i]) {
                 case 'u':
                     if(repeat == 0) repeat = 1;
-                    for(j=0;j<repeat;j++) replacement.push_back("u"); 
+                    for(j=0;j<repeat;j++) replacement.push_back(pair<string,savedmatch*>("u",NULL)); 
                     repeat=0;
                     break;
                 case 'd':
                     if(repeat == 0) repeat = 1;
-                    for(j=0;j<repeat;j++) replacement.push_back("d"); 
+                    for(j=0;j<repeat;j++) replacement.push_back(pair<string,savedmatch*>("d",NULL)); 
                     repeat=0;
                     break;
                 case 'n':
                     if(repeat == 0) repeat = 1;
-                    for(j=0;j<repeat;j++) replacement.push_back("n"); 
+                    for(j=0;j<repeat;j++) replacement.push_back(pair<string,savedmatch*>("n",NULL)); 
                     repeat=0;
                     break;
                 case 's':
                     if(repeat == 0) repeat = 1;
-                    for(j=0;j<repeat;j++) replacement.push_back("s"); 
+                    for(j=0;j<repeat;j++) replacement.push_back(pair<string,savedmatch*>("s",NULL)); 
                     repeat=0;
                     break;
                 case 'e':
                     if(repeat == 0) repeat = 1;
-                    for(j=0;j<repeat;j++) replacement.push_back("e"); 
+                    for(j=0;j<repeat;j++) replacement.push_back(pair<string,savedmatch*>("e",NULL)); 
                     repeat=0;
                     break;
                 case 'w':
                     if(repeat == 0) repeat = 1;
-                    for(j=0;j<repeat;j++) replacement.push_back("w"); 
+                    for(j=0;j<repeat;j++) replacement.push_back(pair<string,savedmatch*>("w",NULL)); 
                     repeat=0;
                     break;
 // extra cases won't matter for standard speedwalk since we already checked that
 // the string doesn't contain hjkl
                 case 'h':   
                     if(repeat == 0) repeat = 1;
-                    for(j=0;j<repeat;j++) replacement.push_back("nw"); 
+                    for(j=0;j<repeat;j++) replacement.push_back(pair<string,savedmatch*>("nw",NULL)); 
                     repeat=0;
                     break;
                 case 'j':
                     if(repeat == 0) repeat = 1;
-                    for(j=0;j<repeat;j++) replacement.push_back("ne"); 
+                    for(j=0;j<repeat;j++) replacement.push_back(pair<string,savedmatch*>("ne",NULL)); 
                     repeat=0;
                     break;
                 case 'k':
                     if(repeat == 0) repeat = 1;
-                    for(j=0;j<repeat;j++) replacement.push_back("sw"); 
+                    for(j=0;j<repeat;j++) replacement.push_back(pair<string,savedmatch*>("sw",NULL)); 
                     repeat=0;
                     break;
                 case 'l':
                     if(repeat == 0) repeat = 1;
-                    for(j=0;j<repeat;j++) replacement.push_back("se"); 
+                    for(j=0;j<repeat;j++) replacement.push_back(pair<string,savedmatch*>("se",NULL)); 
                     repeat=0;
                     break;
                 case '0': case '1': case '2': case '3': case '4':
@@ -378,7 +381,7 @@ bool Interpreter::expandSpeedwalk(string& str)
 bool Interpreter::expandSemicolon(string& str) {
     bool retval = false;
     size_t pos=0, lastescape=0, firstescape=0;
-    deque<string> replacement;
+    deque<pair<string,savedmatch*> > replacement;
 
     while((pos = str.find(';', pos)) != string::npos) { // returns index of first ; or -1 if not found
         if(str[pos-1] == '\\') {
@@ -386,7 +389,7 @@ bool Interpreter::expandSemicolon(string& str) {
             lastescape = (lastescape > 0)?lastescape:pos;
             firstescape = str.find_last_not_of('\\', pos-1) + 1;
             if((pos - firstescape)%2 == 0) {   // number of backslashes is even.
-                replacement.push_back(str.substr(0, pos));
+                replacement.push_back(pair<string,savedmatch*>(str.substr(0, pos),NULL));
                 str.replace(0, pos, "");
                 retval = true;
                 pos = 0;
@@ -394,14 +397,14 @@ bool Interpreter::expandSemicolon(string& str) {
                 pos++; // keep going...(debackslashify in writeMUD will take care of backslashes)
             }
         } else {
-            replacement.push_back(str.substr(0, pos));
+            replacement.push_back(pair<string,savedmatch*>(str.substr(0, pos),NULL));
             str.replace(0, pos + 1, "");
             pos = 0;
             retval = true;
         }
     }
     if(retval) {
-        replacement.push_back(str);
+        replacement.push_back(pair<string,savedmatch*>(str,NULL));
     }
     interpreter.commands.insert(interpreter.commands.begin(), replacement.begin(), 
         replacement.end());
@@ -438,17 +441,17 @@ void Interpreter::dirtCommand (const char *s)
 }
 
 void Interpreter::setCommandCharacter(int c) {
-  commandCharacter = c;
+    commandCharacter = c;
 }
 
 char Interpreter::getCommandCharacter() {
-  return commandCharacter;
+    return commandCharacter;
 }
 
 void Interpreter::dump_stack(void) {
     string s;
-    for(deque<string>::iterator it = commands.begin();it != commands.end();it++) {
-        s.append(*it);
+    for(deque<pair<string,savedmatch*> >::iterator it = commands.begin();it != commands.end();it++) {
+        s.append(it->first);
         s.append(",");
     }
     report("Interpreter::commands: %s\n", s.c_str());

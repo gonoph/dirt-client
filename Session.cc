@@ -248,16 +248,17 @@ Session::Session(MUD& _mud, Window *_window, int _fd) : Socket(_fd), state(disco
             show_timer();
 
     mcinfo = mudcompress_new();
-    if (!mud.loaded) {
-        mud.loaded = true;
-        embed_interp->load_file(mud.name, true);
+    if (!mud.getLoaded()) {
+        mud.setLoaded(true);
+        embed_interp->load_file(mud.getName(), true);
     }
 
-    embed_interp->set("mud", mud.name);
+    embed_interp->set("mud", mud.getName());
     hook.add(SEND, new CppHookStub(INT_MIN, 1.0, -1, false, true, true, "__DIRT_BUILTIN_writeMUD", 
         vector<string>(1,"Dirt builtins"), &writeMUD));
-    hook.run(CONNECT);
-//    embed_interp->eval("hook_run('connect')", "", NULL);
+    char* name = new char[strlen(mud.getName())+1];
+    strcpy(name, mud.getName());
+    hook.run(CONNECT, name); // FIXME mudftp.pl uses this.
 
     if (_fd != -1) {
         stats.dial_time = current_time;
@@ -377,8 +378,8 @@ void Session::establishConnection (bool quick_restore) {
     stats.connect_time = current_time;
     
     // Send commands, if any
-    if (!quick_restore && mud.commands.len())
-        interpreter.add(mud.commands);
+    if (!quick_restore && strlen(mud.getCommands()))
+        interpreter.add(mud.getCommands());
 
     char buf[256];
     sprintf(buf, "dirt - %s", mud.getFullName());

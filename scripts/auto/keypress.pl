@@ -8,7 +8,7 @@ if(!defined %Keypresses) {
 }
 my($regexdelim) = qr/[\#\/\%\&!,=:]/;           # regex delimiters
     
-&main::run("/hook -T INIT -F -fL perl definekeypresses = Keypress::definekeypresses");
+&main::run("/hook -T INIT -F definekeypresses = /run -Lperl Keypress::definekeypresses");
 sub definekeypresses {
     foreach my $name (keys %Keypresses) {
         my($hookcmd) = "/hook -T KEYPRESS";
@@ -28,8 +28,8 @@ sub definekeypresses {
 }
 &main::save("Keypress::Keypresses", \%Keypresses);
 
-&main::run("/hook -T COMMAND -fL perl -C keypress keypress = Keypress::command_keypress");
-&main::run("/hook -T COMMAND -fL perl -C key key = Keypress::command_keypress"); # abbreviation
+&main::run("/hook -T COMMAND -C keypress keypress = /run -Lperl Keypress::command_keypress");
+&main::run("/hook -T COMMAND -C key      key      = /run -Lperl Keypress::command_keypress"); # abbreviation
 sub command_keypress {
     my(%opts);
     my(%keypresshash);
@@ -60,7 +60,7 @@ sub command_keypress {
     if(defined pos && pos != length) {
         &main::report_err($main::commandCharacter . "keypress: did not reach end of argument string. \n");
     }
-    getopts('d:DfFg:lL:p:', \%opts);
+    getopts('d:DFg:lp:', \%opts);
     my($fallthrough) = (0);
     my($hookcmd) = "/hook -T KEYPRESS ";
 
@@ -85,14 +85,10 @@ sub command_keypress {
     }
     if(defined $opts{D}) { $hookcmd .= "-D "; $keypresshash{D} = 1; }
     else { $keypresshash{D} = ""; }
-    if(defined $opts{f}) { $hookcmd .= "-f "; $keypresshash{f} = 1; }
-    else { $keypresshash{f} = 0; }
     if(defined $opts{F}) { $hookcmd .= "-F "; $keypresshash{F} = 1; }
     else { $keypresshash{F} = 0; }
     if(defined $opts{g}) { $hookcmd .= "-g '$opts{g}' "; $keypresshash{g} = $opts{g}; }
     else { $keypresshash{g} = ""; }
-    if(defined $opts{L}) { $hookcmd .= "-L '$opts{L}' "; $keypresshash{L} = $opts{L}; }
-    else { $keypresshash{L} = ""; }
     if(defined $opts{p}) { $hookcmd .= "-p '$opts{p}' "; $keypresshash{p} = $opts{p}; }
     else { $keypresshash{p} = 0; } # default priority
 
@@ -110,7 +106,7 @@ sub command_keypress {
 }
 
 # Intercept /enable and /disable to keep our %Keypresses hash accurate
-&main::run("/hook -T COMMAND -fL perl -C enable Keypress::command_enable = Keypress::command_enable");
+&main::run("/hook -T COMMAND -C enable Keypress::command_enable = /run -Lperl Keypress::command_enable");
 sub command_enable {
     @ARGV = (); # reset it.
     if(!/^${main::commandCharacter}enable/g) { 
@@ -130,7 +126,7 @@ sub command_enable {
     return 1;
 }
 
-&main::run("/hook -T COMMAND -fL perl -C disable Keypress::command_disable = Keypress::command_disable");
+&main::run("/hook -T COMMAND -C disable Keypress::command_disable = /run -Lperl Keypress::command_disable");
 sub command_disable {
     @ARGV = (); # reset it.
     if(!/${main::commandCharacter}disable/g) { 

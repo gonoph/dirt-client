@@ -5,7 +5,7 @@ $CONFIG_FILE = "$ENV{HOME}/.dirt/Saved.pl";
 
 # Initial loading of configuration
 # Must be done after all auto/* modules have had a chance to run...
-&run($commandCharacter . "hook -T INIT -F -p 2147483647 -fL perl __DIRT_CONFIG_load = load_configuration");
+&run($commandCharacter . "hook -T INIT -F -p 2147483647 __DIRT_CONFIG_load = /run -Lperl load_configuration");
 sub load_configuration {
     $Loading = 1;
     delete $INC {$CONFIG_FILE}; # tell perl we haven't already require'd it.
@@ -21,7 +21,7 @@ sub load_configuration {
     &run($commandCharacter . "hook -d __DIRT_CONFIG_load");
 }
 
-&run($commandCharacter . "hook -T DONE -F -p -1 -fL perl __DIRT_CONFIG_save = save_configuration");
+&run($commandCharacter . "hook -T DONE -F -p -1 __DIRT_CONFIG_save = /run -Lperl save_configuration");
 sub save_configuration {
     return if $ReadOnly;
     

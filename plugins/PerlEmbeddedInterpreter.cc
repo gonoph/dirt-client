@@ -194,7 +194,7 @@ bool PerlEmbeddedInterpreter::run(const char*, const char *function, const char 
 // returns a pointer to an anonym subroutine that does this, does not do
 // anything itself!
 void* PerlEmbeddedInterpreter::match_prepare(const char *pattern, const char *commands) {
-    const char* autofn = "sub { if (/%s/) { $_ = \"%s\"  } else { $_ = \"\";} };";
+    const char* autofn = "sub { if (/%s/) { $_ = \"%s\"; return 1; } else { $_ = \"\"; return 0; } };";
 //    const char* autofn = "sub { if (/%s/) { if(defined $1) { print(\"---> \\$1: \\n\\t$1\\n\"); } $_ = sprintf(\"%%s\", \"%s\"); print \"\t$_\"; } else { $_ = \"\";} };";
     char* buf = (char*)malloc(strlen(pattern) + strlen(commands) + strlen(autofn));
     sprintf(buf, autofn, backslashify(pattern, '/').c_str(), backslashify(commands, '"').c_str());
@@ -211,28 +211,36 @@ void* PerlEmbeddedInterpreter::match_prepare(const char *pattern, const char *co
 
 // Actually execute the match. Actually is like perl_run except it takes
 // a SV* as first parameter *and* it returns 0 if the match fails
-bool PerlEmbeddedInterpreter::match(void *perlsub, const char *str, char *&out) {
+bool PerlEmbeddedInterpreter::match(void *perlsub, const char *str, char *const &out) {
+    bool retval;
+    int count;
     sv_setpv(default_var, str);
-    
-//    report("@@ perl_match(%s)", str);
     dSP;
+    ENTER;
+    SAVETMPS;
     PUSHMARK(SP);
-    
-    perl_call_sv((SV*)perlsub, G_EVAL|G_VOID|G_NOARGS|G_DISCARD);
+    PUTBACK;
+    count = perl_call_sv((SV*)perlsub, G_EVAL|G_SCALAR|G_NOARGS);
+    SPAGAIN;
+    if(!count) report_err("Matcher function did not return a value.");
     if (SvTRUE(ERRSV)) {
         report_err("Unable to evaluate autocreated function: %s",
                SvPV(ERRSV, PL_na));
-        return false;
+        retval = false;
     }
     else {
         char *s = SvPV(default_var, PL_na);
-        out = s;
-
-        if (!*s)
-            return false;
+        if(out) strcpy(out, s);
+        if(!SvTRUE(POPs)) {
+            if(strlen(s)) report_err("PerlEmbeddedInterpreter::match: strlen(s) thinks the match succeded but return value disagrees.");
+            retval = false;
         else
-            return true;
+            retval = true;
     }
+    PUTBACK;
+    FREETMPS;
+    LEAVE;
+    return retval;
 }
 
 // As perl_match_prepare except for substitutes

@@ -66,7 +66,7 @@ sub tab_complete {
 }
 
 # list/add/delete static completions
-&main::run($main::commandCharacter . "hook -T COMMAND -C complete -fL perl __DIRT_COMPLETE_command = Completion::command_complete");
+&main::run($main::commandCharacter . "hook -T COMMAND -C complete __DIRT_COMPLETE_command = /run -Lperl Completion::command_complete");
 sub command_complete {
     my ($count);
     my (%opts);
@@ -155,9 +155,9 @@ sub volatile_completions {
     return 1;
 }
 
-&main::run($main::commandCharacter . "hook -T KEYPRESS -fL perl __DIRT_COMPLETE_tab = Completion::tab_complete");
+&main::run($main::commandCharacter . "hook -F -T KEYPRESS __DIRT_COMPLETE_tab = /run -Lperl Completion::tab_complete");
 
-&main::run($main::commandCharacter . "hook -F -T OUTPUT -fL perl __DIRT_COMPLETE_volatile = Completion::volatile_completions");
+&main::run($main::commandCharacter . "hook -F -T OUTPUT __DIRT_COMPLETE_volatile = /run -Lperl Completion::volatile_completions");
 
 print "Loaded auto/complete.pl\t(will complete words when you press <tab>)\n";
 

@@ -99,9 +99,8 @@ $(OBJ_DIR):
 	mkdir $(OBJ_DIR)
 	mkdir $(OBJ_DIR)/plugins
 
-# Link with $(CC) to avoid the c++ libs to be linked
 $(EXE): $(OBJ_FILES)
-	$(CC) $(DIRT_LDFLAGS) -o $(EXE) $(OBJ_FILES) $(DIRT_LIBS)
+	$(CXX) $(DIRT_LDFLAGS) -o $(EXE) $(OBJ_FILES) $(DIRT_LIBS)
 
 $(OBJ_DIR)/%.o: %.cc
 	$(CXX) -c $(DIRT_CXXFLAGS) $< -o $@

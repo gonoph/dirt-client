@@ -61,7 +61,7 @@ sub main::dirtcmd_highlight {
 
 #save_add(\&save_highlights);
 #load_add("highlight", \&dirtcmd_highlight);
-&main::run($main::commandCharacter . "hook -T OUTPUT -p -1000 -F -fL perl -a highlighter = Highlight::highlighter");
+&main::run($main::commandCharacter . "hook -T OUTPUT -p -1000 -F -a highlighter = /run -Lperl Highlight::highlighter");
 #&main::hook_add("output", "highlighter", \&highlighter, -1000, 1); # absurdly low priority -- run after *everything*
 
 print "Loaded auto/highlight.pl(Routines to highlight mud output)\n";

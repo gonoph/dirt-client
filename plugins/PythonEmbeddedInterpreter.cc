@@ -198,7 +198,7 @@ void *PythonEmbeddedInterpreter::substitute_prepare(const char *pattern,
 }
 
 bool PythonEmbeddedInterpreter::match(void *code, const char *match_str,
-                                      char *&result)
+                                      char * const &result)
 {
   char *str;
 
@@ -211,7 +211,7 @@ bool PythonEmbeddedInterpreter::match(void *code, const char *match_str,
   }
   else {
     str = get_string("default_var");
-    result = str;
+    strcpy(result, str);
   
     return (*str) ? true : false;
   }

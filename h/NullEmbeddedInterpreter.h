@@ -20,7 +20,7 @@ class NullEmbeddedInterpreter : public EmbeddedInterpreter
                              bool suppress = true);
     virtual void *match_prepare(const char*, const char*) { return 0; }
     virtual void *substitute_prepare(const char*, const char*) { return 0; }
-    virtual bool match(void*, const char*, char*&) { return false; }
+    virtual bool match(void*, const char*, char* const&) { return false; }
     virtual void set(const char*, int) {}
     virtual void set(const char*, const char*) {}
     virtual int  get_int(const char*) { return 0; }

@@ -16,7 +16,7 @@ class PerlEmbeddedInterpreter : public EmbeddedInterpreter
                              bool suppress = true);
     virtual void *match_prepare(const char*, const char*);
     virtual void *substitute_prepare(const char*, const char*);
-    virtual bool match(void*, const char*, char*&);
+    virtual bool match(void*, const char*, char* const &);
     virtual void set(const char*, int);
     virtual void set(const char*, const char*);
     virtual int  get_int(const char*);

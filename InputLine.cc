@@ -70,21 +70,23 @@ void HistorySet::saveHistory() {
 
 void HistorySet::loadHistory() {
     if (config->getOption(opt_save_history)) {
-        fstream in(Sprintf("%s/.dirt/history", getenv("HOME")));
-        if (in.is_open()) {
+        ifstream hin(Sprintf("%s/.dirt/history", getenv("HOME")));
+        if (hin.is_open()) {
             int id;
             time_t t;
             char buf[4096], c;
 
-            while(in.peek() != ios::traits_type::eof()) {
-                in.getline(buf, 4096);
+            //while(in.peek() != in.eof()) {
+            while(!hin.eof()) {
+                hin.getline(buf, 4096);  // Dies right here...never returns...
+//                cout << "Got history line: " << buf << endl;
                 istringstream sbuf(buf);
                 sbuf >> id >> t;
                 sbuf.get(c); // skip the leading space.
                 sbuf.getline(buf,4096);
                 hist_list[id]->add(buf, t);
             }
-            in.close();
+            hin.close();
         }
     }
 }
@@ -163,55 +165,55 @@ cursor_pos(0), max_pos(0), left_pos(0), ready(false), id(_id), history_pos(0)
     set_default_prompt();
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_BUILTIN_InputLine::keypress_ctrl_a", vector<string>(1, "Dirt keys"), 
-        "", "", NULL, key_ctrl_a, "", &InputLine::keypress_ctrl_a, (void*)this));
+        "", "", key_ctrl_a, "", &InputLine::keypress_ctrl_a, (void*)this));
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_BUILTIN_InputLine::keypress_ctrl_c", vector<string>(1, "Dirt keys"), 
-        "", "", NULL, key_ctrl_c, "", &InputLine::keypress_ctrl_c, (void*)this));
+        "", "", key_ctrl_c, "", &InputLine::keypress_ctrl_c, (void*)this));
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_BUILTIN_InputLine::keypress_ctrl_k", vector<string>(1, "Dirt keys"), 
-        "", "", NULL, key_ctrl_k, "", &InputLine::keypress_ctrl_k, (void*)this));
+        "", "", key_ctrl_k, "", &InputLine::keypress_ctrl_k, (void*)this));
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_BUILTIN_InputLine::keypress_ctrl_j", vector<string>(1, "Dirt keys"), 
-        "", "", NULL, key_ctrl_j, "", &InputLine::keypress_ctrl_k, (void*)this));
+        "", "", key_ctrl_j, "", &InputLine::keypress_ctrl_k, (void*)this));
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_BUILTIN_InputLine::keypress_escape", vector<string>(1, "Dirt keys"), 
-        "", "", NULL, key_escape, "", &InputLine::keypress_escape, (void*)this));
+        "", "", key_escape, "", &InputLine::keypress_escape, (void*)this));
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_BUILTIN_InputLine::keypress_backspace", vector<string>(1, "Dirt keys"), 
-        "", "", NULL, key_backspace, "", &InputLine::keypress_backspace, (void*)this));
+        "", "", key_backspace, "", &InputLine::keypress_backspace, (void*)this));
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_BUILTIN_InputLine::keypress_ctrl_h", vector<string>(1, "Dirt keys"), 
-        "", "", NULL, key_ctrl_h, "", &InputLine::keypress_backspace, (void*)this));
+        "", "", key_ctrl_h, "", &InputLine::keypress_backspace, (void*)this));
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_BUILTIN_InputLine::keypress_ctrl_e", vector<string>(1, "Dirt keys"), 
-        "", "", NULL, key_ctrl_e, "", &InputLine::keypress_ctrl_e, (void*)this));
+        "", "", key_ctrl_e, "", &InputLine::keypress_ctrl_e, (void*)this));
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_BUILTIN_InputLine::keypress_ctrl_u", vector<string>(1, "Dirt keys"), 
-        "", "", NULL, key_ctrl_u, "", &InputLine::keypress_ctrl_u, (void*)this));
+        "", "", key_ctrl_u, "", &InputLine::keypress_ctrl_u, (void*)this));
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_BUILTIN_InputLine::keypress_ctrl_w", vector<string>(1, "Dirt keys"), 
-        "", "", NULL, key_ctrl_w, "", &InputLine::keypress_ctrl_w, (void*)this));
+        "", "", key_ctrl_w, "", &InputLine::keypress_ctrl_w, (void*)this));
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_BUILTIN_InputLine::keypress_delete", vector<string>(1, "Dirt keys"), 
-        "", "", NULL, key_delete, "", &InputLine::keypress_delete, (void*)this));
+        "", "", key_delete, "", &InputLine::keypress_delete, (void*)this));
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_BUILTIN_InputLine::keypress_enter", vector<string>(1, "Dirt keys"), 
-        "", "", NULL, key_enter, "", &InputLine::keypress_enter, (void*)this));
+        "", "", key_enter, "", &InputLine::keypress_enter, (void*)this));
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_BUILTIN_InputLine::keypress_kp_enter", vector<string>(1, "Dirt keys"), 
-        "", "", NULL, key_kp_enter, "", &InputLine::keypress_enter, (void*)this));
+        "", "", key_kp_enter, "", &InputLine::keypress_enter, (void*)this));
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_BUILTIN_InputLine::keypress_arrow_left", vector<string>(1, "Dirt keys"), 
-        "", "", NULL, key_arrow_left, "", &InputLine::keypress_arrow_left, (void*)this));
+        "", "", key_arrow_left, "", &InputLine::keypress_arrow_left, (void*)this));
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_BUILTIN_InputLine::keypress_arrow_right", vector<string>(1, "Dirt keys"), 
-        "", "", NULL, key_arrow_right, "", &InputLine::keypress_arrow_right, (void*)this));
+        "", "", key_arrow_right, "", &InputLine::keypress_arrow_right, (void*)this));
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_BUILTIN_InputLine::keypress_arrow_up", vector<string>(1, "Dirt keys"), 
-        "", "", NULL, key_arrow_up, "", &InputLine::keypress_arrow_up, (void*)this));
+        "", "", key_arrow_up, "", &InputLine::keypress_arrow_up, (void*)this));
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_BUILTIN_InputLine::keypress_arrow_down", vector<string>(1, "Dirt keys"), 
-        "", "", NULL, key_arrow_down, "", &InputLine::keypress_arrow_down, (void*)this));
+        "", "", key_arrow_down, "", &InputLine::keypress_arrow_down, (void*)this));
 }
 
 void InputLine::set_default_prompt() {
@@ -258,7 +260,8 @@ bool InputLine::keypress(int key) {
     if ((key = embed_interp->get_int("Key")) == 0)
         return true;
     
-    if (key >= ' ' && key < 256) { // Normal key. Just insert
+    if (key >= ' ' && key < key_backspace) { // Normal key. Just insert
+//    if (key >= ' ' && key < 127) { // Normal key. Just insert
         if (max_pos < MAX_INPUT_BUF-1) {
             if (cursor_pos == max_pos) { // We are already at EOL
                 input_buf[max_pos++] = key;
@@ -398,8 +401,7 @@ bool InputLine::keypress_escape(string& inputline, void*) {
 bool InputLine::keypress_backspace(string& inputline, void* mt) {
     InputLine* mythis = (InputLine*)mt;
     if (mythis->max_pos != 0 && mythis->cursor_pos != 0) {
-        inputline.erase(mythis->cursor_pos-1, 1);
-        mythis->cursor_pos--;
+        inputline.erase(--mythis->cursor_pos, 1);
         mythis->left_pos = max(0,mythis->left_pos-1);
     }
     return true;

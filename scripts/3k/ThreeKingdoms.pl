@@ -13,7 +13,7 @@ use IO::Handle;
 use POSIX;
 
 # GLOBALs used by this module
-use vars qw(@room_exits @unusual_exits $enemy $havephantasm $haveelemental $summons);
+use vars qw(@room_exits @unusual_exits $enemy $havephantasm $haveelemental $summons $slowed);
 @room_exits = ();                     # list of the exits to the current room.
 @unusual_exits = ();
 
@@ -32,7 +32,7 @@ sub prompt_grab {
     return 1;
 }
 # High priority to supercede all other hooks/triggers.
-&main::run("/hook -F -a -p 2147483646 -T OUTPUT -fL perl -t'^> ' prompt_grab = ThreeKingdoms::prompt_grab");
+&main::run("/hook -F -a -p 2147483646 -T OUTPUT -t'^> ' prompt_grab = /run -Lperl ThreeKingdoms::prompt_grab");
 
 ############################# ROOMS ###########################################
 my(@dirs) = ("n", "e", "s", "w", "ne", "nw", "se", "sw", "u", "d", "vortex",
@@ -88,7 +88,7 @@ sub grab_room {
   return 0;
 }
 &main::run("/hook -N ROOM");
-&main::run("/hook -F -p 100 -T OUTPUT -fL perl grab_room = ThreeKingdoms::grab_room");
+&main::run("/hook -F -p 100 -T OUTPUT grab_room = /run -Lperl ThreeKingdoms::grab_room");
 #&main::hook_add("output", "ThreeKingdoms::grab_room", \&grab_room);
 # Create a hook for rooms.  If you want your function to be called when you see a 
 # room description, add this: &ThreeKingdoms::room_add(\&your_func_here);
@@ -115,7 +115,7 @@ sub grab_players {
   return 0;
 }
 &main::run("/hook -N PLAYER");
-&main::run("/hook -F -T OUTPUT -p 100 -fL perl grab_players = ThreeKingdoms::grab_players");
+&main::run("/hook -F -T OUTPUT -p 100 grab_players = /run -Lperl ThreeKingdoms::grab_players");
 #&main::hook_add("output", "ThreeKingdoms::grab_players", \&grab_players);
 # Create a hook for players.  If you want your function to be called when you see
 # another player, add this: &ThreeKingdoms::player_add(\&your_func_here);
@@ -140,6 +140,7 @@ sub gauge ($$$$) {
     return $filledColor . (' ' x $n) . $emptyColor . (' ' x ($count-$n)) . $windowColor;
 }   
 
+my($nsummons)=0;
 my($elementalcounter)=0;
 my($haveelemental) = 0;
 my($havephantasm) = 0;
@@ -153,7 +154,7 @@ my($linectr) = 0; # lines since the hpbar was seen.
 # This assumes a prompt that looks like this:
 # minHp/maxHp minMana/maxMana minMove/maxMove
 my($breedhp) = qr/^HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+)  Psi: ([0-9]+)\/([0-9]+)/;#  Focus: ([0-9]+)%  E: ([A-Z][a-z]+)/) {
-my($magehp) = qr/^ HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+)S?\/([0-9]+)%\/([0-9]+)% Sat: ([0-9]+)% Cnc: ([0-9]+)% Gols:([0-9]+)\/([0-9]+)% G2N:([0-9]+)%( A)?( S(?!S))?( SS)?( mg)?( PE)?( PG)?( Mon\(...\):(\w\w))?/;
+my($magehp) = qr/^ HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+)S?\/([0-9]+)%\/([0-9]+)% Sat: ([0-9]+)% Cnc: ([0-9]+)% Gols:([0-9]+)\/([0-9]+)% G2N:([0-9]+)%( A)?( S(?!S))?( SS)?( mg)?( PE)?( PG)?(?: GS)?( Mon\(...\):(\w\w))?/;
 my($fremenhp) = qr/^HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+) W: ([0-9]+)\/([0-9]+)\(([0-9]+)\) L: ([0-9]+)% P: ([0-9]+)\/([0-9]+)% T: [a-z]+ G: ([0-9]+)/;
 sub check_hpbar {
     $linectr++;
@@ -211,10 +212,12 @@ sub check_hpbar {
         } else {
             &main::run("/echo -W hpbar \"" . $emptyColor .  "  Protection from Stuff  " . $windowColor . "\"");
         }
-        if($cnc > 50 && $lastcnc <= 50) { main::run("say elemental, begone"); }
+        if($cnc > 50 && $lastcnc <= 50 && $haveelemental) { main::run("say elemental, begone"); }
+        if($cnc > 80) { main::run("say all, begone"); }
         $lastcnc = $cnc;
         if($incombat) {
-            if($sps > 400) { main::run("cast lightning bolt"); }
+            if($sps > 300 && !$slowed) { main::run("cast slow"); }
+            elsif($sps > 400) { main::run("cast acid arrow"); }
         }
     }
 #    if(/^  --> ((Something|Boring beetle|[A-Za-z]+ golem|[A-Za-z]+ elemental)+:[ABCDE~!+]+(, )?)*.*/) {
@@ -228,23 +231,23 @@ sub check_hpbar {
         } else { $havephantasm = 0; }
         if($incombat) {
             if($cnc == 0 && $mgup && $sps > 300 && !$haveelemental) { 
-                main::run("cast conjure elemental"); 
+                main::run("cast monster summoning 3"); 
             }
-#            elsif($sps > 300 && !$havephantasm) { 
-#                main::run("cast phantasmal killer"); 
-#            }
+            elsif($sps > 350 && !$havephantasm) { 
+                main::run("cast phantasmal killer"); 
+            }
         }
     }
 }
 
-&main::run("/hook -F -T OUTPUT -fL perl -p 100 check_hpbar = ThreeKingdoms::check_hpbar");
+&main::run("/hook -F -T OUTPUT -p 100 check_hpbar = /run -Lperl ThreeKingdoms::check_hpbar");
 &main::run("/window -w25 -h10 -x-0 -y4 -B -t0 -c31 hpbar");
 # Why doesn't this work?
 # from perl you need 4 backslashes where you want ONE to appear.  *sigh*
 &main::run('/hook -T SEND -Ft\'^kill\\\\s+(\\\\w+)\' grabkill = phk;bt;/eval \\$ThreeKingdoms::enemy = "$1"');
 if(!defined $enemy) { $enemy = ""; } # don't want it to be undef.
 &main::run('/hook -T SEND -Ft\'^tk\\\\s+(\\\\w+)\' grabtk = /eval \\$ThreeKingdoms::enemy = "$1"');
-&main::run("/hook -p 10000 -T SEND -C (kill|tk) -fL perl dontkilldraal = ThreeKingdoms::dontkilldraal");
+&main::run("/hook -p 10000 -T SEND -C (kill|tk) dontkilldraal = /run -Lperl ThreeKingdoms::dontkilldraal");
 sub dontkilldraal {
     if(/^(?:kill|tk)\s(\w+)\s*$/) {
         if($1 =~ /draal/) {
@@ -295,7 +298,7 @@ sub main::dirtcmd_bounce {
 }
 
 #&main::hook_add("output", "ThreeKingdoms::bounce_grabber", 
-&main::run("/hook -T OUTPUT -p -1 -fL perl bounce_grabber = ThreeKingdoms::bounce_grabber");
+&main::run("/hook -T OUTPUT -p -1 bounce_grabber = /run -Lperl ThreeKingdoms::bounce_grabber");
 sub bounce_grabber {
     if(/^You stop meditating, feeling fully refreshed\.$/) { 
         &main::dirt_send("ls");

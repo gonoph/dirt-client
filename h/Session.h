@@ -6,6 +6,7 @@
 
 typedef enum {disconnected, connecting, connected} state_t;
 
+class MUD;
 class NetworkStateWindow;
 class TimerWindow;
 class StatWindow;
