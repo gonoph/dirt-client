@@ -150,7 +150,7 @@ sub check_hpbar {
         &main::run("/clear hpbar");
         &main::run("/echo -W hpbar \"HP:  " . sprintf("(%3d/%3d)", $1, $2), &gauge(10, 1, $2, $1) . "\"");
         &main::run("/echo -W hpbar \"SP:  " . sprintf("(%3d/%3d)", $3, $4), &gauge(10, 1, $4, $3) . "\"");
-        &main::run("/echo -W hpbar \"Sat: " . sprintf("(%3d/%3d)", $6, 100), &gauge(10,1, 100, 100-$6) . "\"");
+        &main::run("/echo -W hpbar \"Sat: " . sprintf("(%3d/%3d)", $7, 100), &gauge(10,1, 100, 100-$7) . "\"");
         &main::run("/echo -W hpbar \"Cnc: " . sprintf("(%3d/%3d)", $8, 100), &gauge(10,1, 100, 100-$8) . "\"");
     } else {
         # Let a few prompts splip by if creating a character or such
