@@ -1,0 +1,344 @@
+
+dnl Dirt - Mud Client for Unix (mcl fork)
+dnl process this file with autoconf to produce a configure script.
+
+AC_REVISION($Revision: 1.1 $)
+AC_INIT(main.cc)
+AC_CONFIG_AUX_DIR(admin)
+AC_LANG(C++)
+
+dirt_major=0
+dirt_minor=60
+dirt_micro=00
+
+PACKAGE=dirt
+VERSION=$dirt_major.$dirt_minor.$dirt_micro
+DIRT_VERSION1=$dirt_minor$dirt_micro
+DIRT_VERSION2=$dirt_major.$dirt_minor.$dirt_micro
+DIRT_HOME=
+
+AC_ARG_ENABLE(debug,  [  --enable-debug          enable debugging], DEBUG="$enable_debug")
+AC_ARG_ENABLE(efence, [  --enable-efence         enable electric fence malloc debugger], EFENCE="$enable_efence")
+AC_ARG_ENABLE(perl,   [  --disable-perl          disable perl scripting support], PERL="$enable_perl")
+AC_ARG_ENABLE(python, [  --enable-python         enable python scripting support], PYTHON="$enable_python")
+AC_ARG_WITH(install_root, [  --with-install-root     directory to consider as the install root [default=/]], INSTALL_ROOT="$with_install_root")
+
+dnl supply default CFLAGS, if not specified by `CFLAGS=flags ./configure'
+if test -z "${CFLAGS}"; then
+	save_have_cflags="no"
+fi
+
+dnl supply default CXXFLAGS, if not specified by `CXXFLAGS=flags ./configure'
+if test -z "${CXXFLAGS}"; then
+	save_have_cxxflags="no"
+fi
+
+dnl supply default LDFLAGS, if not specified by `LDFLAGS=flags ./configure'
+if test -z "${LDFLAGS}"; then
+	save_have_ldflags="no"
+fi
+
+dnl Rules
+AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_INSTALL
+AC_CANONICAL_HOST
+AC_PROG_LN_S
+
+dnl libraries
+AC_CHECK_LIB(dl, main, [LIBDL="-ldl"], LIBDL=)
+AC_CHECK_LIB(m, main, [LIBM="-lm"], LIBM=)
+AC_CHECK_LIB(ncurses, main, [LIBNCURSES="-lncurses"], LIBNCURSES=)
+AC_CHECK_LIB(pthread, main, [LIBPTHREAD="-lpthread"], LIBPTHREAD=)
+AC_CHECK_LIB(z, main, [LIBZ="-lz"], LIBZ=)
+AC_CHECK_LIB(stdc++, main, [LIBSTDCPP="-lstdc++"], LIBSTDCPP=)
+
+dnl compiler features
+AC_CHECK_HEADERS(hash_map)
+AC_CHECK_HEADERS(ext/hash_map)
+AC_MSG_CHECKING(whether we have hash<string>)
+AC_TRY_COMPILE([
+#include <string>
+#include <hash_map>
+],
+[
+int main() { 
+    hash_map<string,int> stuff;
+    stuff["shit"] = 4;
+}
+],
+have_hash_string=yes,
+have_hash_string=no)
+AC_MSG_RESULT($have_hash_string)
+if test "x$have_hash_string" = "xyes"; then
+    AC_DEFINE(HAVE_HASH_STRING)
+fi
+
+dnl debugging
+if test "x$enable_debug" = "xyes"; then
+    echo "debug build enabled."
+        CFLAGS="-g"
+dnl	CFLAGS="$CFLAGS -g"
+        CXXFLAGS="-g"
+dnl	CXXFLAGS="$CXXFLAGS -g"
+        LDFLAGS=
+else 
+    if test "x$save_have_cflags" = "xno"; then
+            CFLAGS=""
+    fi
+    CFLAGS="-O2"
+
+    if test "x$save_have_cxxflags" = "xno"; then
+            CXXFLAGS=""
+    fi
+    CXXFLAGS="-O2"
+
+    if test "x$save_have_ldflags" = "xno"; then
+            LDFLAGS="-s"
+    fi
+fi
+
+dnl electric fence malloc debugger
+case "x$enable_efence" in
+	"xno")
+	LIBEFENCE=""
+	;;
+	"x")
+	LIBEFENCE=""
+	;;
+	"xyes")
+	AC_CHECK_LIB(efence, main, [LIBEFENCE="-lefence"], LIBEFENCE=)
+	if test "x$LIBEFENCE" = "x"; then
+		echo "could not find electric fence"
+		echo "malloc debugging support disabled"
+	fi
+	;;
+	*)
+	AC_CHECK_LIB(efence, main, [LIBEFENCE="-lefence"], LIBEFENCE=)
+	if test "x$LIBEFENCE" = "x"; then
+		echo "could not find electric fence"
+		echo "malloc debugging support disabled"
+	fi
+	;;
+esac
+
+dnl do we have perl installed in this system?
+case "x$enable_perl" in
+	"xyes")
+	AC_PATH_PROGS(PERL,perl5 perl,no)
+        ;;
+	"x")
+	AC_PATH_PROGS(PERL,perl5 perl,no)
+        ;;
+        "xno")
+	echo "perl scripting support disabled in command line"
+	WITH_PERL=""
+        ;;
+        *)
+	echo "using $enable_perl as the perl binary"
+        ;;
+esac
+
+if test "x$enable_perl" != "xno" -a "x$PERL" != "xno"; then
+	AC_MSG_CHECKING(for perl version)
+	$PERL -e 'require 5.004' > /dev/null 2>&1
+	if test $? -ne 0 ; then
+		echo "perl 5.004 (or greater) is required"
+                echo "disabling perl scripting support"
+                PERL="no"
+		WITH_PERL=""
+	else
+		perl_version=`$PERL -e 'print $]'`
+		AC_MSG_RESULT($perl_version)
+                PERL_CPPFLAGS=`$PERL -MExtUtils::Embed -e perl_inc`
+                PERL_LDFLAGS=`$PERL -MExtUtils::Embed -e ldopts`
+                dnl | $PERL -pe 's/-l(gdbm|ndbm|posix|db)\b//g'`
+		WITH_PERL="perl"
+	fi
+else
+	WITH_PERL=""
+	echo "could not find a valid perl interpreter"
+	echo "disabling perl scripting support"
+fi
+
+dnl do we have python installed in this system
+case "x$enable_python" in
+	"xyes")
+	AC_PATH_PROGS(PYTHON,python python2.0 python1.6 python1.5 python1.4 python1.3,no)
+        ;;
+        "xno")
+	echo "python scripting support disabled in command line"
+	WITH_PYTHON=""
+        ;;
+esac
+
+if test "x$enable_python" = "xyes" -o "x$PYTHON" = "xyes"; then
+	dnl python {cpp,ld}flags
+	changequote(, )dnl
+	PYTHON_CPPFLAGS=`$PYTHON -c '
+import sys
+print "-I%s/include/python%s" % (sys.prefix, sys.version[:3])'`
+	PYTHON_LDFLAGS=`$PYTHON -c '
+import sys
+print "-L%s/lib/python%s/config -lpython%s" % (sys.prefix, sys.version[:3], sys.version[:3])'`
+	changequote([, ])dnl
+	WITH_PYTHON="python"
+        echo "PYTHON_CPPFLAGS=$PYTHON_CPPFLAGS"
+        echo "PYTHON_LDFLAGS=$PYTHON_LDFLAGS"
+else
+	WITH_PYTHON=""
+	echo "disabling python scripting support"
+fi
+
+dnl check if this system support the flag -fno-rtti
+save_CFLAGS="$CFLAGS"
+CFLAGS="-fno-rtti"
+AC_MSG_CHECKING(if the flag -fno-rtti is supported by the system compiler)
+AC_CACHE_VAL(ac_cv_flag_no_rtti,
+[AC_TRY_COMPILE([int a;],
+[int a;],
+ac_cv_flag_no_rtti=yes,
+ac_cv_flag_no_rtti=no)])
+AC_MSG_RESULT($ac_cv_flag_no_rtti)
+CFLAGS="$save_CFLAGS"
+case "x$ac_cv_flag_no_rtti" in
+	"xyes")
+        HAVE_FLAG_NO_RTTI="-fno-rtti"
+        ;;
+        "xno")
+        HAVE_FLAG_NO_RTTI=""
+        ;;
+        *)
+        HAVE_FLAG_NO_RTTI=""
+        dnl this should never happen
+        ;;
+esac
+
+dnl check if this system support the flag -fno-exceptions
+save_CFLAGS="$CFLAGS"
+CFLAGS="-fno-exceptions"
+AC_MSG_CHECKING(if the flag -fno-exceptions is supported by the system compiler)
+AC_CACHE_VAL(ac_cv_flag_no_exceptions,
+[AC_TRY_COMPILE([int a;],
+[int a;],
+ac_cv_flag_no_exceptions=yes,
+ac_cv_flag_no_exceptions=no)])
+AC_MSG_RESULT($ac_cv_flag_no_exceptions)
+CFLAGS="$save_CFLAGS"
+case "x$ac_cv_flag_no_exceptions" in
+	"xyes")
+        HAVE_FLAG_NO_EXCEPTIONS="-fno-exceptions"
+        ;;
+        "xno")
+        HAVE_FLAG_NO_EXCEPTIONS=""
+        ;;
+        *)
+        HAVE_FLAG_NO_EXCEPTIONS=""
+        dnl this should never happen
+        ;;
+esac
+
+case "$host" in
+	*-*-linux*)
+	LOCAL_CFLAGS="-Wall -pipe"
+	LOCAL_CPPFLAGS="-Ih"
+	LOCAL_CXXFLAGS="-W $LOCAL_CFLAGS"
+
+	dnl Which version of gcc and g++ are we using?
+	dnl if ((gcc > 2.7) && (g++ > 2.7)) we do not
+	dnl need to add even more compile flags
+	cat > conftest.c <<EOF
+#if __GNUC__ > 2
+	yes;
+#endif
+#if __GNUC__ > 1
+#if __GNUC_MINOR__ > 7
+	yes;
+#endif
+#endif
+EOF
+	ac_good_gcc_try='${CC-cc} -E conftest.c'
+	if eval "$ac_good_gcc_try" | egrep yes >/dev/null 2>&1; then
+		have_good_gcc=yes
+	fi
+	
+	ac_good_gpp_try='${CXX-cc} -E conftest.c'
+	if eval "$ac_good_gpp_try" | egrep yes >/dev/null 2>&1; then
+		have_good_gpp=yes
+	fi
+	rm conftest.c
+
+	if test "x$have_good_gcc" = "xyes" -a "x$have_good_gpp" = "xyes"; then
+		LOCAL_LDFLAGS="-rdynamic"
+		LOCAL_LIBS=""
+	else
+		LOCAL_LDFLAGS="-nodefaultlibs -rdynamic"
+		LOCAL_LIBS="-lc -lgcc"
+	fi
+
+	;;
+	*)
+	LOCAL_CFLAGS=""
+	LOCAL_CPPFLAGS="-Ih"
+	LOCAL_CXXFLAGS="$LOCAL_CFLAGS"
+	LOCAL_LDFLAGS=""
+	LOCAL_LIBS=""
+	;;
+esac
+
+COMPILED_BY=`whoami`@`uname -n`
+
+AC_PATH_PROG(RM,rm,true)
+AC_PATH_PROG(FIND,find,true)
+AC_PATH_PROG(XARGS,xargs,true)
+AC_PATH_PROG(CTAGS,ctags,true)
+AC_PATH_PROG(ECHO,echo,true)
+
+AC_CONFIG_HEADERS(h/config.h)
+AC_SUBST(CFLAGS)
+AC_SUBST(CXXFLAGS)
+AC_SUBST(LDFLAGS)
+AC_SUBST(PACKAGE)
+AC_SUBST(DIRT_VERSION1)
+AC_SUBST(DIRT_VERSION2)
+AC_SUBST(INSTALL_ROOT)
+AC_SUBST(LIBDL)
+AC_SUBST(LIBEFENCE)
+AC_SUBST(LIBM)
+AC_SUBST(LIBNCURSES)
+AC_SUBST(LIBPTHREAD)
+AC_SUBST(LIBZ)
+AC_SUBST(LIBSTDCPP)
+AC_SUBST(PERL)
+AC_SUBST(PERL_CPPFLAGS)
+AC_SUBST(PERL_LDFLAGS)
+AC_SUBST(WITH_PERL)
+AC_SUBST(PYTHON)
+AC_SUBST(PYTHON_CPPFLAGS)
+AC_SUBST(PYTHON_LDFLAGS)
+AC_SUBST(WITH_PYTHON)
+AC_SUBST(HAVE_FLAG_NO_RTTI)
+AC_SUBST(HAVE_FLAG_NO_EXCEPTIONS)
+AC_SUBST(LOCAL_CFLAGS)
+AC_SUBST(LOCAL_CPPFLAGS)
+AC_SUBST(LOCAL_CXXFLAGS)
+AC_SUBST(LOCAL_LDFLAGS)
+AC_SUBST(LOCAL_LIBS)
+AC_SUBST(COMPILED_BY)
+AC_SUBST(RM)
+AC_SUBST(FIND)
+AC_SUBST(XARGS)
+AC_SUBST(CTAGS)
+AC_SUBST(ECHO)
+AC_SUBST(LOCAL_CFLAGS)
+AC_SUBST(LOCAL_CPPFLAGS)
+AC_SUBST(LOCAL_CXXFLAGS)
+AC_SUBST(LOCAL_LDFLAGS)
+AC_SUBST(LOCAL_LIBS)
+
+AC_OUTPUT(
+Makefile
+VERSION
+admin/Makefile
+dirt.spec
+h/defs.h)
