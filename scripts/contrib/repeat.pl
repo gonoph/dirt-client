@@ -5,7 +5,6 @@ my($LastCommandEntered) = "";
 my($repeatcmdstart) = &main::str_to_color("bold_Blue_White");
 
 sub check_repeat {
-    print "check_repeat got: " . $_ . "\n";
     if ($_ eq "") {
         $_ = $LastCommandEntered;
         return 1;
