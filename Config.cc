@@ -16,123 +16,123 @@ typedef enum {pt_bool, pt_int, pt_hex, pt_char, pt_string} ptype_t; // Parameter
 
 const struct
 {
-	char opt_char;		// e.g. -w. 0 = end of table
-	char *name;			// Name used i config file, e.g. histwordsize=1
-	ptype_t ptype;		// Is it a toggle or does it take a number?
-	option_t option;	// Which option does it set?
-	char *description;	// Description, for config file saving
-	int default_value;	// Default value
-	int min;			// Maximum value
-    int max;			// Minimum value
+    char opt_char;        // e.g. -w. 0 = end of table
+    char *name;            // Name used i config file, e.g. histwordsize=1
+    ptype_t ptype;        // Is it a toggle or does it take a number?
+    option_t option;    // Which option does it set?
+    char *description;    // Description, for config file saving
+    int default_value;    // Default value
+    int min;            // Maximum value
+    int max;            // Minimum value
 } option_table[] =
 {
-	{	'?',		"commandcharacter",		pt_char, opt_commandcharacter,
-		"The character to prefix internal dirt commands with",
-		'/',	'!',	 '~'
-	},
+    {    '?',        "commandcharacter",        pt_char, opt_commandcharacter,
+        "The character to prefix internal dirt commands with",
+        '/',    '!',     '~'
+    },
 
-        {	'?',		"escapecharacter",		pt_char, opt_escape_character,
-		"Lines starting with this character are passed as-is",
-		'\\',	'!',	 '~'
-	},
+        {    '?',        "escapecharacter",        pt_char, opt_escape_character,
+        "Lines starting with this character are passed as-is",
+        '\\',    '!',     '~'
+    },
 
-	{	'w',		"histwordsize",			pt_int,	opt_histwordsize,
-		"Minimum number of chars in a command to save into history",
-		5, 1, 999
-		},
+    {    'w',        "histwordsize",            pt_int,    opt_histwordsize,
+        "Minimum number of chars in a command to save into history",
+        5, 1, 999
+        },
 
-	{	'l',		"scrollback",			pt_int, opt_scrollback_lines,
-		"Number of lines in scrollback",
-		10000, 5000, 250000
-		 },
+    {    'l',        "scrollback",            pt_int, opt_scrollback_lines,
+        "Number of lines in scrollback",
+        10000, 5000, 250000
+         },
 
-	{	'H',		"histsize",				pt_int,	opt_histsize,
-		"Number of lines saved in the command history",
-		100, 5, 1000
-		 },
-	
-	{	's',		"showprompt",			pt_bool,opt_showprompt,
-		"Should the prompt be echoed on the main output screen?",
-		false, false, true
-		 },
-		
-	{	'e',		"echoinput",			pt_bool,opt_echoinput,
-		"Should input be sent to MUD be echoed on the main output screen?",
-		false, false, true
-		},		
+    {    'H',        "histsize",                pt_int,    opt_histsize,
+        "Number of lines saved in the command history",
+        100, 5, 1000
+         },
+    
+    {    's',        "showprompt",            pt_bool,opt_showprompt,
+        "Should the prompt be echoed on the main output screen?",
+        false, false, true
+         },
+        
+    {    'e',        "echoinput",            pt_bool,opt_echoinput,
+        "Should input be sent to MUD be echoed on the main output screen?",
+        false, false, true
+        },        
 
-	{	'b',		"beep",					pt_int,opt_beep,
-		"What frequency to beep with on errors? 0 disables, max 10",
-		1, 0, 10
-		},		
-	
-	{	'r',		"readonly",				pt_bool, opt_readonly,
-		"If set, configuration file will not be saved on exiting",
-		false, false, true
-	},
+    {    'b',        "beep",                    pt_int,opt_beep,
+        "What frequency to beep with on errors? 0 disables, max 10",
+        1, 0, 10
+        },        
+    
+    {    'r',        "readonly",                pt_bool, opt_readonly,
+        "If set, configuration file will not be saved on exiting",
+        false, false, true
+    },
 
-    {	'r',		"nodefaults",	   		pt_bool, opt_nodefaults,
-		"If set, only options that do not equal their default are saved in the config file",
-		false, false, true
-	},
-    {	'r',		"save_history",	   		pt_bool, opt_save_history,
-		"Save the input history between sessions into ~/.dirt/history",
-		true, false, true
-	},
-	
-	{	'W',		"historywindow",		pt_int,	opt_historywindow,
-		"Number of lines in the pop-up history window. 0 disables",
-		10,	0,	25
-	},
-	
-	{	'B',		"mudbeep",				pt_bool,	opt_mudbeep,
-		"Should beeps from the MUD be honored?",
-		false, false, true
-	},
-	
-	{	'T',		"tabsize",				pt_int,		opt_tabsize,
-		"Tabstop size",
-		8,	2,	16
-	},
+    {    'r',        "nodefaults",               pt_bool, opt_nodefaults,
+        "If set, only options that do not equal their default are saved in the config file",
+        false, false, true
+    },
+    {    'r',        "save_history",               pt_bool, opt_save_history,
+        "Save the input history between sessions into ~/.dirt/history",
+        true, false, true
+    },
+    
+    {    'W',        "historywindow",        pt_int,    opt_historywindow,
+        "Number of lines in the pop-up history window. 0 disables",
+        10,    0,    25
+    },
+    
+    {    'B',        "mudbeep",                pt_bool,    opt_mudbeep,
+        "Should beeps from the MUD be honored?",
+        false, false, true
+    },
+    
+    {    'T',        "tabsize",                pt_int,        opt_tabsize,
+        "Tabstop size",
+        8,    2,    16
+    },
 
-	{	'?',		"statcolor",			pt_hex,		opt_statcolor,
-		"Color of the stat window (activated with Alt-S); see README for values",
-		bg_cyan|fg_black, 0, 255
-	},
-	
-	{	'?',		"inputcolor",			pt_hex,		opt_inputcolor,
-		"Color of the input line",
-		bg_blue|fg_white, 0, 255
-	},
-	
-	{	'?',		"statuscolor",			pt_hex,		opt_statuscolor,
-		"Color of the status line",
-		bg_cyan|fg_black, 0, 255
-	},
-	
-	{	'?',		"autostatwin",			pt_bool,	opt_autostatwin,
-		"Automatically bring up the stat window",
-		true, false, true
-	},
-	
-	{	'?',		"speedwalk",			pt_bool,	opt_speedwalk,
-		"Speedwalk enabled? (toggle in dirt with #enable speedwalk)",
-		true, false, true
-	},
-	
-	{	'?',		"timercolor",			pt_hex,		opt_timercolor,
-		"Color of timer window",
-		bg_cyan|fg_black,0,255
-	},
-	
-	{	'?',		"autotimerwin",			pt_bool,	opt_autotimerwin,
-		"Automatically bring up the clock/timer window",
-		true,	false,	true
-	},
-	
-	{	'?',		"timerstate",			pt_int,		opt_timerstate,
-		"Default timer state (from 0 to 6)",
-		0,		0,		6
+    {    '?',        "statcolor",            pt_hex,        opt_statcolor,
+        "Color of the stat window (activated with Alt-S); see README for values",
+        bg_cyan|fg_black, 0, 255
+    },
+    
+    {    '?',        "inputcolor",            pt_hex,        opt_inputcolor,
+        "Color of the input line",
+        bg_blue|fg_white, 0, 255
+    },
+    
+    {    '?',        "statuscolor",            pt_hex,        opt_statuscolor,
+        "Color of the status line",
+        bg_cyan|fg_black, 0, 255
+    },
+    
+    {    '?',        "autostatwin",            pt_bool,    opt_autostatwin,
+        "Automatically bring up the stat window",
+        true, false, true
+    },
+    
+    {    '?',        "speedwalk",            pt_bool,    opt_speedwalk,
+        "Speedwalk enabled? (toggle in dirt with #enable speedwalk)",
+        true, false, true
+    },
+    
+    {    '?',        "timercolor",            pt_hex,        opt_timercolor,
+        "Color of timer window",
+        bg_cyan|fg_black,0,255
+    },
+    
+    {    '?',        "autotimerwin",            pt_bool,    opt_autotimerwin,
+        "Automatically bring up the clock/timer window",
+        true,    false,    true
+    },
+    
+    {    '?',        "timerstate",            pt_int,        opt_timerstate,
+        "Default timer state (from 0 to 6)",
+        0,        0,        6
     },
 
     {   'D',        "interp_debug",           pt_bool,    opt_interpdebug,
@@ -143,11 +143,6 @@ const struct
     {   '?',        "multiinput",           pt_bool,    opt_multiinput,
         "Input line expands to multiple lines automatically",
         false,       false,  true
-    },
-
-    {   '?',        "copyover",             pt_bool,     opt_copyover,
-        "Use the hot reconnect feature when using Alt-T",
-        false,       false,   true
     },
 
     {   '?',        "snarf_prompt", pt_bool, opt_snarf_prompt,
@@ -317,7 +312,7 @@ void    Config::Load (const char *fname)
         char *nl , *value;
         const char *rest;
         
-        if (buf[0] == '#')		// comment
+        if (buf[0] == '#')        // comment
             continue;
         
         if ((nl = strchr(buf, '\n')))
@@ -357,8 +352,10 @@ void    Config::Load (const char *fname)
                     break;
                 }
 
-            if (!option_table[i].name)  // hmm, not found
-                error ("Unrecognized option in configuration file: %s", name);
+            if (!option_table[i].name)  { // hmm, not found
+                report ("Unrecognized option in configuration file: %s, ignoring...", name);
+                sleep(5);
+            }
         }
         
         else if (!strcmp(keyword, "mud")) {
@@ -366,7 +363,7 @@ void    Config::Load (const char *fname)
                 error ("Invalid MUD line: Must be MUD <mudname> {");
             readMUD(fp, name);
         }
-        else					// mud data. or nothing.
+        else                    // mud data. or nothing.
         {
             match = sscanf (buf, " %512s %512s %d%n", mudname, hostname, &port, &count);
             
@@ -480,7 +477,7 @@ void Config::readMUD(FILE *fp, const char *mudname) {
 
 
 MUD * Config::findMud (const char *name) {
-	return mud_list->find(name);
+    return mud_list->find(name);
 }
 
 static const char *type_to_string(ptype_t t) {
@@ -546,7 +543,7 @@ int Config::parseOptions (int argc, char **argv) {
         } else if (c == 'x') { // execute command
             interpreter.add(optarg);
         } else
-            for (i = 0; option_table[i].opt_char; i++)	
+            for (i = 0; option_table[i].opt_char; i++)    
                 if (option_table[i].opt_char == c)
                 {
                     if (option_table[i].ptype == pt_int) // Integer option
@@ -563,7 +560,7 @@ int Config::parseOptions (int argc, char **argv) {
                             setOption(option_table[i].option, true);
                     }
                     
-                    break;					
+                    break;                    
                 }
     }
     
