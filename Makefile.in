@@ -106,19 +106,19 @@ $(EXE): $(OBJ_FILES)
 $(OBJ_DIR)/%.o: %.cc
 	$(CXX) -c $(DIRT_CXXFLAGS) $< -o $@
 
-$(OBJ_DIR)/mccpDecompress.o: $(OBJ_DIR) mccpDecompress.c
+$(OBJ_DIR)/mccpDecompress.o: mccpDecompress.c
 	$(CC) -c $(DIRT_CFLAGS) $< -o $@
 
-$(OBJ_DIR)/plugins/perl.so:  $(OBJ_DIR) o/plugins/PerlEmbeddedInterpreter.o
+$(OBJ_DIR)/plugins/perl.so:  o/plugins/PerlEmbeddedInterpreter.o
 	$(CC) $(LDFLAGS) -shared $< -o $@ $(PERL_LDFLAGS) $(LIBPTHREAD)
 
-$(OBJ_DIR)/plugins/PerlEmbeddedInterpreter.o: $(OBJ_DIR) plugins/PerlEmbeddedInterpreter.cc
+$(OBJ_DIR)/plugins/PerlEmbeddedInterpreter.o: plugins/PerlEmbeddedInterpreter.cc
 	$(CC) -c $(DIRT_CFLAGS) $(PERL_CPPFLAGS) $< -o $@
 
-$(OBJ_DIR)/plugins/python.so: $(OBJ_DIR) o/plugins/PythonEmbeddedInterpreter.o
+$(OBJ_DIR)/plugins/python.so: o/plugins/PythonEmbeddedInterpreter.o
 	$(CC) $(LDFLAGS) -shared $< -o $@ $(PYTHON_LDFLAGS) $(LIBPTHREAD)
 
-$(OBJ_DIR)/plugins/PythonEmbeddedInterpreter.o: $(OBJ_DIR) plugins/PythonEmbeddedInterpreter.cc
+$(OBJ_DIR)/plugins/PythonEmbeddedInterpreter.o: plugins/PythonEmbeddedInterpreter.cc
 	$(CC) -c $(DIRT_CFLAGS) $(PYTHON_CPPFLAGS) $< -o $@
 
 install: $(EXE)
