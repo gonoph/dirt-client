@@ -586,9 +586,12 @@ bool TriggerHookStub::operator() (string& data) {
 
 void TriggerHookStub::print() {
     report("\tMatcher (regex): %s\n", regex.c_str());
-    report("\tCommand:         %s\n", command.c_str());
-    if(language) 
-    report("\tLanguage:        %s\n", language);
+    if(language) {
+        report("\tLanguage:        %s\n", language);
+        report("\tSubroutine:      %s\n", command.c_str());
+    } else {
+        report("\tCommand:         %s\n", command.c_str());
+    }
 }
 
 KeypressHookStub::KeypressHookStub(int p, float c, int n, bool F, bool en, bool col, string nm, 
