@@ -586,7 +586,7 @@ TriggerHookStub::TriggerHookStub(int p, float c, int n, bool F, bool en, bool co
 }
 
 bool TriggerHookStub::operator() (string& data, savedmatch*) {
-    bool retval;
+    bool retval = false;
     char out[std::max(2*(unsigned long)command.length(),1024UL)]; // FIXME buffer overflow
     string mycmd(command); // FIXME No one should be allowed to modify command.
     savedmatch mysm(data, regex);
