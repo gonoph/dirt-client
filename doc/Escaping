@@ -1,0 +1,42 @@
+Escaping: When should you escape characters?
+
+    When writing a regular expression in Dirt, you will sometimes need to escape
+    certain characters.  For example:
+        /gag -t'^Ogre says: \'You will die\\.\'' ogrespam
+    Here I must escape the single quote character in the regex, and the period
+    (because normally the period in a regex will match any character).  The
+    period has two backslashes because the backslash is actually part of the 
+    regex.  The regex, written by itself is:
+        ^Ogre says: 'You will die\.'
+    And this is what you should see for the regex if you type '/gag -l'.  This
+    is also what you would use if you were to use this regex in a perl script.
+    The dirt command line (and any command sent to dirt via the run() command
+    from perl/python) incurs an extra round of parsing in order to separate
+    arguments to the command.  In general, here are the rules for regexes:
+        1) Surround your regex with quotes (single or double).
+        2) If the same kind of quote appears in the regex, it must be escaped
+            (with ONE backslash!)
+        3) If you wish to match against one of the regex "special" characters:
+            [()+*?.], you must escape it twice (TWO backslashes).
+        4) In parsing command options, one set of backslashes is removed.
+    
+    Also in figuring out how many backslashes to use, realize that regex 
+    backreference substitution ($1, $2, ...) occurs BEFORE the right-hand-side
+    of a /hook is executed.  For example from perl you would write:
+        &run('/hook -T SEND -t\'^kill\\\\s+(\\\\w+)\' grabkill = '
+                . '/eval \\$enemy = "$1"');
+    This hook is executed when I kill things ('kill elf'), and the trigger 
+    mechanism sets $1 to be the argument to 'kill'.  The /eval on the right
+    hand side then sets the variable $enemy to be that argument.
+
+    In the above perl command there is a backslash before quote characters (')
+    because a single quote alone would end the string.  There FOUR backslashes
+    before the "s" because in the first round of parsing perl converts double
+    backslashes \\ to single backslashes.  So the hook that is actually run
+    looks like this:
+        /hook -T SEND -t'^kill\\s+(\\w+)' grabkill = /eval \$enemy = "$1"
+    As explained above, two backslashes are needed inside quoted expressions
+    that get sent through dirt's input mechanism.  The regex by itself is:
+        ^kill\s+(\w+)
+    On the right-hand side we have:
+        

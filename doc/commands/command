@@ -1,0 +1,46 @@
+/command    Manipulate user defined commands                              [Perl]
+
+Syntax:
+    /command [-DfF] [-p <priority>] [-g <group>] [-L <language>]
+             <name> = <action>
+    /command -d <name>
+    /command -l
+
+Options:
+    -d      Delete defined commands.
+    -D      Create command disabled.  They are enabled when created by default.
+    -f      <value> is a function name to execute instead of a dirt command.
+    -F      Fallthrough to allow hooks of lower priority to be executed.
+                                                      (default: NOT fallthrough)
+    -g      Group name with which this command should be associated.  Multiple
+            groups may be specified by separating them with commas.
+    -l      List defined commands.
+    -L      The argument <language> is the name of the language in which the 
+            function to be run (-f) is defined.  If -L is specified, -f is 
+            assumed.
+    -p      Priority of this command.                               (default: 0)
+
+Notes:
+    This module handles the automatic saving and loading of simple user-defined
+    commands. It uses dirt's built-in /hook system to implement the actual
+    commands as COMMAND hooks. These commands are intended to be relatively
+    simple. Complex commands can be accomplished using the /hook command itself.
+    Since these commands are simply hooks, they will interact predictably with
+    other hooks.
+    
+    The -l option will only list commands defined with /command. The "/hook -l"
+    listing will not list these commands by default because the module gives
+    them special names of the form "__DIRT_USERCOMMAND_<name>", so that they
+    will only show up when listing internal hooks (/hook -il).
+
+    Multiple commands can be deleted at once with the -d option by listing the
+    command names separated by spaces. Be sure to enclose in quotes any command
+    names that include spaces.
+
+    "/command" may be abbreviated as "/com".
+
+Examples:
+    Make a command to call a function that prints out some information.
+      /command -fL perl info = printstuff
+
+See Also: /hook

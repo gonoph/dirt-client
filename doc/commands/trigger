@@ -1,0 +1,58 @@
+/trigger    Manipulate user defined triggers                              [Perl]
+
+Syntax:
+    /trigger [-DfF] [-p <priority>] [-g <group>] [-L <language>]
+             <name> = <action>
+    /trigger -d <name>
+    /trigger -l
+
+Options:
+    -a      Match against the COLORED ((A)NSI) string instead of the uncolored
+            string.  You may include variables like ${red} in the matching 
+            string.
+    -c      Chance that this hook will execute.  Should be a floating-point 
+            number between 0.0 and 1.0.                           (default: 1.0)
+    -d      Delete a defined trigger.
+    -D      Create trigger disabled.  They are enabled when created by default.
+    -f      <action> is a function name to execute instead of a dirt command.
+    -F      Fallthrough to allow hooks of lower priority to be executed.
+                                                       (default NOT fallthrough)
+    -g      Group name with which this hook should be associated.  Multiple
+            groups may be specified by separating them with commas.
+    -l      List defined triggers.
+    -L      The argument <language> is the name of the language in which the 
+            function to be run (-f) is defined.  If -L is specified, -f is 
+            assumed.
+    -n      Execute this hook <shots> times.  If <shots> is 0, the hook will
+            never be executed (but it will be defined).  If it is negative,
+            the hook will execute forever.                         (default: -1)
+    -p      Priority of this hook.                                  (default: 0)
+    -t      Make a trigger hook, argument is the regular expression to match.
+
+Notes:
+    This module handles the automatic saving and loading of simple user-defined
+    triggers. It uses dirt's built-in /hook system to implement the actual
+    triggers as OUTPUT hooks. Since these triggers are simply hooks, they will
+    interact predictably with other hooks.
+    
+    The -l option will only list triggers defined with /trigger. The "/hook -l"
+    listing will not list these triggers by default because the module gives
+    them special names of the form "__DIRT_TRIGGER_<name>", so that they will
+    only show up when listing internal hooks (/hook -il).
+
+    Multiple triggers can be deleted at once with the -d option by listing the
+    trigger names separated by spaces. Be sure to enclose in quotes any trigger
+    names that include spaces.
+
+    "/trigger" may be abbreviated as "/trig".
+
+Examples:
+    Make a trigger to eat some food when you see "You are hungry." on a line by
+    itself.
+      /trigger -t"^You are hungry.$" eat = eat food
+
+    Make a trigger to call a function that prints some info when you see "Print
+    some info!"
+      /trigger -t"Print some info!" -fL perl info = printinfo
+
+See Also: /hook
