@@ -1,10 +1,29 @@
-/enable        Enable a hook or group of hooks
+/enable        Enable a hook or group of hooks                            [Perl]
 
 Syntax
-    /enable [-g] <name> [<name> ...]
+    /enable [-A|-C|-g|-G|-K|-T] <name> [<name> ...]
 
 Options:
+    -A          Enable aliases.
+    -C          Enable commands.
     -g          Enable a group of hooks, instead of an individual hook.
+    -G          Enable gags.
+    -K          Enable keypresses.
+    -T          Enable triggers.
+
+Notes:
+    Multiple hooks can be enabled at once by separating their names with a
+    space. All options are mutually exclusive; they cannot be used together.
+
+Examples:
+    Enable a hook.
+      /enable testhook
+
+    Enable a trigger made with the /trigger command.
+      /enable -T testhook
+
+    Enable a group of hooks.
+      /enable -g testgroup
 
 See Also:
-    /hook, /enable
+    /hook, /disable

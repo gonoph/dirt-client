@@ -1,33 +1,40 @@
-/gag        Prevent lines of mud output from being printed                [Perl]
+/gag        Manipulate user defined gags                                  [Perl]
 
 Syntax:
-    /gag [-aD] [-n <shots>] [-g <group>] -t <regex> <name>
+    /gag [-DF] [-g <group>] -t"regex" <name>
     /gag -d <name>
     /gag -l
 
 Options:
-    -t      The string to gag, argument is the regular expression to match.
-    -a      Match against the COLORED ((A)NSI) string instead of the uncolored
-            string.  You may include variables like ${red} in the matching 
-            string.
-    -D      Creat gag disabled.  They are enabled when created by default.
-    -n      Execute this hook <shots> times.  If <shots> is 0, the hook will
-            never be executed (but it will be defined).  If it is negative,
-            the hook will execute forever.                         (default: -1)
-    -g      Group name with which this hook should be associated.  Multiple
+    -d      Delete defined gags.
+    -D      Create gag disabled.  They are enabled when created by default.
+    -F      Fallthrough to allow hooks of lower priority to be executed.
+                                                      (default: NOT fallthrough)
+    -g      Group name with which this gag should be associated.  Multiple
             groups may be specified by separating them with commas.
     -l      List defined gags.
-    -d      Delete a defined gag.
 
 Notes:
-    The /gag command uses the hook system to gag lines.  If you need to do
-    something more complicated, you can use the gagit function to actually gag
-    lines for you like this:
-        /hook -t'^Whosiewhatsit' -c 0.5 -fL perl gagwhosiewhatsit = Gag::gagit
-    This creates a 50% chance gag.  The perl function Gag::gagit actually
-    deletes the output line.  Hooks of lower priority will not see the output!
+    This module handles the automatic saving and loading of gags, which are
+    specialized triggers that block lines of output from the MUD. It uses dirt's
+    built-in /hook system to implement the actual triggers as OUTPUT hooks.
+    Since these gags are simply hooks, they will interact predictably with other
+    hooks.
     
-Examples:
-    /gag -t '^You feel hungry.' hungry
+    The -l option will only list gags defined with /gag. The "/hook -l" listing
+    will not list these gags by default because the module gives them special
+    names of the form "__DIRT_GAG_<name>", so that they will only show up when
+    listing internal hooks (/hook -il).
 
-See Also: /hook, /enable, /disable
+    Multiple gags can be deleted at once with the -d option by listing the
+    gag names separated by spaces. Be sure to enclose in quotes any gag
+    names that include spaces.
+
+    Gags are automatically given the lowest possible priority so that all other
+    hooks are able to see the gagged lines first.
+
+Examples:
+    Gag any lines that contain the name of a player you dislike.
+      /gag -t"Meanguy" gagmeanguy
+
+See Also: /hook

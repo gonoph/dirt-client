@@ -1,44 +1,48 @@
-/alias      Manipulate user defined commands                              [Perl]
+/alias      Manipulate user defined shortcuts                             [Perl]
 
 Syntax:
-    /alias [-FDf] [-p <priority>] [-g <group>] [-L <language>] <name> = <action>
-    /trig -d <name>
-    /trig -l
+    /alias [-DfF] [-p <priority>] [-g <group>] [-L <language>] <name> = <action>
+    /alias -d <name>
+    /alias -l
 
 Options:
-    -F      Fallthrough to allow hooks of lower priority to be executed.
-                                                      (default: NOT fallthrough)
+    -d      Delete defined aliases.
     -D      Create alias disabled.  They are enabled when created by default.
     -f      <value> is a function name to execute instead of a dirt command.
-    -p      Priority of this alias.                                 (default: 0)
+    -F      Fallthrough to allow hooks of lower priority to be executed.
+                                                      (default: NOT fallthrough)
     -g      Group name with which this alias should be associated.  Multiple
             groups may be specified by separating them with commas.
+    -l      List defined aliases.
     -L      The argument <language> is the name of the language in which the 
             function to be run (-f) is defined.  If -L is specified, -f is 
             assumed.
-    -l      List defined aliases.
-    -d      Delete a defined aliases.
+    -p      Priority of this alias.                                 (default: 0)
 
 Notes:
-    /alias allows you to define hooks that are persistent.  Persistent means
-    that they will be saved when you exit dirt, and reinstalled when you start
-    dirt again.  It is intended for relatively simple aliases that you create
-    by typing them in at the command line.  More complex scripts should use
-    /hook, and handle installing themselves at startup.
+    This module handles the automatic saving and loading of simple aliases. It
+    uses dirt's built-in /hook system to implement the actual aliases as SEND
+    hooks. These aliases are intended to be relatively simple. Complex aliases
+    can be accomplished using the /hook command itself. Since aliases are simply
+    hooks, they will interact predictably with other hooks.
+    
+    The -l option will only list aliases defined with /alias. The "/hook -l"
+    listing will not list these aliases by default because the module gives them
+    special names of the form "__DIRT_ALIAS_<name>", so that they will only show
+    up when listing internal hooks (/hook -il).
 
-    Aliases use the hook mechanism.  Therefore they will show up when you list
-    hooks (/hook -l), and interact with other hooks predictably (because they 
-    *are* hooks).  For instance, if your alias is high priority (-p <large>) 
-    and not fallthrough (-F), if will prevent other hooks from being executed
-    that might be triggered by the same typed command.
+    Multiple aliases can be deleted at once with the -d option by listing the
+    alias names separated by spaces. Be sure to enclose in quotes any alias
+    names that include spaces.
 
-    Aliases are always SEND type hooks, and the name of the alias is the same
-    as the command you type.  (i.e. '-C <name>' is passed to /hook)
-
-    The -l option will only list aliases defined with /alias.  It will not
-    list other SEND-type hooks.
+    The first 20 arguments given to the alias can be accessed with the variables
+    $1 to $20, which are replaced with that numbered argument.
 
 Examples:
-    
+    Make an alias to get food and eat it when you type "ef".
+       /alias ef = get food bag;eat food
+
+    Make an alias to give food to someone when you type "gf <name>".
+      /alias gf = give food $1
 
 See Also: /hook

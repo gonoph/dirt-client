@@ -119,17 +119,9 @@ Rip out Alias, Macro, Action:
     /set debug command to turn on debugging.  For instance, print which hook catches
     a line of output.  See Hook.cc:199 (Hook::run).
     Also, print ${color_code} rather than colors, so people can write regexes that match.
-I broke snarf_prompt and showprompt on DIKU's (telnet GA prompts)
-        showprompt      print prompt to main screen
-        echoinput       echo typed input
-        snarf_prompt    change prompt when a new one is received
-    What I should do is when (showprompt && echoinput), print the prompt we received and
-    the input rather than '>> blah'.  If (showprompt && !echoinput), just print prompt
-    (with CR!).
-    Need 2 sets of variables, one for out (destined for screen), one for hooks.
-    replace line_begin with out_buf.
-
-Fix up main for session_fd and opt_copyover_value vars from alt-restart.
+/enable blah;/hook -l blah
+    -- semicolon parsing should come before command parsing.
+Recursion counter like tf has.
 
 
 Hook:

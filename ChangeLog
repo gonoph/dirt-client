@@ -27,6 +27,10 @@
 * Rewrote Session::inputReady to deal with IAC GA prompts correctly.
 * Added Kurt's additions to alias/trigger/gag and new perl modules 
     command/keypress.
+* Fix ANSI handling to more gracefully handle invalid ANSI (Session.cc).
+* Fix ANSI split over packet boundary (Session.cc).
+* Fix hook crash due to /enable a hook that isn't defined: /enable blah
+    /hook -l blah
 
 Dirt 0.60.0
 * Made file release on sourceforge.
