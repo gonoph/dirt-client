@@ -16,6 +16,8 @@
 #include "InputLine.h"
 
 #include <iomanip>
+#include <algorithm>  // min(), max()
+
 
 HookStub::HookStub(int p, float c, int n, bool F, bool en, bool col, string nm, vector<string> g) 
     : priority(p), chance(c), shots(n), fallthrough(F), enabled(en), color(col), name(nm), groups(g) 
@@ -557,7 +559,7 @@ TriggerHookStub::TriggerHookStub(int p, float c, int n, bool F, bool en, bool co
 
 bool TriggerHookStub::operator() (string& data, savedmatch* sm) {
     bool retval;
-    char out[max(2*command.length(),1024)]; // FIXME buffer overflow
+    char out[std::max(2*command.length(),1024U)]; // FIXME buffer overflow
 
     //if(sm) report_err("TriggerHookStub::operator() called with existing savedmatch!");
 

@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <algorithm>
+
 
 void error(const char *fmt, ...) {
     va_list va;
@@ -217,7 +219,7 @@ int countChar(const char *s, int c)
 int longestLine (const char *s)
 {
     char buf[MAX_MUD_BUF];
-    int max_len = 0;
+    unsigned max_len = 0;
     strcpy(buf, s);
 
     s = strtok(buf, "\n");

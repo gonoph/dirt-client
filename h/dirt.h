@@ -40,13 +40,6 @@ void * operator new (size_t size);
 void operator delete (void *ptr);
 #endif
 
-inline int max(int a, int b) {
-	return a > b ? a : b;
-}
-
-inline int min(int a, int b) {
-	return a < b ? a : b;
-}
 
 //#if !HAVE_HASH_STRING && HAVE_HASH_MAP  // gcc 3.X has hash<string>, 2.9.X does not
 // This is not provided by g++ (2.9.X) ... it should be.

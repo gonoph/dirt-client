@@ -10,6 +10,7 @@
 #include <deque>
 #include <list>
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -512,12 +513,14 @@ void Border::redraw() {
     
     if (top_message.len()) {
         gotoxy(1,0);
-        printf("%-*.*s", min(strlen(top_message),width-2), min(strlen(top_message),width-2), ~top_message);
+	int w = strlen(top_message);
+        printf("%-*.*s", std::min(w, width-2), std::min(w, width-2), ~top_message);
     }
 
     if (bottom_message.len()) {
         gotoxy(1,height-1);
-        printf("%-*.*s", min(strlen(bottom_message),width-2), min(strlen(bottom_message), width-2), ~bottom_message);
+	int w = strlen(bottom_message);
+        printf("%-*.*s", std::min(w, width-2), std::min(w, width-2), ~bottom_message);
     }
     
     dirty = false;
