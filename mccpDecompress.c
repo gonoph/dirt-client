@@ -163,7 +163,7 @@ static void decompress_inbuf(mc_state *state)
     state->stream->avail_in = state->insize;
     state->stream->avail_out = state->outalloc - state->outsize;
     
-    status = inflate(state->stream, Z_PARTIAL_FLUSH);
+    status = inflate(state->stream, Z_SYNC_FLUSH);
 
     if (status == Z_OK || status == Z_STREAM_END) {
         /* Successful decompression */
@@ -274,7 +274,6 @@ void mudcompress_receive(mc_state *state, const char *data, unsigned len)
                     i--;
                     continue;
                 }
-                    
                 if (!memcmp(&state->outbuf[i], will_v2, clen)) {
                     if (clen != strlen(will_v2)) {
                         /* Partial match. Save it. */
@@ -331,7 +330,9 @@ void mudcompress_receive(mc_state *state, const char *data, unsigned len)
                     state->stream->zfree = zlib_free;
                     state->stream->opaque = NULL;
 
-                    if (inflateInit(state->stream) != Z_OK) {
+                    int err;
+                    if ((err=inflateInit(state->stream)) != Z_OK) {
+                        printf("Zlib decompression error: %d\n", err);
                         state->error = 1;
                         free(state->stream);
                         state->stream = NULL;
