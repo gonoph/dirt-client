@@ -270,6 +270,9 @@ to happen out of order?
     ....I think this is because the perl commands are read from the socket
     *after* all commands have been processed.  There's no way of knowing which
     order they came in.
+Not modifying mud string problem:   
+    Since perl code gets added to command stack, the mud line is printed BEFORE
+    the RHS of any hook that matched the line sees it.
 
 Hook:
 -----

@@ -166,7 +166,7 @@ bool PerlEmbeddedInterpreter::run(const char*, const char *function, const char 
         if(out) strcpy(out, oldarg.c_str()); // return unmodified argument.
         retval = true;  // What to return in this case...
         if(haserror) haserror = true;
-    } else {
+    } else { // No error
         if(haserror) haserror = false;
         if (out) {
             if(SvOK(default_var)) { // Prevents uninitialized value warnings of $_ = undef;

@@ -16,9 +16,8 @@
 
 #define DIRT_LOCAL_LIBRARY_PATH "/usr/local/lib/dirt"
 #define DIRT_LIBRARY_PATH "/usr/lib/dirt"
+#define DEFAULT_INTERP ""
 extern time_t current_time;
-
-
 
 bool EmbeddedInterpreter::constboolfalse = false;
 // Default interpreter if we don't manage to load anything
@@ -76,7 +75,7 @@ bool StackedInterpreter::run(const char* lang, const char *function, const char 
         if(haserror) err_somewhere |= embhaserror;
     } else {
         for(hash_map<string,EmbeddedInterpreter*,hash<string> >::iterator it = interpreters.begin(); it != interpreters.end(); it++) {
-            if(it->first == "") continue; // skip the default one -- it's in the list twice
+            if(it->first == DEFAULT_INTERP) continue; // skip the default one -- it's in the list twice
             embhaserror = true; // tell the embedded interpreter that it should report errors to us.
             res = it->second->run(lang, function, arg, buf[i], sm, embhaserror) || res;
              // If there was an error in any interpreter, err_somewhere should be true
@@ -94,7 +93,7 @@ bool StackedInterpreter::run(const char* lang, const char *function, const char 
 bool StackedInterpreter::load_file(const char* filename, bool suppress) {
     bool res = false;
     for(hash_map<string,EmbeddedInterpreter*,hash<string> >::iterator it = interpreters.begin(); it != interpreters.end(); it++) {
-        if(it->first == "") continue;
+        if(it->first == DEFAULT_INTERP) continue;
         res = it->second->load_file(filename, suppress) || res;
     }
     return res;
@@ -102,40 +101,41 @@ bool StackedInterpreter::load_file(const char* filename, bool suppress) {
 
 bool StackedInterpreter::eval(const char* lang, const char* expr, const char* arg, 
         char* out, savedmatch* sm) {
+    if(!lang) lang = DEFAULT_INTERP; // In case it's null.
     return interpreters[lang]->eval(lang, expr, arg, out, sm);
 }
 
 void *StackedInterpreter::match_prepare(const char* pattern, const char* replacement) {
-    return interpreters[""]->match_prepare(pattern,replacement);
+    return interpreters[DEFAULT_INTERP]->match_prepare(pattern,replacement);
 }
 
 void* StackedInterpreter::substitute_prepare(const char* pattern, const char* replacement)  {
-    return interpreters[""]->match_prepare(pattern,replacement);
+    return interpreters[DEFAULT_INTERP]->match_prepare(pattern,replacement);
 }
 
 bool StackedInterpreter::match(void *perlsub, const char *str, char * const & out) {
-    return interpreters[""]->match(perlsub, str, out);
+    return interpreters[DEFAULT_INTERP]->match(perlsub, str, out);
 }
 
 void StackedInterpreter::set(const char *var, int value) {
     for(hash_map<string,EmbeddedInterpreter*,hash<string> >::iterator it = interpreters.begin(); it != interpreters.end(); it++) {
-        if(it->first == "") continue;
+        if(it->first == DEFAULT_INTERP) continue;
         it->second->set(var, value);
     }
 }
 
 void StackedInterpreter::set(const char *var, const char* value) {
     for(hash_map<string,EmbeddedInterpreter*,hash<string> >::iterator it = interpreters.begin(); it != interpreters.end(); it++) {
-        if(it->first == "") continue;
+        if(it->first == DEFAULT_INTERP) continue;
         it->second->set(var, value);
     }
 }
 
 int StackedInterpreter::get_int(const char* name) {
-    return interpreters[""]->get_int(name);
+    return interpreters[DEFAULT_INTERP]->get_int(name);
 }
 char* StackedInterpreter::get_string(const char*name) {
-    return interpreters[""]->get_string(name);
+    return interpreters[DEFAULT_INTERP]->get_string(name);
 }
 
 
@@ -150,7 +150,7 @@ bool StackedInterpreter::run_quietly(const char* lang, const char* path, const c
         arg = buf[i++];
     } else {
         for(hash_map<string,EmbeddedInterpreter*,hash<string> >::iterator it = interpreters.begin(); it != interpreters.end(); it++) {
-            if(it->first == "") continue;
+            if(it->first == DEFAULT_INTERP) continue;
             res = it->second->run_quietly(lang, path, arg, buf[i], suppress_error) || res;
             arg = buf[i++];
         }
