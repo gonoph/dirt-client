@@ -41,6 +41,30 @@ void report(const char *fmt, ...) {
     free(newfmt);
 }
 
+void report_warn(const char *fmt, ...) {
+    va_list va;
+    int len = strlen(fmt);
+    char buf[4096];
+    char *newfmt = (char*)malloc(len+25);
+    strcpy(newfmt, "@ \xEA\xFF\xEA\x04[WARNING]\xEA\xFE\xEA\x07 ");
+    len = strlen(newfmt);
+    strcpy(newfmt+len, fmt);
+    len = strlen(newfmt);
+    if(newfmt[len-1] != '\n') {
+        newfmt[len] = '\n';
+        newfmt[len+1] = '\0';
+    }
+    va_start(va,fmt);	
+    vsnprintf(buf, sizeof(buf)-1, newfmt,va);
+    va_end(va);
+
+    if (outputWindow) {
+        outputWindow->print(buf);
+    } else
+        fprintf(stderr, "%s", buf);
+    free(newfmt);
+}
+
 void report_err(const char *fmt, ...) {
     va_list va;
     int len = strlen(fmt);
@@ -79,10 +103,16 @@ string debackslashify(const string& s) {
     if((pos = s.find('\\', lastpos)) != string::npos) {
         do {
             retval += s.substr(lastpos, pos-lastpos);
-            retval += s.substr(pos+1, 1);
-            lastpos = pos+2;
+            if(pos < s.length()-1) {
+                retval += s.substr(pos+1, 1);
+                lastpos = pos+2;
+            } else {
+                lastpos = pos+1; // what if this is last char?
+            }
         } while((pos = s.find('\\', lastpos)) != string::npos);
-        retval += s.substr(lastpos, s.length()-lastpos);
+        if(s.length()-lastpos > 0) {
+            retval += s.substr(lastpos, s.length()-lastpos);
+        }
         return retval;
     } else {
         return s;
@@ -91,18 +121,20 @@ string debackslashify(const string& s) {
 
 string backslashify(const string& s, char c) {
     size_t lastpos=0,pos=0;
-    string tmp("");
-    string retval(s);
-    // First double each backslash
-    if((pos = retval.find('\\', lastpos)) != string::npos) {
-        do {
-            tmp += retval.substr(lastpos, pos-lastpos);
-            tmp += "\\\\"; // TWO backslashes.
-            lastpos = pos+1;
-        } while((pos = retval.find('\\', lastpos)) != string::npos);
-        tmp += retval.substr(lastpos, retval.length()-lastpos);
-    } else tmp = s;
-    retval = "";
+//    string tmp("");
+//    string retval(s);
+    string tmp(s);
+    string retval("");
+    // First double each backslash ***only if it preceedes the character we're escaping!
+//    if((pos = retval.find('\\', lastpos)) != string::npos) {
+//        do {
+//            tmp += retval.substr(lastpos, pos-lastpos);
+//            tmp += "\\\\"; // TWO backslashes.
+//            lastpos = pos+1;
+//        } while((pos = retval.find('\\', lastpos)) != string::npos);
+//        tmp += retval.substr(lastpos, retval.length()-lastpos);
+//    } else tmp = s;
+//    retval = "";
     lastpos = pos = 0;
     // Now escape c
     if((pos = tmp.find(c, lastpos)) != string::npos) {
