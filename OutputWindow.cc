@@ -123,7 +123,6 @@ bool OutputWindow::moveViewpoint(move_t dir)
 
 ScrollbackController::ScrollbackController(Window *_parent, OutputWindow *_output) 
     : Window(_parent,0,0,None), output(_output) {
-//    output->freeze(); 
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true,  // FIXME segfault here somewhere
         "__DIRT_ScrollbackController::keypress_page_up", vector<string>(1, "Dirt keys"), "", "", 
         NULL, key_page_up, "", &ScrollbackController::keypress_page_up, (void*)this));
