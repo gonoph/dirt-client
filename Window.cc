@@ -131,7 +131,7 @@ Window::~Window()
 {
     Window *w, *w_next;
     // Kill all children
-    cerr << "Killing window: " << getName() << endl;
+//    cerr << "Killing window: " << getName() << endl;
     
     check();
     for (w = child_first; w; w = w_next) {
