@@ -1,5 +1,8 @@
 * Changes to configure.in, Makefile.in for debug/optimized builds, install depends
   on all, and make perl required.
+* Fixed key behavior so both old/new key handling works.  (Need to move 
+  hook.run(KEYPRESS...) to TTY.cc when conversion is complete)
+* Leave scrollback when at end, don't start in scrollback mode.
 
 Dirt 0.60.0
 * Made file release on sourceforge.
