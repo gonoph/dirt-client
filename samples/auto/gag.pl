@@ -42,7 +42,7 @@ sub command_gag {
     my($name);
     @ARGV = (); # reset it.
     if(/${main::commandCharacter}gag(.*)/) { $_ = $1; }
-    else { report_err("This doesn't seem to be a /gag command!\n"); }
+    else { &main::report_err("This doesn't seem to be a /gag command!\n"); }
 # Line noise counts as perl?  Why, yes.
     while(/\G\s+(?:(-[A-Za-z]+)?\s*\"(.*?[[^\\](?:\\\\)*|)\"|(-[A-Za-z]+)?\s*\'(.*?[^\\](?:\\\\)*|)\'|(=)|(-[A-Za-z]*t) *($regexdelim)(.*?[^\\](?:\\\\)*)?\7|([^ \t\n"']+))/g) {
         if(defined $1) { 
