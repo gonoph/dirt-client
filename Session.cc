@@ -235,8 +235,9 @@ bool  NetworkStateWindow::keypress(int key) {
 		return false;
 }
 
-Session::Session(MUD& _mud, Window *_window, int _fd) : Socket(_fd), state(disconnected),mud(_mud), window(_window),
-nsw(NULL), timer(NULL),  statWindow(NULL), last_nsw_update(0)
+Session::Session(MUD& _mud, Window *_window, int _fd) : Socket(_fd), state(disconnected),mud(_mud), 
+    window(_window), nsw(NULL), timer(NULL),  statWindow(NULL), pos(0), out(out_buf), line_begin(out),
+    code_pos(-1), last_nsw_update(0)
 {
     input_buffer[0] = NUL;
     prompt[0] = NUL;
@@ -400,14 +401,6 @@ void Session::errorEncountered(int) {
 void Session::inputReady() {
     char    temp_buf[MAX_MUD_BUF];
     unsigned char *lastline = (unsigned char*)input_buffer; // points WRT input_buffer
-    // These are used in processing the input.  In case of a partial line, they
-    // are static so they can be used when the rest of the line is received.
-    static int     pos=0;
-    static char    out_buf[MAX_MUD_BUF];
-    static char   *out=out_buf;             // points into out_buf
-    static char   *line_begin = out;        // Points WRT out
-    static int     code_pos = -1;           // indicates where inside an ANSI sequence we are.
-                                            // -1 indicates we're not inside an ansi sequence.
     int     count;
     int     i;
 
@@ -451,6 +444,7 @@ void Session::inputReady() {
                 if (++i < count + pos) {/* just forget it if it appears at the end of a buffer */
                     /* spec: handle prompts that split across reads */
                     if (input_buffer[i] == GA || input_buffer[i] == EOR) { /* this is a prompt */
+//                        report("Found an IAC GA or IAC EOR.\n");
                         memcpy(prompt, line_begin, out-line_begin);
                         prompt[out-line_begin] = NUL;
                         hook.run(OUTPUT, (char*)prompt);

@@ -48,7 +48,15 @@ private:
 	time_t connect_time;			// When did we connect?
 	time_t dial_time;
     } stats;
-    
+
+    // These are used in processing the input.  In case of a partial line, they
+    // are member variables so they can be used when the rest of the line is received.
+    int     pos;
+    char    out_buf[MAX_MUD_BUF];
+    char   *out;                     // points into out_buf
+    char   *line_begin;              // Points WRT out
+    int     code_pos;                // indicates where inside an ANSI sequence we are.
+                                     // -1 indicates we're not inside an ansi sequence.
     time_t last_nsw_update;
     mc_state *mcinfo;
     ColorConverter colorConverter;

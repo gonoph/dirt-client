@@ -1,3 +1,4 @@
+* Rearranged some variables in Session.cc to enable multi-session.
 * Changes to configure.in, Makefile.in for debug/optimized builds, install depends
   on all, and make perl required.
 * Fixed key behavior so both old/new key handling works.  (Need to move 
