@@ -408,17 +408,16 @@ void Session::errorEncountered(int) {
 // Data from the MUD has arrived
 void Session::inputReady() {
     char    temp_buf[MAX_MUD_BUF];
-    unsigned char   *lastline = (unsigned char*)input_buffer;
+    unsigned char *lastline = (unsigned char*)input_buffer;
     // These are used in processing the input.  In case of a partial line, they
     // are static so they can be used when the rest of the line is received.
     static int     pos=0;
     static char    out_buf[MAX_MUD_BUF];
-    static char   *out;                   // points into out_buf
+    static char   *out=out_buf;           // points into out_buf
     static char   *prompt_begin = NULL;   // Points WRT out
     static int     code_pos = -1;         // indicates where inside an ANSI sequence we are.
                                    // -1 indicates we're not inside an ansi
                                    // sequence.
-    
     int     count;
     int     i;
 
@@ -447,17 +446,15 @@ void Session::inputReady() {
     while (mudcompress_pending(mcinfo) && pos < MAX_MUD_BUF-1) {
         // Get some data
         count = mudcompress_get(mcinfo, (char*) input_buffer + pos, MAX_MUD_BUF - pos - 1);
+        lastline = (unsigned char*)input_buffer;
 
         if (count > 0 && chatServerSocket)
             chatServerSocket->handleSnooping((char*)(input_buffer+pos), count);
 
         /* Process the buffer */
-        for (i = pos; i < count + pos; i++)
-        {
+        for (i = pos; i < count + pos; i++) {
             /* Lose patience of code does not terminate within 16 characters */
-            if (code_pos >= 0 && i - code_pos > 16)
-                code_pos = -1;
-            
+            if (code_pos >= 0 && i - code_pos > 16) code_pos = -1;
             
             /* IAC: next character is a telnet command */
             if (input_buffer[i] == IAC) {
@@ -536,13 +533,13 @@ void Session::inputReady() {
                     out = line + strlen(line);
                     len = strlen(line);
                     interpreter.execute(); // If triggers generated any new commands, execute them.
-
                     prompt_begin = out;
                     *out='\0';      // Make sure it's null terminated
                     
+                    lastline = input_buffer + i+1;
                     // if we had a >0 char line and now have 0 line.. the line
                     // shouldn't be shown at all.
-                    if (old_len > 0 && len == 0) {
+                    if (old_len > 0 && len == 0) {  // Line was gagged...
                         if (out > out_buf)
                             prompt_begin = out-1;
                         else
@@ -555,7 +552,6 @@ void Session::inputReady() {
                         prompt_begin=NULL;
                     }
                     out = out_buf;  // reset pointer -- use this buffer over.
-                    lastline = input_buffer + i+1;
                 } else if (input_buffer[i] != '\r')	/* discard those */
                     *out++ = input_buffer[i];	/* Add to output buffer */
             }
@@ -581,8 +577,9 @@ void Session::inputReady() {
         
         *out = NUL;
 
-        /* Do we have some leftover data, an incomplete ANSI sequence? */
+        /* Do we have some leftover data or an incomplete ANSI sequence? */
         if(lastline != input_buffer + i) {
+            // count+pos = max size of buffer
             pos = count+pos-(lastline-(unsigned char*)input_buffer);
             memcpy(input_buffer, lastline, pos);
             input_buffer[pos] = '\0';

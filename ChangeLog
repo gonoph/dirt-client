@@ -15,6 +15,7 @@
 * OptionParser now uses = as well as -- to terminate option processing.
 * We no longer trigger on incompletely received lines.  We gotta get a \n before
     we try to trigger on it.
+* Fix segfault in previous bug fix.
 
 Dirt 0.60.0
 * Made file release on sourceforge.
