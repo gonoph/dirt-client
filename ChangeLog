@@ -25,6 +25,8 @@
 * Renamed several dirt hooks to be invisible to /hook -l.
 * Remove alt-t restarts dirt.  Just /quit and re-run it.  :)
 * Rewrote Session::inputReady to deal with IAC GA prompts correctly.
+* Added Kurt's additions to alias/trigger/gag and new perl modules 
+    command/keypress.
 
 Dirt 0.60.0
 * Made file release on sourceforge.

@@ -22,7 +22,7 @@ sub definegags {
                 }
             }
         }
-        $hookcmd .= " " ." -p $pri -fL perl " . $name . " = Gag::gagit";
+        $hookcmd .= " " ." -p $pri -fL perl '__DIRT_GAG_" . $name . "' = Gag::gagit";
         &main::run($hookcmd);
     }
     &main::run($main::commandCharacter . "hook -d definegags"); # delete myself from INIT list.
@@ -44,26 +44,21 @@ sub command_gag {
     if(/${main::commandCharacter}gag(.*)/) { $_ = $1; }
     else { &main::report_err("This doesn't seem to be a /gag command!\n"); }
 # Line noise counts as perl?  Why, yes.
-    while(/\G\s+(?:(-[A-Za-z]+)?\s*\"(.*?[[^\\](?:\\\\)*|)\"|(-[A-Za-z]+)?\s*\'(.*?[^\\](?:\\\\)*|)\'|(=)|(-[A-Za-z]*t) *($regexdelim)(.*?[^\\](?:\\\\)*)?\7|([^ \t\n"']+))/g) {
+    while(/\G\s+(?:(-[A-Za-z]+)?\s*([\"'])(.*?[^\\](?:\\\\)*|)\2|(=)|(-[A-Za-z]*t) *($regexdelim)(.*?[^\\](?:\\\\)*)?\6|([^ \t\n"']+))/g) {
         if(defined $1) { 
             push @ARGV, $1; 
-            push @ARGV, &main::debackslashify($2);
-        } elsif(defined $2) { 
-            push @ARGV, &main::debackslashify($2);
-        } elsif(defined $3) {
-            push @ARGV, $3;
-            push @ARGV, &main::debackslashify($4);
-        } elsif(defined $4) {
-            push @ARGV, &main::debackslashify($4);
-        } elsif(defined $5) { # The rest is the thing to be executed 
-            push @ARGV, $5;
+            push @ARGV, &main::debackslashify($3);
+        } elsif(defined $3) { 
+            push @ARGV, &main::debackslashify($3);
+        } elsif(defined $4) { # The rest is the thing to be executed 
+            push @ARGV, $4;
             if(m/\G\s+(.*)$/g) { push @ARGV, $1; }
             last;
-        } elsif(defined $6) {
-            push @ARGV, $6;
-            push @ARGV, (defined $8)?$8:"";     # NO debackslashify.
-        } elsif(defined $9) {
-            push @ARGV, $9;
+        } elsif(defined $5) {
+            push @ARGV, $5;
+            push @ARGV, (defined $7)?$7:"";     # NO debackslashify.
+        } elsif(defined $8) {
+            push @ARGV, $8;
         } else {
             &main::report_err($main::commandCharacter . "gag: Error parsing command into \@ARGV\n");
             last;
@@ -88,7 +83,7 @@ sub command_gag {
     }
     if(defined $opts{d} && $opts{d}) {
         if(defined $Gags{$opts{d}}) {
-            &main::run($main::commandCharacter . "hook -d " . $opts{d});
+            &main::run($main::commandCharacter . "hook -d '__DIRT_GAG_" . $opts{d} . "'");
             delete $Gags{$opts{d}};
         } else {
             &main::report_err($main::commandCharacter . "gag: cannot delete gag '$opts{d}' because it isn't defined.\n");
@@ -112,10 +107,50 @@ sub command_gag {
         return 1;
     }
     $name = $ARGV[0];
-    $hookcmd .= "'" . $name . "' = Gag::gagit";
-#    &main::report("hook command is: $hookcmd");
+    $hookcmd .= "'__DIRT_GAG_" . $name . "' = Gag::gagit";
     &main::run($hookcmd);
     $Gags{$name} = \%gaghash;  # main::save will save complex data structures for us!
+    return 1;
+}
+
+# Intercept /enable and /disable to keep our %Gags hash accurate
+&main::run("/hook -T COMMAND -fL perl -C enable Gag::command_enable = Gag::command_enable");
+sub command_enable {
+    @ARGV = (); # reset it.
+    if(!/^${main::commandCharacter}enable/g) { 
+        &main::report_err("This doesn't seem to be an /enable command!\n"); 
+        return 1;
+    }
+    return if(!/\G\s+-G/g);
+    return if(/-g/); # The only option to /enable -- the C++ /enable will generate a 
+                     # bunch of /enable commands in this case.
+    while(/\G\s+("|'|)([ :\w]+)\1/g) {
+        if(defined $Gags{$2}) {
+            $Gags{$2}->{'D'} = 0;
+	    &main::run("/enable '__DIRT_GAG_$2'");
+        }
+        # else ignore it...it may be a hook, not a alias.
+    }
+    return 1;
+}
+
+&main::run("/hook -T COMMAND -fL perl -C disable Gag::command_disable = Gag::command_disable");
+sub command_disable {
+    @ARGV = (); # reset it.
+    if(!/${main::commandCharacter}disable/g) { 
+        &main::report_err("This doesn't seem to be a /disable command!\n"); 
+        return 1;
+    }
+    return if(!/\G\s+-G/g);
+    return if(/-g/); # The only option to /disable -- the C++ /disable will generate a 
+                     # bunch of /disable commands in this case.
+    while(/\G\s+("|'|)([ :\w]+)\1/g) {
+        if(defined $Gags{$2}) {
+            $Gags{$2}->{'D'} = 1;
+	    &main::run("/disable '__DIRT_GAG_$2'");
+        }
+        # else ignore it...it may be a hook, not a alias.
+    }
     return 1;
 }
 

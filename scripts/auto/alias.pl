@@ -7,6 +7,8 @@ if(!defined %Aliases) {
     %Aliases = ();
 }
 my($regexdelim) = qr/[\#\/\%\&!,=:]/;           # regex delimiters
+my($aliasargs)  = "(?:\\\\s+([^\\\\s]+))?" x 20;# set the regex that automatically matches alias arguments
+   $aliasargs   = qr/$aliasargs/;
     
 &main::run("/hook -T INIT -F -fL perl definealiases = Alias::definealiases");
 sub definealiases {
@@ -21,7 +23,7 @@ sub definealiases {
                 }
             }
         }
-        $hookcmd .= " -C '$name' '" . $name . "' = " . $Aliases{$name}->{'action'};
+        $hookcmd .= " -t'$name$aliasargs' '__DIRT_ALIAS_" . $name . "' = " . $Aliases{$name}->{'action'};
         &main::run($hookcmd);
     }
     &main::run($main::commandCharacter . "hook -d definealiases"); # delete myself from INIT list.
@@ -74,7 +76,7 @@ sub command_alias {
     }
     if(defined $opts{d} && $opts{d}) {
         if(defined $Aliases{$opts{d}}) {
-            &main::run($main::commandCharacter . "hook -d '" . $opts{d} . "'");
+            &main::run($main::commandCharacter . "hook -d '__DIRT_ALIAS_" . $opts{d} . "'");
             delete $Aliases{$opts{d}};
         } else {
             &main::report_err($main::commandCharacter . "alias: cannot delete alias '$opts{d}' because it isn't defined.\n");
@@ -101,49 +103,53 @@ sub command_alias {
     }
     $name = $ARGV[0];
     $aliashash{'action'} = join(" ", @ARGV[2..$#ARGV]);
-    $hookcmd .= "-C '$name' '" . $name . "' = " . $aliashash{'action'};
+    $hookcmd .= "-t'$name$aliasargs' '__DIRT_ALIAS_" . $name . "' = " . $aliashash{'action'};
     &main::run($hookcmd);
     $Aliases{$name} = \%aliashash;  # main::save will save complex data structures for us!
     return 1;
 }
 
 # Intercept /enable and /disable to keep our %Aliases hash accurate
-&main::run("/hook -T COMMAND -FfL perl -C enable Alias::command_enable = Alias::command_enable");
+&main::run("/hook -T COMMAND -fL perl -C enable Alias::command_enable = Alias::command_enable");
 sub command_enable {
     @ARGV = (); # reset it.
     if(!/^${main::commandCharacter}enable/g) { 
         &main::report_err("This doesn't seem to be an /enable command!\n"); 
         return 1;
     }
+    return if(!/\G\s+-A/g);
     return if(/-g/); # The only option to /enable -- the C++ /enable will generate a 
                      # bunch of /enable commands in this case.
-    while(/\G\s+([A-Za-z_:]+)/g) {
-        if(defined $Aliases{$1}) {
-            $Aliases{$1}->{'D'} = 0;
+    while(/\G\s+("|'|)([ :\w]+)\1/g) {
+        if(defined $Aliases{$2}) {
+            $Aliases{$2}->{'D'} = 0;
+	    &main::run("/enable '__DIRT_ALIAS_$2'");
         }
         # else ignore it...it may be a hook, not a alias.
     }
     return 1;
 }
 
-&main::run("/hook -T COMMAND -FfL perl -C disable Alias::command_disable = Alias::command_disable");
+&main::run("/hook -T COMMAND -fL perl -C disable Alias::command_disable = Alias::command_disable");
 sub command_disable {
     @ARGV = (); # reset it.
     if(!/${main::commandCharacter}disable/g) { 
         &main::report_err("This doesn't seem to be a /disable command!\n"); 
         return 1;
     }
+    return if(!/\G\s+-A/g);
     return if(/-g/); # The only option to /disable -- the C++ /disable will generate a 
                      # bunch of /disable commands in this case.
-    while(/\G\s+([A-Za-z_:]+)/g) {
-        if(defined $Aliases{$1}) {
-            $Aliases{$1}->{'D'} = 1;
+    while(/\G\s+("|'|)([ :\w]+)\1/g) {
+        if(defined $Aliases{$2}) {
+            $Aliases{$2}->{'D'} = 1;
+	    &main::run("/disable '__DIRT_ALIAS_$2'");
         }
         # else ignore it...it may be a hook, not a alias.
     }
     return 1;
 }
 
-print "Loaded auto/alias.pl\t(User defined commands)\n";
+print "Loaded auto/alias.pl\t(Shortcuts for commands)\n";
 
 1;

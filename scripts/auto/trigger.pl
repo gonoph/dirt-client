@@ -21,7 +21,7 @@ sub definetriggers {
                 }
             }
         }
-        $hookcmd .= " '" . &main::backslashify($name, '\'') . "' = " . $Triggers{$name}->{'action'};
+        $hookcmd .= " '__DIRT_TRIGGER_" . $name . "' = " . $Triggers{$name}->{'action'};
         &main::run($hookcmd);
     }
     &main::run($main::commandCharacter . "hook -d definetriggers"); # delete myself from INIT list.
@@ -67,6 +67,7 @@ sub command_trigger {
 #    $Getopt::Long::bundling=1;
 #    GetOptions(\%opts, "l:s", "D+", "F+", "a+", "f+", "d=s", "p=i", "c=f", "n=i", "g=s", "L=s", "t=s");
     getopts('lDFafd:p:c:n:g:L:t:', \%opts);
+    my($fallthrough) = (0);
     my($hookcmd) = "/hook -T OUTPUT ";
 
     if(defined $opts{l} && $opts{l}) {
@@ -82,31 +83,31 @@ sub command_trigger {
     }
     if(defined $opts{d} && $opts{d}) {
         if(defined $Triggers{$opts{d}}) {
-            &main::run($main::commandCharacter . "hook -d '" . &main::backslashify($opts{d},'\'') . "'");
+            &main::run($main::commandCharacter . "hook -d '__DIRT_TRIGGER_" . $opts{d} . "'");
             delete $Triggers{$opts{d}};
         } else {
             &main::report_err($main::commandCharacter . "trig: cannot delete trigger '$opts{d}' because it isn't defined.\n");
         }
         return 1;
     }
-    if(defined $opts{F}) { $hookcmd .= "-F "; $trighash{F} = 1; }
-    else { $trighash{F} = 0; }
     if(defined $opts{a}) { $hookcmd .= "-a "; $trighash{a} = 1; }
     else { $trighash{a} = 0; }
+    if(defined $opts{c}) { $hookcmd .= "-c '$opts{c}' "; $trighash{c} = $opts{c}; }
+    else { $trighash{c} = 1.0; } # default chance
     if(defined $opts{D}) { $hookcmd .= "-D "; $trighash{D} = 1; }
     else { $trighash{D} = ""; }
     if(defined $opts{f}) { $hookcmd .= "-f "; $trighash{f} = 1; }
     else { $trighash{f} = 0; }
-    if(defined $opts{p}) { $hookcmd .= "-p '$opts{p}' "; $trighash{p} = $opts{p}; }
-    else { $trighash{p} = 0; } # default priority
-    if(defined $opts{c}) { $hookcmd .= "-c '$opts{c}' "; $trighash{c} = $opts{c}; }
-    else { $trighash{c} = 1.0; } # default chance
-    if(defined $opts{n}) { $hookcmd .= "-n '$opts{n}' "; $trighash{n} = $opts{n}; }
-    else { $trighash{n} = -1; } # default shots = infinite
+    if(defined $opts{F}) { $hookcmd .= "-F "; $trighash{F} = 1; }
+    else { $trighash{F} = 0; }
     if(defined $opts{g}) { $hookcmd .= "-g '$opts{g}' "; $trighash{g} = $opts{g}; }
     else { $trighash{g} = ""; }
+    if(defined $opts{n}) { $hookcmd .= "-n '$opts{n}' "; $trighash{n} = $opts{n}; }
+    else { $trighash{n} = -1; } # default shots = infinite
     if(defined $opts{L}) { $hookcmd .= "-L '$opts{L}' "; $trighash{L} = $opts{L}; }
     else { $trighash{L} = ""; }
+    if(defined $opts{p}) { $hookcmd .= "-p '$opts{p}' "; $trighash{p} = $opts{p}; }
+    else { $trighash{p} = 0; } # default priority
     if(defined $opts{t}) { $hookcmd .= "-t '" . &main::backslashify($opts{t}, "'") . "' "; $trighash{t} = $opts{t}; }
     else { $trighash{t} = ""; }
 
@@ -118,7 +119,7 @@ sub command_trigger {
     $name = $ARGV[0];
 #    &main::report("name is: $name");
     $trighash{'action'} = join(" ", @ARGV[2..$#ARGV]);
-    $hookcmd .= "'" . $name . "' = " . $trighash{'action'};
+    $hookcmd .= "'__DIRT_TRIGGER_" . $name . "' = " . $trighash{'action'};
 #    &main::report("hook command is: $hookcmd");
     &main::run($hookcmd);
     $Triggers{$name} = \%trighash;  # main::save will save complex data structures for us!
@@ -126,42 +127,46 @@ sub command_trigger {
 }
 
 # Intercept /enable and /disable to keep our %Triggers hash accurate
-&main::run("/hook -T COMMAND -FfL perl -C enable Trigger::command_enable = Trigger::command_enable");
+&main::run("/hook -T COMMAND -fL perl -C enable Trigger::command_enable = Trigger::command_enable");
 sub command_enable {
     @ARGV = (); # reset it.
     if(!/^${main::commandCharacter}enable/g) { 
         &main::report_err("This doesn't seem to be an /enable command!\n"); 
         return 1;
     }
+    return if(!/\G\s+-T/g);
     return if(/-g/); # The only option to /enable -- the C++ /enable will generate a 
                      # bunch of /enable commands in this case.
-    while(/\G\s+([A-Za-z_:]+)/g) {
-        if(defined $Triggers{$1}) {
-            $Triggers{$1}->{'D'} = 0;
+    while(/\G\s+("|'|)([ :\w]+)\1/g) {
+        if(defined $Triggers{$2}) {
+            $Triggers{$2}->{'D'} = 0;
+	    &main::run("/enable '__DIRT_TRIGGER_$2'");
         }
         # else ignore it...it may be a hook, not a trigger.
     }
     return 1;
 }
 
-&main::run("/hook -T COMMAND -FfL perl -C disable Trigger::command_disable = Trigger::command_disable");
+&main::run("/hook -T COMMAND -fL perl -C disable Trigger::command_disable = Trigger::command_disable");
 sub command_disable {
     @ARGV = (); # reset it.
     if(!/${main::commandCharacter}disable/g) { 
         &main::report_err("This doesn't seem to be a /disable command!\n"); 
         return 1;
     }
+    return if(!/\G\s+-T/g);
     return if(/-g/); # The only option to /disable -- the C++ /disable will generate a 
                      # bunch of /disable commands in this case.
-    while(/\G\s+([A-Za-z_:]+)/g) {
-        if(defined $Triggers{$1}) {
-            $Triggers{$1}->{'D'} = 1;
+    while(/\G\s+("|'|)([ :\w]+)\1/g) {
+        if(defined $Triggers{$2}) {
+            $Triggers{$2}->{'D'} = 1;
+	    &main::run("/enable '__DIRT_TRIGGER_$2'");
         }
         # else ignore it...it may be a hook, not a trigger.
     }
     return 1;
 }
 
-print "Loaded auto/trigger.pl\t(Cause commands to be executed when mud output is received)\n";
+print "Loaded auto/trigger.pl\t(Execute commands on mud output)\n";
 
 1;
