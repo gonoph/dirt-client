@@ -6,6 +6,7 @@
 
 Selection::Selection(Window *_parent, int _w, int _h, int _x, int _y)
 : Window (_parent, _w, _h, Bordered, _x, _y), count(0), selection(-1) {
+    parent->focus(this);
 }
 
 Selection::~Selection() {
@@ -41,7 +42,7 @@ void Selection::redraw() {
 	set_color(bg_blue|fg_white);
 	clear();
 
-	if (!child_first)
+	if (!children.empty())
 		inputLine->redraw(); // aack. how else do we reset this f** cursor?
 	
 	int top = max(0, selection - height/2);
@@ -170,6 +171,7 @@ void MUDSelection::doChoose(int no, int) {
 MUDSelection::MUDSelection (Window *_parent)
 : Selection (_parent, _parent->width, _parent->height/2, 0, _parent->height/4)
 {
+    parent->focus(this);
     setCount(config->mud_list->count());
 	doSelect(0);
     set_top_message("Mud Selector");
