@@ -224,7 +224,8 @@ bool Interpreter::command_send(string& str, void*) {
 }
 
 bool Interpreter::command_setinput(string& str, void*) {
-    inputLine->set(str.c_str());
+    OptionParser opt(str, "");
+    inputLine->set(opt.restStr().c_str());
     return true;
 }
 
