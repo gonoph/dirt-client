@@ -1,5 +1,5 @@
-#ifndef BUFFER_H
-#define BUFFER_H
+#ifndef DIRT_BUFFER_H
+#define DIRT_BUFFER_H
 
 class Buffer {
 public:

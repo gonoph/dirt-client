@@ -1,3 +1,6 @@
+#ifndef DIRT_CURSES_H
+#define DIRT_CURSES_H
+
 void init_curses(bool);
 void set_title(const char*); // set xterm title
 const char *lookup_key(const char *); // kf1-> whatver f1 key should return
@@ -14,3 +17,5 @@ enum {
 };
 
 extern const char *smacs, *rmacs; // set/reset ACS
+
+#endif

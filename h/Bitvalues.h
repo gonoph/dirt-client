@@ -1,3 +1,6 @@
+#ifndef DIRT_BITVALUES_H
+#define DIRT_BITVALUES_H
+
 /* This file contains all the bits, making it easier to create those bfields */
 
 #define BIT_0               0x00000001      /*             1 */
@@ -34,4 +37,4 @@
 
 /* the 31st is the sign bit - we'll leave it alone */
 
-
+#endif

@@ -1,3 +1,7 @@
+#ifndef DIRT_SELECTION_H
+#define DIRT_SELECTION_H
+
+
 typedef void SelectionCallback (void *data, const char *s, int n);
 
 // This is a window which contains some strings. The user can
@@ -47,3 +51,4 @@ private:
     virtual bool keypress(int key);
 };
 
+#endif

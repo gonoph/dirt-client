@@ -7,6 +7,10 @@
  *
  */
 
+#ifndef DIRT_VARIABLES_H
+#define DIRT_VARIABLES_H
+
+
 #include <string>
 #include <hash_map>
 
@@ -25,3 +29,5 @@ class Variables : public hash_map<string, string, hash<string> > {
 */
     private:
 };
+
+#endif

@@ -1,3 +1,7 @@
+#ifndef DIRT_INPUTLINE_H
+#define DIRT_INPUTLINE_H
+
+
 #define MAX_PROMPT_BUF 80
 
 
@@ -113,3 +117,5 @@ public:
 
 extern HistorySet *history;
 extern MainInputLine *inputLine;
+
+#endif

@@ -1,3 +1,7 @@
+#ifndef DIRT_TTY_H
+#define DIRT_TTY_H
+
+
 // TTY. handles reading keys from the keyboard
 // Control keys are parsed here
 
@@ -103,4 +107,4 @@ const char *key_name (int key);
 int key_lookup (const char *name);
 
 
-
+#endif

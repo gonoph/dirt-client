@@ -1,5 +1,5 @@
-#ifndef NULLEMBEDDEDINTERPRETER_H_
-#define NULLEMBEDDEDINTERPRETER_H_
+#ifndef DIRT_NULLEMBEDDEDINTERPRETER_H
+#define DIRT_NULLEMBEDDEDINTERPRETER_H
 
 #include "EmbeddedInterpreter.h"
 #include "dirt.h"

@@ -1,5 +1,5 @@
-#ifndef _MUD_H_
-#define _MUD_H_
+#ifndef DIRT_MUD_H
+#define DIRT_MUD_H
 
 #include <dirt.h>
 

@@ -1,5 +1,5 @@
-#ifndef __CHAT_H
-#define __CHAT_H
+#ifndef DIRT_CHAT_H
+#define DIRT_CHAT_H
 
 #include "Socket.h"
 #include "Hook.h"

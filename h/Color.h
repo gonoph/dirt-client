@@ -1,3 +1,6 @@
+#ifndef DIRT_COLOR_H
+#define DIRT_COLOR_H
+
 enum {
 	fg_black,
 	fg_blue,
@@ -39,4 +42,4 @@ enum
 #define SC_END          ( SC_BASE + max_sc) // this, which is +8, so Fsomething
 
 								
-
+#endif

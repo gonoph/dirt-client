@@ -1,3 +1,6 @@
+#ifndef DIRT_OUTPUTWINDOW_H
+#define DIRT_OUTPUTWINDOW_H
+
 
 class ScrollbackController;
 
@@ -70,3 +73,4 @@ private:
 
 extern OutputWindow *outputWindow;
 
+#endif

@@ -1,3 +1,7 @@
+#ifndef DIRT_MESSAGEWINDOW_H
+#define DIRT_MESSAGEWINDOW_H
+
+
 // This is a small derivative of Window that is numbered and
 // can be written to and created by the user and can also dump output
 // coming into it to the log file
@@ -25,3 +29,5 @@ protected:
     time_t last_input;  // When did we last get some input from this Window?
     int default_color;  // set to that before clear etc.
 };
+
+#endif

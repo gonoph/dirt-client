@@ -4,8 +4,8 @@
  * and I need this to work for an arbitrary string, or I would use getopt.
  */
 
-#ifndef OPTION_H
-#define OPTION_H
+#ifndef DIRT_OPTION_H
+#define DIRT_OPTION_H
 
 #include <limits.h>
 #if HAVE_HASH_MAP && !HAVE_EXT_HASH_MAP

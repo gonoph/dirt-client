@@ -1,5 +1,5 @@
-#ifndef STATICBUFFER_H
-#define STATICBUFFER_H
+#ifndef DIRT_STATICBUFFER_H
+#define DIRT_STATICBUFFER_H
 
 class StaticBuffer
 {

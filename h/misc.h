@@ -1,3 +1,6 @@
+#ifndef DIRT_MISC_H
+#define DIRT_MISC_H
+
 
 #include <string>
 #include "defs.h"
@@ -35,3 +38,5 @@ private:
 	bool fBold, fReport;
 	int last_fg, last_bg;
 };
+
+#endif

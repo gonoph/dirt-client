@@ -1,6 +1,6 @@
 // A buffered socket
-#ifndef __SOCKET_H
-#define __SOCKET_H
+#ifndef DIRT_SOCKET_H
+#define DIRT_SOCKET_H
 
 #include <netinet/in.h>
 

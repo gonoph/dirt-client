@@ -1,3 +1,7 @@
+#ifndef DIRT_MESSAGEBOX_H
+#define DIRT_MESSAGEBOX_H
+
+
 // The message box displays a message and either
 // 1) Disappears and dies after N seconds
 // or 2) waits for user to press RETURN
@@ -48,3 +52,4 @@ private:
 
 void messageBox(int wait, const char *fmt, ...);
 
+#endif

@@ -1,3 +1,7 @@
+#ifndef DIRT_PIPE_H
+#define DIRT_PIPE_H
+
+
 // Wrapper for pipe()
 class Pipe : public Selectable {
 public:
@@ -43,3 +47,5 @@ public:
 
 extern InterpreterPipe *interpreterPipe;
 extern OutputPipe *outputPipe;
+
+#endif

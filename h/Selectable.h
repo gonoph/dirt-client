@@ -1,3 +1,7 @@
+#ifndef DIRT_SELECTABLE_H
+#define DIRT_SELECTABLE_H
+
+
 // Selectable objects are objects that need to select() on
 // some FDs
 
@@ -15,3 +19,5 @@ public:
 private:
     static vector<Selectable*> ioList;
 };
+
+#endif

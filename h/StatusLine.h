@@ -1,5 +1,5 @@
-#ifndef __STATUS_H
-#define __STATUS_H
+#ifndef DIRT_STATUS_H
+#define DIRT_STATUS_H
 class StatusLine : public Window
 {
 	char *message;			// Current message

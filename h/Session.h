@@ -1,5 +1,5 @@
-#ifndef __SESSION_H
-#define __SESSION_H
+#ifndef DIRT_SESSION_H
+#define DIRT_SESSION_H
 
 #include "mccpDecompress.h"
 #include "Socket.h"

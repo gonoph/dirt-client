@@ -1,4 +1,5 @@
-
+#ifndef DIRT_INPUTBOX_H
+#define DIRT_INPUTBOX_H
 
 class InputBox : public Window
 {
@@ -22,3 +23,6 @@ private:
 
     virtual bool canCancel() { return true; };
 };
+
+#endif
+

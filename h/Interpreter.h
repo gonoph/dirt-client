@@ -1,7 +1,7 @@
 // The command interpreter holds commands to be executed
 
-#ifndef __INTERPRETER_H_
-#define __INTERPRETER_H_
+#ifndef DIRT_INTERPRETER_H
+#define DIRT_INTERPRETER_H
 
 #include <deque>
 #include <Hook.h>

@@ -1,3 +1,7 @@
+#ifndef DIRT_STRING_H
+#define DIRT_STRING_H
+
+
 // Really simple shared string class
 
 class String {
@@ -57,3 +61,6 @@ public:
 private:
     char *_s;
 };
+
+#endif
+

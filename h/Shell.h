@@ -1,3 +1,7 @@
+#ifndef DIRT_SHELL_H
+#define DIRT_SHELL_H
+
+
 // A shell is a Window that is executing some program and showing the results
 class Shell : public ScrollableWindow, public Selectable, public Numbered
 {
@@ -33,3 +37,5 @@ private:
     int timeout;       // How much time will there go since last input before we hide the window?
     time_t last_input; // When did we last hear from the window?
 };
+
+#endif

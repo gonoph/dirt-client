@@ -12,8 +12,8 @@
  * Note: the Hook class will delete the CppHookStub object if it is removed.
  */
 
-#ifndef _HOOK_H_
-#define _HOOK_H_
+#ifndef DIRT_HOOK_H
+#define DIRT_HOOK_H
 
 #include <dirt.h>
 

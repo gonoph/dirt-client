@@ -1,5 +1,5 @@
-#ifndef EMBEDDEDINTERPRETER_H_
-#define EMBEDDEDINTERPRETER_H_
+#ifndef DIRT_EMBEDDEDINTERPRETER_H_
+#define DIRT_EMBEDDEDINTERPRETER_H_
 
 #include <stdio.h>
 #include <string>

@@ -1,3 +1,7 @@
+#ifndef DIRT_PROXYWINDOW_H
+#define DIRT_PROXYWINDOW_H
+
+
 // A ProxyWindow forwards most requests to it to its child
 // Used for a Border
 class ProxyWindow : public Window {
@@ -23,3 +27,4 @@ private:
     String bottom_message;
 };
 
+#endif

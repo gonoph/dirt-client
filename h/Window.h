@@ -1,3 +1,7 @@
+#ifndef DIRT_WINDOW_H
+#define DIRT_WINDOW_H
+
+
 //
 // Generic window
 //
@@ -123,3 +127,5 @@ class ScrollableWindow : public Window {
     virtual bool scroll();
     NAME(ScrollableWindow);
 };
+
+#endif

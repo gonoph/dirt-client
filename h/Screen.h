@@ -1,3 +1,6 @@
+#ifndef DIRT_SCREEN_H
+#define DIRT_SCREEN_H
+
 
 class Buffer;
 class Screen  : public Window {
@@ -33,3 +36,5 @@ private:
 };
 
 extern Screen *screen;
+
+#endif

@@ -1,3 +1,7 @@
+#ifndef DIRT_WINDOWGROUP_H
+#define DIRT_WINDOWGROUP_H
+
+
 enum val_type {val_quit, val_ok}; // Cancel or OK?
 
 
@@ -28,3 +32,5 @@ class MUDEdit : public WindowGroup
 	virtual void finish();
 	virtual void redraw();
 };
+
+#endif

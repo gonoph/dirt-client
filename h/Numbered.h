@@ -1,3 +1,7 @@
+#ifndef DIRT_NUMBERED_H
+#define DIRT_NUMBERED_H
+
+
 // Numbered windows automatically number themselves with the first free
 // number
 
@@ -39,4 +43,4 @@ public:
     static Window* list[10];
 };
 
-
+#endif

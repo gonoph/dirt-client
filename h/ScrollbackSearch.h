@@ -1,3 +1,7 @@
+#ifndef DIRT_SCROLLBACKSEARCH_H
+#define DIRT_SCROLLBACKSEARCH_H
+
+
 // The dialog box shown when you want to search scrollback
 class ScrollbackSearch : public InputBox {
 public:
@@ -10,3 +14,5 @@ private:
     bool forward;
     
 };
+
+#endif

@@ -1,6 +1,5 @@
-
-#ifndef PLUGIN_H
-#define PLUGIN_H
+#ifndef DIRT_PLUGIN_H
+#define DIRT_PLUGIN_H
 
 class Plugin {
 public:

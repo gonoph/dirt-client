@@ -1,3 +1,7 @@
+#ifndef DIRT_HOTKEY_H
+#define DIRT_HOTKEY_H
+
+
 #include "Control.h"
 class Hotkey : public Control {
 public:
@@ -7,3 +11,5 @@ public:
 };
 
 extern bool dirtRestart;
+
+#endif
