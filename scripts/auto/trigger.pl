@@ -67,7 +67,6 @@ sub command_trigger {
 #    $Getopt::Long::bundling=1;
 #    GetOptions(\%opts, "l:s", "D+", "F+", "a+", "f+", "d=s", "p=i", "c=f", "n=i", "g=s", "L=s", "t=s");
     getopts('lDFafd:p:c:n:g:L:t:', \%opts);
-    my($fallthrough) = (0);
     my($hookcmd) = "/hook -T OUTPUT ";
 
     if(defined $opts{l} && $opts{l}) {

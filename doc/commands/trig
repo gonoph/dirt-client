@@ -8,12 +8,12 @@ Syntax:
 
 Options:
     -F      Fallthrough to allow hooks of lower priority to be executed.
-                                                                       (default)
+                                                       (default NOT fallthrough)
     -a      Match against the COLORED ((A)NSI) string instead of the uncolored
             string.  You may include variables like ${red} in the matching 
             string.
     -D      Create trigger disabled.  They are enabled when created by default.
-    -f      <value> is a function name to execute instead of a dirt command.
+    -f      <action> is a function name to execute instead of a dirt command.
     -p      Priority of this hook.                                  (default: 0)
     -c      Chance that this hook will execute.  Should be a floating-point 
             number between 0.0 and 1.0.                           (default: 1.0)
