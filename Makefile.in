@@ -121,15 +121,15 @@ $(OBJ_DIR)/plugins/python.so: o/plugins/PythonEmbeddedInterpreter.o
 $(OBJ_DIR)/plugins/PythonEmbeddedInterpreter.o: plugins/PythonEmbeddedInterpreter.cc
 	$(CC) -c $(DIRT_CFLAGS) $(PYTHON_CPPFLAGS) $< -o $@
 
-install: $(EXE)
+install: $(EXE) all
 	$(INSTALL) -d $(INSTALL_ROOT)$(prefix)/{bin,lib/dirt/{auto,contrib,plugins,sys,doc,doc/commands}}
 	$(INSTALL) $(EXE) $(INSTALL_ROOT)$(prefix)/bin
 	$(INSTALL) o/plugins/*.so $(INSTALL_ROOT)$(prefix)/lib/dirt/plugins || : # There may be no plugins to install
 	$(INSTALL) samples/auto/*.* $(INSTALL_ROOT)$(prefix)/lib/dirt/auto/ # The *.* is desired, not a typo
 	$(INSTALL) samples/contrib/*.* $(INSTALL_ROOT)$(prefix)/lib/dirt/contrib/
 	$(INSTALL) samples/sys/*.* $(INSTALL_ROOT)$(prefix)/lib/dirt/sys/
-	$(INSTALL) doc/[A-Z]* $(INSTALL_ROOT)$(prefix)/lib/dirt/doc/
-	$(INSTALL) doc/commands/* $(INSTALL_ROOT)$(prefix)/lib/dirt/doc/commands/
+	$(INSTALL) doc/{CommandLine,Help,Hooks,Keys,Scripts,Trigger} $(INSTALL_ROOT)$(prefix)/lib/dirt/doc/
+	$(INSTALL) doc/commands/[a-z]* $(INSTALL_ROOT)$(prefix)/lib/dirt/doc/commands/
 
 uninstall: 
 	$(RM) -rf $(INSTALL_ROOT)$(prefix)/lib/dirt/
