@@ -1,7 +1,7 @@
 /gag        Manipulate user defined gags                                  [Perl]
 
 Syntax:
-    /gag [-DF] [-g <group>] -t"regex" <name>
+    /gag [-DF] [-g <group>] [-n <shots> ] -t"regex" <name>
     /gag -d <name>
     /gag -l
 
@@ -13,6 +13,9 @@ Options:
     -g      Group name with which this gag should be associated.  Multiple
             groups may be specified by separating them with commas.
     -l      List defined gags.
+    -n      Gag this line <shots> times.  If <shots> is 0, the gag will never
+            be executed (but it will be defined).  If it is negative, the line
+            will be gagged forever.                                (default: -1)
 
 Notes:
     This module handles the automatic saving and loading of gags, which are

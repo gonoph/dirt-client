@@ -77,7 +77,7 @@ sub command_gag {
             my($gagref) = $Gags{$name};
             &main::report(sprintf("%-35s%6s%2s%2s%2s %s\n", $name, $gagref->{n}, 
                 $gagref->{F}?"F":"", $gagref->{D}?"D":"", $gagref->{a}?"C":"", $gagref->{g}));
-            &main::report("\tGagging: ", $gagref->{t});
+            &main::report(sprintf("\tGagging: %s\n", $gagref->{t}));
         }
         return 1;
     }
@@ -92,6 +92,8 @@ sub command_gag {
     }
     if(defined $opts{a}) { $hookcmd .= "-a "; $gaghash{a} = 1; }
     else { $gaghash{a} = 0; }
+    if(defined $opts{n}) { $hookcmd .= "-n "; $gaghash{n} = 1; }
+    else { $gaghash{n} = 0; }
     if(defined $opts{D}) { $hookcmd .= "-D "; $gaghash{D} = 1; }
     else { $gaghash{D} = ""; }
     if(defined $opts{F}) { $hookcmd .= "-F "; $aliashash{F} = 1; }
