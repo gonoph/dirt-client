@@ -317,8 +317,8 @@ bool Session::open() {
 bool Session::close() {
 	if (state > disconnected) { // Closing a closed session has no effect
             state = disconnected;
-//            embed_interp->eval("hook_run('loselink')", "", NULL);
             hook.run(LOSELINK);
+            hook.remove("__DIRT_BUILTIN_writeMUD");
 	}
 
     embed_interp->set("mud", "");
