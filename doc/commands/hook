@@ -30,7 +30,6 @@ Options:
             never be executed (but it will be defined).  If it is negative,
             the hook will execute forever.                         (default: -1)
     -F      Fallthrough to allow hooks of lower priority to be executed.
-                                                                       (default)
     -D      Create hook disabled.  Hooks are enabled when created by default.
     -g      Group name with which this hook should be associated.  Multiple
             groups may be specified by separating them with commas.
