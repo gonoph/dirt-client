@@ -30,6 +30,22 @@ sub closehelpwindow {
 }
 &main::run("/hook -k escape -W help -fL perl esc_closehelpwindow = Help::closehelpwindow");
 
+# Redraw window
+sub redraw {
+    if($height-2 > $#helpcontents) { $viewpos = 0; }
+    elsif($viewpos + $height - 2 >= $#helpcontents) { # don't move...
+    } else { $viewpos += $height - 4; } # 2 for border, 2 overlap
+
+    for($i=$viewpos;$i<(($viewpos+$height-2>$#helpcontents)?$#helpcontents:$viewpos+$height-2);$i++) {
+        &main::run("/echo -W help '" . &main::backslashify($helpcontents[$i], "'") . "'");
+    }
+    if($viewpos + $height - 2 >= $#helpcontents) { # no more help data, don't show [pgdn]
+        &main::run("/status -W help 'Keys available:        [PgUp] [Up]        [Esc] [Alt-H]'");
+    } else {
+        &main::run("/status -W help 'Keys available: [PgDn] [PgUp] [Up] [Down] [Esc] [Alt-H]'");
+    }
+}
+
 # Scrolling with page_down key
 &main::run("/hook -k page_down -W help -fL perl help_pgdn = Help::pgdn");
 sub pgdn {
@@ -63,6 +79,11 @@ sub pgup {
         &main::run("/status -W help 'Keys available: [PgDn] [PgUp] [Up] [Down] [Esc] [Alt-H]'");
     }
     return 1;
+}
+
+sub arrow_up {
+    &main::run("/clear help");
+    $viewpos -= 1;
 }
 
 &main::run("/hook -T COMMAND -C help -fL perl help = Help::command_help");

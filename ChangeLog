@@ -9,6 +9,7 @@
     fixes several segfaults.
 * Fixed escaping in regexes.
 * Wrote doc/Escaping to describe how it works.
+* Renamed samples/ -> scripts/
 
 Dirt 0.60.0
 * Made file release on sourceforge.

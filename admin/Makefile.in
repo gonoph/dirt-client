@@ -7,7 +7,7 @@ HTMLDOCS := $(patsubst %, %.html, $(DOCS))
 
 ALL_SOURCE = $(SRC_FILES) $(INC_FILES)
 # Common files for all distributions
-_COMMON_FILES := $(DOCS) samples VERSION doc/*.html doc/Changes doc/TODO INSTALL README.1ST doc/Plugins
+_COMMON_FILES := $(DOCS) scripts VERSION doc/*.html doc/Changes doc/TODO INSTALL README.1ST doc/Plugins
 _SOURCE_FILES := $(ALL_SOURCE) *.c $(INCL) Makefile.in admin/Makefile.in admin/config.* configure.in configure \
 .depend o/dummy plugins/*.cc o/plugins/.dummy dirt.spec admin/install-sh \
 dirt.spec.in VERSION.in h/config.h.in
@@ -59,7 +59,7 @@ srcdistrib:
 	rm dist/*tar
 
 distrib:
-	find samples -name "*~" -print | xargs rm -f
+	find scripts -name "*~" -print | xargs rm -f
 	$(MAKE) autoconf
 	$(MAKE) docs
 	$(MAKE) commit

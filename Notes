@@ -365,7 +365,7 @@ LOSELINK:
 PROMPT:
     Called when a prompt is received.  If your mud has a non-standard prompt,
     write an OUTPUT hook that will generate a PROMPT hook if it sees a prompt.
-    (see 'sub prompt_grab' in samples/3k/ThreeKingdoms.pl for an example)
+    (see 'sub prompt_grab' in scripts/3k/ThreeKingdoms.pl for an example)
 INIT:
     Called on startup
 DONE:
@@ -454,7 +454,7 @@ Perl:
 print()     prints to the screen, just like /echo.
 run()       sends a command to the interpreter.
 How about just having print, and that's it.  Modify sys/functions.pl for this.
-samples/sys/idle.pl -- modify to be an IDLE hook.
+scripts/sys/idle.pl -- modify to be an IDLE hook.
 
 Chat Interface:
 ---------------

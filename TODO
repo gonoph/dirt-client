@@ -1,6 +1,6 @@
 TODO before release:
 -----
-rename directories: h -> include, o -> .libs, samples -> scripts
+rename directories: h -> include, o -> .libs
 h/String.h -> STL string
 h/List.h -> libstdc++
 install should ignore CVS/ directories.
@@ -114,7 +114,8 @@ Triggers seem to randomly fail: run between wayhaven and road portal a bunch of 
     Seems to be because of incompletely received lines:
         @ Hook::run hook highlighter modified (colored) data: 'Beetle follows Zathras into th' -> 'Beetle follos ESC[0;41;37mZathrasESC[0m into th'
     but why is the line printed correctly at the end?
-
+After typing 'inventory' the next line appears after the last line of the inventory, not
+    on the next line? (only in cancer's shop)
 
 Hook:
 -----
@@ -156,7 +157,6 @@ convert:
         should copy it to the command line for modification.
     sys/idle
     sys/keys
-rename samples -> scripts
 Continue converting commands in Interpreter.cc
 Message if command not found...
 Action -> /trig, 
@@ -180,3 +180,5 @@ Screen:
 -------
 Ncurses seems well suited to all this.
 Screen.cc, Window.cc use memset on canvas to draw to screen, Screen::refresh redraws.
+curses has panel (info panel) to do overlapping windows. (info curses)
+    stdscr is below all panels (for mud output)

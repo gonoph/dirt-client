@@ -6,6 +6,6 @@ To see the differences from mcl-0.52.99, look at the ChangeLog.
 
 To see what we're working on, look at Notes.
 
-To get started, copy the contents of the samples/ directory to a directory
+To get started, copy the contents of the scripts/ directory to a directory
 ~/.dirt/.  Configuration variables are stored in ~/.dirt/dirtrc and
 ~/.dirt/Saved.pl (from perl).
