@@ -54,7 +54,7 @@ sub str_to_color {
     if ($str =~ /^(bold_)?([^_]+)_?(.*)/i) {
         $fg = $ColorVal{$2} if exists $ColorVal{$2};
         $bg = $ColorVal{$3} if exists $ColorVal{$3};
-        $fg += 8 if length($1);
+        $fg += 8 if(defined $1 && length($1));
         return ("\xEA" . chr($fg + ($bg << 4)));
     }
     else {
