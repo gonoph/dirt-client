@@ -1,7 +1,7 @@
 /hook       Add, remove, or list installed hooks.
 
 Syntax:
-    /hook -l [-i] [<name>]
+    /hook -l [-i] [-T <type>] [<name>]
     /hook -r [-T <type>] <data>
     /hook -N <name>
     /hook -d <name>
@@ -66,7 +66,7 @@ Notes:
                     the SEND hooks.
         USERINPUT called after user types 'enter'.  If the user's input doesn't
                     match any USERINPUT hook (or hooks that match are 
-                    fallthrough), it will be sent through the HOOK.
+                    fallthrough), it will be sent through the COMMAND hook.
         SEND      called just before text is sent to mud.  The lowest priority
                     SEND hook will forward the text to the mud.
         OUTPUT    called on any output from mud -- use for triggers

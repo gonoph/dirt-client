@@ -151,7 +151,21 @@ prompts terminated by an empty packet? (Some Diku's, apparently...try
         undelim_prompt=1
 Mud-specific options: showprompt, undelim_prompt, echoinput.
     Or do things like TinyFugue with DIKU, LP, Telnet-style muds?
-
+echosend option (mud-specific)
+    Print to screen commands as they're sent (as if you had typed them in telnet)
+    stuff into input buffer, as undelim_prompt does now.
+when creating a /command, give option -A to create an anonymouse perl function.
+    the anonymous perl function should call getopt and create $opt_.. variables
+    for any args, and split args into @_ so commands can use positional arguments.
+command parser seems to be grabbing the wrong equals sign:
+    /command -F repeat = /eval -Lperl '@ARG = split(/\\\\w+/,$_); run("/echo found repeat $_")'
+    or not...why doesn't this work when the equal sign is in there?
+    /command -F repeat = /eval -Lperl \@ARG = split(/\\s+/,"$_"); for(\$i=0;\$i<\$ARG[1];\$i++) { run(\$ARG[2]); }
+    Instead of escaping *everything* treat the RHS of /eval as a quoted string
+    and generate a function like this:
+        sub { $_ = "$_"; eval "$command"; }
+Grab Portal mud information:
+    http://www.gameaxle.com/PortalMIP8-0.pdf
 
 Hook:
 -----
@@ -218,3 +232,4 @@ Ncurses seems well suited to all this.
 Screen.cc, Window.cc use memset on canvas to draw to screen, Screen::refresh redraws.
 curses has panel (info panel) to do overlapping windows. (info curses)
     stdscr is below all panels (for mud output)
+must use panel(3X) library for overlapping windows.  (cannot use stdscr)

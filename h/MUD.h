@@ -1,9 +1,7 @@
 #ifndef __MUD_H
 #define __MUD_H
 
-#include <hash_map> // STL hash
-//#include <>         // STL vector
-#include <string>   // STL string
+#include <dirt.h>
 
 class Action;
 class Alias;
@@ -21,7 +19,7 @@ public:
     
     MUD *inherits; // search in this MUD if we can't find it here
     
-    hash_map<string, Alias*, hash<string> > alias_list;   // Aliases unique to this MUD
+    hash_map<string, Alias* /*, hash<string>  */> alias_list;   // Aliases unique to this MUD
     List<Action*> action_list; // Actions to be performed on output form this mud
     List<Macro*> macro_list;
     

@@ -1,4 +1,4 @@
-#include "dirt.h"
+#include <dirt.h>
 #include "cui.h"
 #include "Alias.h"
 #include "Action.h"

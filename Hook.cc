@@ -88,19 +88,19 @@ bool Hook::command_hook(string& s, void* mt) {
             report("%-35s%11s%10s%7s%6s%6s\n", "Hook name", "Priority", "Type", "Chance", "Shots", "Flags");
             for(hooknames_type::iterator it=mythis->hooknames.begin();it != mythis->hooknames.end();it++) {
                 if(!showbuiltin && it->first.substr(0, 6) == "__DIRT") continue;
+                if(opt.gotOpt('T') && type != it->second->type) continue;
                 // Print a symbolic name for the type.
                 for(types_type::iterator tit = mythis->types.begin(); tit != mythis->types.end(); tit++) {
                     if(it->second->type == tit->second) {
-                        report("%-35s%11d%10s %5.1f%%%6d%2s%2s%2s\n", it->first.c_str(), it->second->priority, 
-                            tit->first.c_str(), it->second->chance*100,
-                            it->second->shots,
-                            it->second->fallthrough?"F":"", it->second->enabled?"":"D",
-                            it->second->color?"C":"");
+                        report("%-35s%11d%10s %5.1f%%%6d%2s%2s%2s\n", it->first.c_str(), 
+                            it->second->priority, tit->first.c_str(), it->second->chance*100,
+                            it->second->shots, it->second->fallthrough?"F":"", 
+                            it->second->enabled?"":"D", it->second->color?"C":"");
                     }
                 }
             }
             return true;
-        } else {
+        } else { // We were passed the name of a hook
             int i=0;
             while(opt.arg(i++).length()) {
                 if(mythis->hooknames.find(opt.arg(i)) != mythis->hooknames.end()) {

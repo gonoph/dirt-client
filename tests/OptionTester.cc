@@ -78,7 +78,7 @@ int main() {
     cout << endl;
 
     OptionParser opt8("/opt8 -r \"asdf 1\"", "r"); // should generate the same restStr.
-    OptionParser opt9("/opt9 -r asdf 1", "r");
+    OptionParser opt9("/opt9 -r command = /eval -Lperl @arg = split(/\\w+/,$_; print join(',',@arg);", "r");
     OptionParser opt10("/hook -T INIT -fL perl perl_init = init", "aFilfDt:p:c:n:g:T:L:C:r:N:d:k:W:");
 
     cout << "opt1: " << opt1.str() << endl;

@@ -214,6 +214,7 @@ InputLine::InputLine(Window *_parent, int _w, int _h, Style _style, int _x, int 
 : Window(_parent, _w, _h, _style, _x, _y),
 cursor_pos(0), max_pos(0), left_pos(0), ready(false), id(_id), history_pos(0)
 {
+    
 	set_default_prompt();
 }
 

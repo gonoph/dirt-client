@@ -5,8 +5,8 @@
 # first based on the Makefile of mcl version 0.5something
 
 # Common autoconf flags
-CC=gcc
-CXX=c++
+CC=gcc296
+CXX=g++296
 CFLAGS=-g
 CPPFLAGS=
 CXXFLAGS=-g

@@ -1,4 +1,3 @@
-# Generated automatically from Makefile.in by configure.
 # This will not build but on my machine
 BASEDIR=/root/ed
 VERSION := `tail -1 $(BASEDIR)/dirt/VERSION`

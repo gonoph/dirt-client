@@ -1,9 +1,11 @@
+
 dnl Dirt - Mud Client for Unix (mcl fork)
 dnl process this file with autoconf to produce a configure script.
 
-AC_REVISION($Revision: 1.3 $)
+AC_REVISION($Revision: 1.4 $)
 AC_INIT(main.cc)
 AC_CONFIG_AUX_DIR(admin)
+AC_LANG(C++)
 
 dirt_major=0
 dirt_minor=60
@@ -50,6 +52,28 @@ AC_CHECK_LIB(ncurses, main, [LIBNCURSES="-lncurses"], LIBNCURSES=)
 AC_CHECK_LIB(pthread, main, [LIBPTHREAD="-lpthread"], LIBPTHREAD=)
 AC_CHECK_LIB(z, main, [LIBZ="-lz"], LIBZ=)
 AC_CHECK_LIB(stdc++, main, [LIBSTDCPP="-lstdc++"], LIBSTDCPP=)
+
+dnl compiler features
+AC_CONFIG_HEADERS(h/config.h)
+AC_CHECK_HEADERS(hash_map)
+AC_CHECK_HEADERS(ext/hash_map)
+AC_MSG_CHECKING(whether we have hash<string>)
+AC_TRY_COMPILE([
+#include <string>
+#include <hash_map>
+],
+[
+int main() { 
+    hash_map<string,int> stuff;
+    stuff["shit"] = 4;
+}
+],
+have_hash_string=yes,
+have_hash_string=no)
+AC_MSG_RESULT($have_hash_string)
+if test "x$have_hash_string" = "xyes"; then
+    AC_DEFINE(HAVE_HASH_STRING)
+fi
 
 dnl debugging
 if test "x$enable_debug" = "xyes"; then
@@ -316,4 +340,4 @@ Makefile
 VERSION
 admin/Makefile
 dirt.spec
-h/config.h)
+h/defs.h)

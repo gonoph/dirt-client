@@ -205,12 +205,15 @@ sub check_hpbar {
 &main::run('/hook -T SEND -Ft\'^kill\\\\s+(\\\\w+)\' grabkill = phk;bt;/eval \\$ThreeKingdoms::enemy = "$1"');
 if(!defined $enemy) { $enemy = ""; } # don't want it to be undef.
 &main::run('/hook -T SEND -Ft\'^tk\\\\s+(\\\\w+)\' grabtk = /eval \\$ThreeKingdoms::enemy = "$1"');
-#&main::run("/hook -T SEND -C kill -fL perl grabkill = ThreeKingdoms::grabkill");
-#sub grabkill {
-#    if(/^kill\s(\w+)\s*$/) {
-#        $enemy = $1;
-#    }
-#}
+&main::run("/hook -p 10000 -T SEND -C (kill|tk) -fL perl dontkilldraal = ThreeKingdoms::dontkilldraal");
+sub dontkilldraal {
+    if(/^(?:kill|tk)\s(\w+)\s*$/) {
+        if($1 =~ /draal/) {
+            main::run("/echo \"${main::red}####################### DON'T KILL DRAAL!!!! #############################${main::off}\"");
+            return 1;  # This isn't a fallthrough so returning 1 will cause it to stop here.
+        }
+    }
+}
 
 %opposite_dir = ( 
     'n' => 's',
