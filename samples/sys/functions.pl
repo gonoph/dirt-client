@@ -31,12 +31,24 @@ sub report_err {
 
 open(INTERP, ">&$interpreterPipe") or die;
 
-sub backslashify { # escape quotes
+sub backslashify { # escape the second argument.
     $var = shift;
     $escapeme = shift;
     $var =~ s/\\/\\\\/g; # escape existing backslashes
     $var =~ s/$escapeme/\\$escapeme/g; # escape requested character
     return $var;
+}
+
+sub debackslashify { # unescape 
+    my($var) = shift;
+    my($pos) = 0;
+    my($ret) = "";
+    while($var =~ /\G([^\\]*?)\\(.)/g) {
+        $ret .= "$1$2";
+        $pos = pos($var);
+    }
+    $ret .= substr($var,$pos,length($var)-$pos);
+    return $ret;
 }
 
 # is this used?

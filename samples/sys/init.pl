@@ -19,7 +19,6 @@ require "sys/functions.pl"; # Lots of utility functions
 # FIXME make this an INIT hook instead?
 &run($commandCharacter . "hook -T INIT -fL perl perl_init = init");
 sub init {
-#    require "sys/functions.pl"; # Lots of utility functions
     require "sys/color.pl";     # Color code definitions
     require "sys/idle.pl";      # Callouts
     require "sys/config.pl";    # Configuration management

@@ -6,6 +6,7 @@ use Getopt::Std;
 if(!defined %Triggers) {
     %Triggers = ();
 }
+my($regexdelim) = qr/[\#\/\%\&!,=:]/;           # regex delimiters
     
 &main::run("/hook -T INIT -F -fL perl definetriggers = Trigger::definetriggers");
 sub definetriggers {
@@ -33,41 +34,29 @@ sub command_trigger {
     my(%opts);
     my(%trighash);
     my($name);
-#    my($defaultvar) = $_;  # in case someone 
     @ARGV = (); # reset it.
     if(/${main::commandCharacter}trig(?:ger)?(.*)/) { $_ = $1; }
     else { report_err("This doesn't seem to be a /trig command!\n"); }
-    while(/\G\s+(?:(-[A-Za-z]+\s*)?\"([^\"]*?)\"|(-[A-Za-z]+\s*)?\'([^\']*?)\'|(=)|([^ \t\n"']+)|(?:\/(.*?(?:\\\\)*)\/))/g) {
+    while(/\G\s+(?:(-[A-Za-z]+)?\s*\"(.*?[[^\\](?:\\\\)*|)\"|(-[A-Za-z]+)?\s*\'(.*?[^\\](?:\\\\)*|)\'|(=)|(-[A-Za-z]*t) *($regexdelim)(.*?[^\\](?:\\\\)*)?\7|([^ \t\n"']+))/g) {
         if(defined $1) { 
             push @ARGV, $1; 
-            push @ARGV, $2;
-#            &main::report("pushing arg 1: ", $1);
-#            &main::report("pushing arg 2: ", $2);
+            push @ARGV, &main::debackslashify($2);
         } elsif(defined $2) { 
-            push @ARGV, $2;
-#            &main::report("pushing arg 2: ", $2);
+            push @ARGV, &main::debackslashify($2);
         } elsif(defined $3) {
             push @ARGV, $3;
-            push @ARGV, $4;
-#            &main::report("pushing arg 3: ", $3);
-#            &main::report("pushing arg 4: ", $4);
+            push @ARGV, &main::debackslashify($4);
         } elsif(defined $4) {
-            push @ARGV, $4;
-#            &main::report("pushing arg 4: ", $4);
+            push @ARGV, &main::debackslashify($4);
         } elsif(defined $5) { # The rest is the thing to be executed 
             push @ARGV, $5;
-#            &main::report("pushing arg 5: ", $5);
-            if(m/\G\s+(.*)$/g) {
-                push @ARGV, $1;
-#                &main::report("pushing rest: ", $1);
-            }
+            if(m/\G\s+(.*)$/g) { push @ARGV, $1; }
             last;
         } elsif(defined $6) {
             push @ARGV, $6;
-#            &main::report("pushing arg 6: ", $6);
-        } elsif(defined $7) {
-            push @ARGV, $7;
-#            &main::report("pushing arg 7: ", $7);
+            push @ARGV, (defined $8)?$8:"";     # NO debackslashify.
+        } elsif(defined $9) {
+            push @ARGV, $9;
         } else {
             &main::report_err($main::commandCharacter . "trig: Error parsing command into \@ARGV\n");
             last;
@@ -124,7 +113,7 @@ sub command_trigger {
     else { $trighash{g} = ""; }
     if(defined $opts{L}) { $hookcmd .= "-L '$opts{L}' "; $trighash{L} = $opts{L}; }
     else { $trighash{L} = ""; }
-    if(defined $opts{t}) { $hookcmd .= "-t '$opts{t}' "; $trighash{t} = $opts{t}; }
+    if(defined $opts{t}) { $hookcmd .= "-t '" . &main::backslashify($opts{t}, "'") . "' "; $trighash{t} = $opts{t}; }
     else { $trighash{t} = ""; }
 
     if($#ARGV < 2) { # /trig was dropped already.
@@ -136,7 +125,7 @@ sub command_trigger {
 #    &main::report("name is: $name");
     $trighash{'action'} = join(" ", @ARGV[2..$#ARGV]);
     $hookcmd .= "'" . $name . "' = " . $trighash{'action'};
-    &main::report("hook command is: $hookcmd");
+#    &main::report("hook command is: $hookcmd");
     &main::run($hookcmd);
     $Triggers{$name} = \%trighash;  # main::save will save complex data structures for us!
     return 1;

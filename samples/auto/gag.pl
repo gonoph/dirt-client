@@ -7,6 +7,7 @@ my($pri) = -2147483646; # lowest possible priority -- let other hooks get it fir
 if(!defined %Gags) {
     %Gags = ();
 }
+my($regexdelim) = qr/[\#\/\%\&!,=:]/;           # regex delimiters
 
 &main::run("/hook -T INIT -F -fL perl definegags = Gag::definegags");
 sub definegags {
@@ -43,27 +44,26 @@ sub command_gag {
     if(/${main::commandCharacter}gag(.*)/) { $_ = $1; }
     else { report_err("This doesn't seem to be a /gag command!\n"); }
 # Line noise counts as perl?  Why, yes.
-    while(/\G\s+(?:(-[A-Za-z]+\s*)?\"([^\"]*?)\"|(-[A-Za-z]+\s*)?\'([^\']*?)\'|([^ \t\n"']+)|(?:\/(.*?(?:\\\\)*)\/))/g) {
-        if(defined $1) { # An option with double-quoted argument following
+    while(/\G\s+(?:(-[A-Za-z]+)?\s*\"(.*?[[^\\](?:\\\\)*|)\"|(-[A-Za-z]+)?\s*\'(.*?[^\\](?:\\\\)*|)\'|(=)|(-[A-Za-z]*t) *($regexdelim)(.*?[^\\](?:\\\\)*)?\7|([^ \t\n"']+))/g) {
+        if(defined $1) { 
             push @ARGV, $1; 
-            push @ARGV, $2;
-        } elsif(defined $2) { # double quoted argument to option without space in front.
-            push @ARGV, $2;
-        } elsif(defined $3) { # An option with single-quoted argument following
+            push @ARGV, &main::debackslashify($2);
+        } elsif(defined $2) { 
+            push @ARGV, &main::debackslashify($2);
+        } elsif(defined $3) {
             push @ARGV, $3;
-            push @ARGV, $4;
-        } elsif(defined $4) { # The single-quoted argument.
-            push @ARGV, $4;
+            push @ARGV, &main::debackslashify($4);
+        } elsif(defined $4) {
+            push @ARGV, &main::debackslashify($4);
         } elsif(defined $5) { # The rest is the thing to be executed 
             push @ARGV, $5;
-            if(m/\G\s+(.*)$/g) {
-                push @ARGV, $1;
-            }
+            if(m/\G\s+(.*)$/g) { push @ARGV, $1; }
             last;
         } elsif(defined $6) {
             push @ARGV, $6;
-        } elsif(defined $7) {
-            push @ARGV, $7;
+            push @ARGV, (defined $8)?$8:"";     # NO debackslashify.
+        } elsif(defined $9) {
+            push @ARGV, $9;
         } else {
             &main::report_err($main::commandCharacter . "gag: Error parsing command into \@ARGV\n");
             last;
@@ -103,7 +103,7 @@ sub command_gag {
     else { $gaghash{n} = -1; } # default shots = infinite
     if(defined $opts{g}) { $hookcmd .= "-g '$opts{g}' "; $gaghash{g} = $opts{g}; }
     else { $gaghash{g} = ""; }
-    if(defined $opts{t}) { $hookcmd .= "-t '$opts{t}' "; $gaghash{t} = $opts{t}; }
+    if(defined $opts{t}) { $hookcmd .= "-t '" . &main::backslashify($opts{t},"'") . "' "; $gaghash{t} = $opts{t}; }
     else { $gaghash{t} = ""; }
 
     if($#ARGV < 0) { # /gag was dropped already.
