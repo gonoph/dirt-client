@@ -483,6 +483,9 @@ void Session::inputReady() {
                     /* Skip the next character if this is an option */
                     else if (input_buffer[i] >= WILL && input_buffer[i] <= DONT)
                         i++;
+                    else if (input_buffer[i] == IAC) {
+                        goto real;
+                   }
                 }
                 continue;
             }
@@ -496,6 +499,7 @@ void Session::inputReady() {
                 ::write(STDOUT_FILENO, "\a", 1); // use screen->flash() here?
             
             else if (code_pos == -1) { // not inside a color code, real text
+real:
                 if (input_buffer[i] == '\n')  {
                     int len = out-line_begin;
                     int old_len = len;
