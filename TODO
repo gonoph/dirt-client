@@ -1,3 +1,13 @@
+Focus mechanism:
+    Keypresses which go with a "focused" window should grab higher priority when active.
+    Add options to /group to do most /hook operations, on the WHOLE GROUP.
+    Should not be able to pull up command history while in scrollback
+    Keypresses for modal windows (/help) should have higher priority than 
+        background keys (scrollback)
+    What about /help, history combo?  Who should get up/dn pgup/pgdn?
+        help should trap up/dn to prevent history from popping up.
+    
+
 Window::popup() is completely fucked.
     And by extension, Window::insert(), Window::remove().
     this was removed from /window -s and /window -i...

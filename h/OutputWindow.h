@@ -29,7 +29,7 @@ private:
     void freeze()   { fFrozen = true; }    // Freeze viewpoint
     void unfreeze() { fFrozen = false; viewpoint = canvas; } // Unfreeze
     
-    bool moveViewpoint(move_t dir);    // Move the viewpoint. true if reached end of buffer
+    void moveViewpoint(int amount);    // Move the viewpoint. true if reached end of buffer
     
     attrib *scrollback; // Beginning of the buffer
     attrib *viewpoint;     // What are we viewing?
@@ -53,13 +53,18 @@ class ScrollbackController : public Window
 public:
     ScrollbackController(Window *_parent, OutputWindow *_output);
     
-    virtual bool keypress(int key);
+//    virtual bool keypress(int key);
     static bool keypress_page_up(string&, void*);
     static bool keypress_page_down(string&, void*);
+    static bool keypress_arrow_up(string&, void*);
+    static bool keypress_arrow_down(string&, void*);
+    static bool keypress_home(string&, void*);
+    static bool keypress_pause(string&, void*);
+    static bool keypress_end(string&, void*);
+    void close();
     NAME(ScrollbackController);
     virtual ~ScrollbackController();   
 private:
-    void close();
     OutputWindow *output;
 };
 

@@ -64,40 +64,9 @@ bool OutputWindow::scroll()
     return true;
 }
 
-bool OutputWindow::moveViewpoint(move_t dir)
+void OutputWindow::moveViewpoint(int amount)
 {
-	int amount;
 	bool fQuit = false;
-	
-	switch (dir)
-	{
-		case move_page_down: // page size
-			amount = height/2;
-			break;
-		
-		case move_page_up:
-			amount = - height/2;
-			break;
-		
-		case move_home:
-			amount = - (viewpoint-scrollback)/width;
-			break;
-		
-		case move_line_up:
-			amount = -1;
-			break;
-		
-		case move_line_down:
-			amount =  1;
-			break;
-
-		case move_stay:		
-			amount = 0;
-			break;
-		
-		default: // uuh.
-			abort();
-	}
 	
 	if (amount < 0 && viewpoint == scrollback)	
 		status->setf ("You are already at the beginning of the scrollback buffer");
@@ -106,8 +75,10 @@ bool OutputWindow::moveViewpoint(move_t dir)
 	else
 	{
 		viewpoint += amount * width;
-		if (viewpoint < scrollback)
+		if (viewpoint < scrollback) { 
 			viewpoint = scrollback;
+                        hook.enableGroup("ScrollbackController_volatile");
+                }
 		
 		if (viewpoint > canvas) { // We're at the end of the scrollback buffer.
 			viewpoint = canvas;
@@ -119,96 +90,87 @@ bool OutputWindow::moveViewpoint(move_t dir)
 			(canvas-scrollback) / width + height);
 	}
 	dirty = true;
-
-	return fQuit;
+        if(fQuit) sb->close();
 }
 
 ScrollbackController::ScrollbackController(Window *_parent, OutputWindow *_output) 
     : Window(_parent,0,0,None), output(_output) {
-    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true,  // FIXME segfault here somewhere
-        "__DIRT_ScrollbackController::keypress_page_up", vector<string>(1, "Dirt keys"), "", "", 
+    vector<string> mygroups;
+    mygroups.push_back("Dirt keys");
+    mygroups.push_back("ScrollbackController");
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true,
+        "__DIRT_ScrollbackController_page_up", mygroups, "", "", 
         NULL, key_page_up, "", &ScrollbackController::keypress_page_up, (void*)this));
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
-        "__DIRT_ScrollbackController::keypress_page_down", vector<string>(1, "Dirt keys"), "", "", 
+        "__DIRT_ScrollbackController_page_down", mygroups, "", "", 
         NULL, key_page_down, "", &ScrollbackController::keypress_page_down, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_ScrollbackController_home", mygroups, "", "", 
+        NULL, key_home, "", &ScrollbackController::keypress_home, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_ScrollbackController_pause", mygroups, "", "", 
+        NULL, key_pause, "", &ScrollbackController::keypress_pause, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+        "__DIRT_ScrollbackController_end", mygroups, "", "", 
+        NULL, key_end, "", &ScrollbackController::keypress_end, (void*)this));
+    mygroups.push_back("ScrollbackController_volatile");
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, false, true, 
+        "__DIRT_ScrollbackController_arrow_up", mygroups, "", "", 
+        NULL, key_arrow_up, "", &ScrollbackController::keypress_arrow_up, (void*)this));
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, false, true, 
+        "__DIRT_ScrollbackController_arrow_down", mygroups, "", "", 
+        NULL, key_arrow_down, "", &ScrollbackController::keypress_arrow_down, (void*)this));
 }
 
 bool ScrollbackController::keypress_page_up(string&, void* mt) {
-    if(outputWindow->moveViewpoint(OutputWindow::move_page_up)) {
-        ((ScrollbackController*)mt)->close();
-//        report("ScrollbackController::keypress_page_up Leaving scrollback...");
-    }
+    ScrollbackController* mythis = (ScrollbackController*)mt;
+    mythis->output->moveViewpoint(-mythis->output->height/2);
     return true;
 }
 
 bool ScrollbackController::keypress_page_down(string&, void* mt) {
-    if(outputWindow->moveViewpoint(OutputWindow::move_page_down)) {
-        ((ScrollbackController*)mt)->close();
-//        report("ScrollbackController::keypress_page_down Leaving scrollback...");
-    }
+    ScrollbackController* mythis = (ScrollbackController*)mt;
+    mythis->output->moveViewpoint(mythis->output->height/2);
     return true;
 }
 
+bool ScrollbackController::keypress_arrow_up(string&, void* mt) {
+    ScrollbackController* mythis = (ScrollbackController*)mt;
+    mythis->output->moveViewpoint(-1);
+    return true;
+}
+
+bool ScrollbackController::keypress_arrow_down(string&, void* mt) {
+    ScrollbackController* mythis = (ScrollbackController*)mt;
+    mythis->output->moveViewpoint(1);
+    return true;
+}
+
+bool ScrollbackController::keypress_home(string&, void* mt) {
+    ScrollbackController* mythis = (ScrollbackController*)mt;
+    mythis->output->moveViewpoint(-(mythis->output->viewpoint-mythis->output->scrollback)/mythis->output->width);
+    return true;
+}
+
+// FIXME What is this supposed to do?
+bool ScrollbackController::keypress_pause(string&, void* mt) {
+    ScrollbackController* mythis = (ScrollbackController*)mt;
+    mythis->output->moveViewpoint(0);
+    return true;
+}
+
+bool ScrollbackController::keypress_end(string&, void* mt) {
+    ((ScrollbackController*)mt)->close();
+    return true;
+}
+
+// FIXME disable keys here.
 void ScrollbackController::close() {
+    hook.disableGroup("ScrollbackController_volatile"); // Disable my keys.
     status->sticky_status = false;
     status->setf ("Leaving scrollback.");
-    outputWindow->unfreeze();
+    output->unfreeze();
     show(false);
-    //die();
-}
-
-// This one handles a select number of keys
-bool ScrollbackController::keypress(int key)
-{
-    bool fQuit;
-    
-    switch (key)
-    {
-    default:
-        return false;
-        
-    case key_page_up: // Scroll one page up
-        return true;
-//        fQuit = outputWindow->moveViewpoint(OutputWindow::move_page_up);
-//        break;
-        
-    case key_page_down:
-        return true;
-//        fQuit = outputWindow->moveViewpoint(OutputWindow::move_page_down);
-//        break;
-        
-    case key_arrow_up:
-        fQuit = outputWindow->moveViewpoint(OutputWindow::move_line_up);
-        break;
-        
-    case key_arrow_down:
-        fQuit = outputWindow->moveViewpoint(OutputWindow::move_line_down);
-        break;
-        
-    case key_home:
-        fQuit = outputWindow->moveViewpoint(OutputWindow::move_home);
-        break;
-        
-    case key_pause:
-        fQuit = outputWindow->moveViewpoint(OutputWindow::move_stay);
-        break;
-        
-    case key_end:
-        fQuit = true;
-        break;
-    }
-    
-    
-    if (fQuit)
-    {
-        close();
-        //status->sticky_status = false;
-        //status->setf ("Leaving scrollback.");
-        //outputWindow->unfreeze();
-        //die();
-    }
-    
-    return true;
 }
 
 void OutputWindow::search (const char *s, bool forward)
@@ -326,13 +288,13 @@ void OutputWindow::move (int x, int y) {
 void OutputWindow::printVersion()
 {
     printf (
-            "\n\n"
-            "dirt version %s\n"
-            "Copyright (C) 1997-2000 Erwin S. Andreasen <erwin@andreasen.org>\n"
-            "Portions Copyright (C) 2001 Bob McElrath <mcelrath+dirt@draal.physics.wisc.edu>\n"
-            "dirt comes with ABSOLUTELY NO WARRANTY; for details, see file COPYING\n"
+            "\n"
+            "Dirt version %s\n"
+            "Copyright (C) 2001 Bob McElrath <mcelrath@users.sourceforge.net>\n"
+            "Based on MCL Copyright (C) 1997-2000 Erwin S. Andreasen <erwin@andreasen.org>\n"
+            "Dirt comes with ABSOLUTELY NO WARRANTY; for details, see file COPYING\n"
             "This binary compiled: " __DATE__ ", " __TIME__ " by " COMPILED_BY ".\n"
-            "Binary/source available from http://draal.physics.wisc.edu/dirt/\n",
+            "Binary/source available from http://sourceforge.net/projects/dirt-client/\n",
             versionToString(VERSION)
            );
 
@@ -381,6 +343,11 @@ void ScrollbackSearch::execute(const char *text)
 }
 
 ScrollbackController::~ScrollbackController() {
-    hook.remove("__DIRT_ScrollbackController::keypress_page_up");  // FIXME
-    hook.remove("__DIRT_ScrollbackController::keypress_page_down");
+    hook.remove("__DIRT_ScrollbackController_page_up");
+    hook.remove("__DIRT_ScrollbackController_page_down");
+    hook.remove("__DIRT_ScrollbackController_arrow_up");
+    hook.remove("__DIRT_ScrollbackController_arrow_down");
+    hook.remove("__DIRT_ScrollbackController_home");
+    hook.remove("__DIRT_ScrollbackController_pause");
+    hook.remove("__DIRT_ScrollbackController_end");
 }
