@@ -91,8 +91,8 @@ bool Hook::command_hook(string& s, void* mt) {
             for(types_type::iterator tit = mythis->types.begin(); tit != mythis->types.end(); tit++) {
                 // FIXME perform selection rules based on other options passed.
                 if(it->second->type == tit->second) {
-                    report("%-35s%11d%10s %3.1f%c%6d%2s%2s%2s\n", it->first.c_str(), it->second->priority, 
-                        tit->first.c_str(), it->second->chance*100, '%',
+                    report("%-35s%11d%10s %5.1f%%%6d%2s%2s%2s\n", it->first.c_str(), it->second->priority, 
+                        tit->first.c_str(), it->second->chance*100,
                         it->second->shots,
                         it->second->fallthrough?"F":"", it->second->enabled?"":"D",
                         it->second->color?"C":"");
@@ -274,7 +274,7 @@ void Hook::add(HookType t, HookStub* callback) {
 
     if((stub = hooknames[callback->name])) {
         remove(callback->name);
-        report("WARNING: hook %s redefined.\n", callback->name.c_str());
+        report_warn("hook %s redefined.\n", callback->name.c_str());
     }
     // Insert it into the types-indexed list
     for(hookstubset_type::iterator it = hooks[t]->begin();it != hooks[t]->end();it++) {
