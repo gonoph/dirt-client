@@ -82,24 +82,49 @@ bool Hook::command_hook(string& s, void* mt) {
         else type = SEND;
     }
 
-    if(opt.gotOpt('l') && opt.argc() <= 2) { // 2 args means there's no = and no definition.
-        bool showbuiltin = opt.gotOpt('i');
-        report("%-35s%11s%10s%7s%6s%6s\n", "Hook name", "Priority", "Type", "Chance", "Shots", "Flags");
-        for(hooknames_type::iterator it=mythis->hooknames.begin();it != mythis->hooknames.end();it++) {
-            if(!showbuiltin && it->first.substr(0, 6) == "__DIRT") continue;
-            // Print a symbolic name for the type.
-            for(types_type::iterator tit = mythis->types.begin(); tit != mythis->types.end(); tit++) {
-                // FIXME perform selection rules based on other options passed.
-                if(it->second->type == tit->second) {
-                    report("%-35s%11d%10s %5.1f%%%6d%2s%2s%2s\n", it->first.c_str(), it->second->priority, 
-                        tit->first.c_str(), it->second->chance*100,
-                        it->second->shots,
-                        it->second->fallthrough?"F":"", it->second->enabled?"":"D",
-                        it->second->color?"C":"");
+    if(opt.gotOpt('l')) {
+        if(opt.argc() < 2) { // 2 args means there's no = and no definition.
+            bool showbuiltin = opt.gotOpt('i');
+            report("%-35s%11s%10s%7s%6s%6s\n", "Hook name", "Priority", "Type", "Chance", "Shots", "Flags");
+            for(hooknames_type::iterator it=mythis->hooknames.begin();it != mythis->hooknames.end();it++) {
+                if(!showbuiltin && it->first.substr(0, 6) == "__DIRT") continue;
+                // Print a symbolic name for the type.
+                for(types_type::iterator tit = mythis->types.begin(); tit != mythis->types.end(); tit++) {
+                    if(it->second->type == tit->second) {
+                        report("%-35s%11d%10s %5.1f%%%6d%2s%2s%2s\n", it->first.c_str(), it->second->priority, 
+                            tit->first.c_str(), it->second->chance*100,
+                            it->second->shots,
+                            it->second->fallthrough?"F":"", it->second->enabled?"":"D",
+                            it->second->color?"C":"");
+                    }
                 }
             }
+            return true;
+        } else {
+            int i=0;
+            while(opt.arg(i++).length()) {
+                if(mythis->hooknames.find(opt.arg(i)) != mythis->hooknames.end()) {
+                    HookStub* stub = mythis->hooknames[opt.arg(i)];
+                    hooknames_type::iterator it = mythis->hooknames.find(opt.arg(i));
+                    for(types_type::iterator tit = mythis->types.begin(); tit != mythis->types.end(); tit++) {
+                        if(stub->type == tit->second) {
+                            report("%-35s%11d%10s %5.1f%%%6d%2s%2s%2s\n", 
+                                it->first.c_str(), 
+                                stub->priority, tit->first.c_str(), stub->chance*100, stub->shots,
+                                stub->fallthrough?"F":"", stub->enabled?"":"D", stub->color?"C":"");
+                            report("Groups: \n");
+                            for(vector<string>::iterator git = stub->groups.begin();
+                                    git != stub->groups.end();git++) {
+                                report("\t%s\n", git->c_str());
+                            }
+                            mythis->hooknames[opt.arg(i)]->print();
+                            // Print TriggerHookStub::command,matcher,language
+                        }
+                    }
+                }
+            }
+            return true;
         }
-        return true;
     } else if(opt.gotOpt('t') && opt.gotOpt('C')) { // Trigger regex
         report_err("%chook: Options -t and -C are mutually exclusive.", CMDCHAR);
     } else if(opt.gotOpt('t')) {
@@ -465,6 +490,10 @@ bool CppHookStub::operator() (string& data) {
     return callback(data);
 }
 
+void CppHookStub::print() {
+    report("\tCallback: 0x%p", callback);
+}
+
 CommandHookStub::CommandHookStub(int p, float c, int n, bool F, bool en, bool col,
         string nm, vector<string> g, string cmdname, bool (*cbk)(string&,void*), void* ins) 
         : HookStub(p, c, n, F, en, col, nm, g) {
@@ -483,9 +512,15 @@ bool CommandHookStub::operator() (string& data) {
     return false;
 }
 
+void CommandHookStub::print() {
+    report("\tCommand name: %s\n", commandname.c_str());
+    report("\tInstance:     %p\n", instance);
+    report("\tCallback:     %p\n", callback);
+}
+
 TriggerHookStub::TriggerHookStub(int p, float c, int n, bool F, bool en, bool col, string nm, 
-        vector<string> g, string regex, string arg, const char* lang)
-        : HookStub(p, c, n, F, en, col, nm, g), command(arg) {
+        vector<string> g, string rx, string arg, const char* lang)
+        : HookStub(p, c, n, F, en, col, nm, g), regex(rx), command(arg) {
     if(lang) {
         language = new char[strlen(lang)+1];
         strcpy(language, lang);
@@ -549,11 +584,25 @@ bool TriggerHookStub::operator() (string& data) {
     return retval;
 }
 
+void TriggerHookStub::print() {
+    report("\tMatcher (regex): %s\n", regex.c_str());
+    report("\tCommand:         %s\n", command.c_str());
+    if(language) 
+    report("\tLanguage:        %s\n", language);
+}
+
 KeypressHookStub::KeypressHookStub(int p, float c, int n, bool F, bool en, bool col, string nm, 
         vector<string> g, string regex, string arg, const char* func, int k, string w, 
         bool (*cbk)(string&,void*), void* ins)
         : TriggerHookStub(p, c, n, F, en, col, nm, g, regex, arg, func), key(k), window(w), 
         callback(cbk), instance(ins) {
+}
+
+void KeypressHookStub::print() {
+    report("\tKey:      %d\n", key);
+    report("\tWindow:   %s\n", window.c_str());
+    report("\tCallback: %p\n", callback);
+    report("\tInstance: %p\n", instance);
 }
 
 bool KeypressHookStub::operator() (string& data) {

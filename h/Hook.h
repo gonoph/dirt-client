@@ -63,6 +63,7 @@ protected:
 public:                 // is defined *after* HookStub).
     HookStub(int p, float c, int n, bool F, bool en, bool col, string nm, vector<string> g);
     virtual bool operator() (string& data) = 0; // Children must override this.
+    virtual void print() = 0;
     // needed to put this into an ordered container (i.e. priority_queue<int>).
     bool operator< (const HookStub& b) const { return(priority < b.priority); }
     virtual ~HookStub() {};
@@ -74,6 +75,7 @@ class CppHookStub : public HookStub {
 public:
     CppHookStub(int p, float c, int n, bool F, bool en, bool col, string nm, vector<string> g, bool (*cbk)(string&));
     virtual bool operator() (string& data);
+    virtual void print();
     virtual ~CppHookStub() {};
 };
 
@@ -88,6 +90,7 @@ public:
     CommandHookStub(int p, float c, int n, bool F, bool en, bool col, string nm, vector<string> g, 
                 string cmdname, bool (*cbk)(string&,void*), void* ins);
     virtual bool operator() (string& data);
+    virtual void print();
     virtual ~CommandHookStub() {};
 };
 
@@ -95,13 +98,15 @@ public:
 // the argument is evaluated as a quoted string (i.e. if the argument contains
 // $1, the $1 will be replaced by the first parenthetical in the regex)
 class TriggerHookStub : public HookStub {
-    void*   matcher;
+    void*   matcher;    // perl sub that does the match and returns evaluated-in-quoted-context command.
+    string  regex;      // regex to match
     string  command;    // command to run on match.
     char*   language;   // command is a perl/python function.
 public:
     TriggerHookStub(int p, float c, int n, bool F, bool en, bool col, string nm, vector<string> g,
             string regex, string arg, const char* lang);
     virtual bool operator() (string& data);
+    virtual void print();
     virtual ~TriggerHookStub() {};
 };
 
@@ -117,6 +122,7 @@ public:
             string regex, string arg, const char* lang, int k, string w, bool (*cbk)(string&,void*) = NULL, 
             void* ins = NULL);
     virtual bool operator() (string& data);
+    virtual void print();
     virtual ~KeypressHookStub() {};
 };
     
