@@ -62,13 +62,14 @@ sub grab_room {
     }
     return 1;
   } elsif (/^(.* )(\((([a-z_0-9]+|,)+)\)).?$/) {
+    if(/\d+ coins \(\w+\)$/) { return 0; }
     my(@crap_exits) = grep(/^($dirsstring)[0-9]*$/, split(",", $3));
     if($#crap_exits >= 0) { @room_exits = split(",", $3); }
     else { return 0; }
     @unusual_exits = grep(!/^(n|e|s|w|ne|se|sw|nw|u|d)$/, @room_exits);
     &main::run("/hook -T ROOM -r '" . &main::backslashify($_, "'") . "'");
     if($colorize_brief_rooms) {
-      $_ = "$main::CSave$roomnamecolor$1 $roomexitscolor$2$main::CRestore";
+      $_ = "$main::CSave$roomnamecolor$1$roomexitscolor$2$main::CRestore";
     }
     return 1;
   } elsif ($neednextline) {
@@ -92,7 +93,7 @@ sub grab_room {
 # Create a hook for rooms.  If you want your function to be called when you see a 
 # room description, add this: &ThreeKingdoms::room_add(\&your_func_here);
 #&main::create_standard_hooks(1, "room");  
-&main::save("ThreeKingdoms::colorize_brief_roosm", \$colorize_brief_rooms);
+&main::save("ThreeKingdoms::colorize_brief_rooms", \$colorize_brief_rooms);
 
 ############################# PLAYERS ###########################################
 # This highlights players in the room
@@ -142,7 +143,7 @@ sub gauge ($$$$) {
 # This assumes a prompt that looks like this:
 # minHp/maxHp minMana/maxMana minMove/maxMove
 my($breedhp) = qr/^HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+)  Psi: ([0-9]+)\/([0-9]+)/;#  Focus: ([0-9]+)%  E: ([A-Z][a-z]+)/) {
-my($magehp) = qr/^ HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+)S?\/([0-9]+)%\/([0-9]+)% Sat: ([0-9]+)% Cnc: ([0-9]+)% Gols:([0-9]+)\/([0-9]+)% G2N:([0-9]+)%( A)?( S)?( SS)?( mg)?( PE)?( PG)?( Mon\(...\):(\w\w))?/;
+my($magehp) = qr/^ HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+)S?\/([0-9]+)%\/([0-9]+)% Sat: ([0-9]+)% Cnc: ([0-9]+)% Gols:([0-9]+)\/([0-9]+)% G2N:([0-9]+)%( A)?( S(?!S))?( SS)?( mg)?( PE)?( PG)?( Mon\(...\):(\w\w))?/;
 my($fremenhp) = qr/^HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+) W: ([0-9]+)\/([0-9]+)\(([0-9]+)\) L: ([0-9]+)% P: ([0-9]+)\/([0-9]+)% T: [a-z]+ G: ([0-9]+)/;
 sub check_hpbar {
     if(/$magehp/) {
@@ -202,6 +203,8 @@ sub check_hpbar {
 # Why doesn't this work?
 # from perl you need 4 backslashes where you want ONE to appear.  *sigh*
 &main::run('/hook -T SEND -Ft\'^kill\\\\s+(\\\\w+)\' grabkill = phk;bt;/eval \\$ThreeKingdoms::enemy = "$1"');
+if(!defined $enemy) { $enemy = ""; } # don't want it to be undef.
+&main::run('/hook -T SEND -Ft\'^tk\\\\s+(\\\\w+)\' grabtk = /eval \\$ThreeKingdoms::enemy = "$1"');
 #&main::run("/hook -T SEND -C kill -fL perl grabkill = ThreeKingdoms::grabkill");
 #sub grabkill {
 #    if(/^kill\s(\w+)\s*$/) {
@@ -278,6 +281,18 @@ sub bounce_grabber {
 #        unless($meditating) { &main::dirt_send("electrify"); }
     }
 }
+
+# Nexus system.
+#
+# This allows you to get from point A to point B by just typing the location 
+# name of point B.  What it does is 'glance' at the room first.  If it 
+# recognizes the room description (a key in %nexi), it constructs a command of
+# the form A-B where A and B are the names of locations A (where you are) and B
+# (where you want to go).  YOU must define an alias A-B containing the path.
+# If A-B is not an alias, it will look for all aliases of the form A-X, and X-B
+# and send both of them.
+
+
 
 print "Loaded ThreeKingdoms module\n";
 1;
