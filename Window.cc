@@ -202,7 +202,10 @@ void Window::print(const char *s)
             default:
                 color = *++in;
             }
-        } else if (*in == SOFT_CR) { // change to a new line if not there already
+        } else if (*in == '\r') { // To start of line
+	    cursor_x = 0;
+            out = canvas + cursor_y * width + cursor_x;
+	} else if (*in == SOFT_CR) { // change to a new line if not there already
             if (cursor_x) {
                 cursor_x = 0; 
                 cursor_y++;
