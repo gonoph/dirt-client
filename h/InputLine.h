@@ -22,6 +22,7 @@ public:
     bool getline(char *buf, bool fForce); // Return true if there is a line available
     inline int  getlastkey() { return lastkey; } // return the last key pressed.
     void set_prompt (const char *prompt);
+    char* get_prompt(void) { return prompt_buf; }
     void set_default_prompt();
     virtual void redraw();
     virtual void set (const char *s); // Set the input line to this

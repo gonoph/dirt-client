@@ -8,6 +8,7 @@
 #include "Config.h"
 #include "Color.h"
 #include "Selection.h"
+#include "Session.h"
 #include "OutputWindow.h"
 #include "StatusLine.h"
 #include "StaticBuffer.h"
@@ -481,13 +482,13 @@ bool InputLine::keypress_enter(string& inputline, void* mt) {
     mythis->cursor_pos = 0;
     mythis->left_pos = 0;
     mythis->ready = false;
+    if(currentSession)
+        currentSession->userInput(inputline.c_str()); // deal with prompt stuff
     hook.run(USERINPUT, inputline);
     if(inputline[0] == interpreter.getCommandCharacter())
         hook.run(COMMAND, inputline);
     else hook.run(SEND, inputline);
     // FIXME interpreter.add(inputline);
-    if (config->getOption (opt_echoinput))		// echo input if wanted
-        outputWindow->printf ("%c>> %s\n", SOFT_CR, inputline.c_str());
     inputline = "";
     return true;
 }
