@@ -12,7 +12,7 @@ sub load_configuration {
     if(!-f $CONFIG_FILE) { &save_configuration; }
     eval { require $CONFIG_FILE; };
     if($@) {
-      print "Syntax error in config file ($CONFIG_FILE).  FIX IT!\n";
+      &main::report_err("Syntax error in config file ($CONFIG_FILE).  FIX IT!\n");
       return;
     } else {
       require $CONFIG_FILE;
@@ -28,7 +28,7 @@ sub save_configuration {
     open(CONFIG, ">" . $CONFIG_FILE) or die "Could not open $CONFIG_FILE for writing: $!";
     print CONFIG "# Dirt module config file generated on ", scalar(localtime($now)), " by $VERSION\n";
     
-    print "@@ Dumping \%Config to file\n";
+    &main::report_err("Dumping perl \%Config to file\n");
     foreach my $var (keys %Config) {
       if(ref($Config{$var}) eq 'HASH') {
         print CONFIG Data::Dumper->Dump([$Config{$var}], ["*$var"]);
