@@ -109,8 +109,10 @@ bool OutputWindow::moveViewpoint(move_t dir)
 		if (viewpoint < scrollback)
 			viewpoint = scrollback;
 		
-		if (viewpoint > canvas)
+		if (viewpoint > canvas) { // We're at the end of the scrollback buffer.
 			viewpoint = canvas;
+                        fQuit = true;
+                }
 		status->sticky_status = true;
 		status->setf("Scrollback: line %d of %d",
 			(viewpoint - scrollback) / width,
