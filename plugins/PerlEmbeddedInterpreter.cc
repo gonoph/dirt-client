@@ -214,8 +214,10 @@ bool PerlEmbeddedInterpreter::run(const char*, const char *function, const char 
 void* PerlEmbeddedInterpreter::match_prepare(const char *pattern, const char *commands) {
     const char* autofn = 
         "sub { if (/%s/) { $_ = \"%s\"; return 1; } else { $_ = \"\"; return 0; } };";
-    char* buf = (char*)malloc(strlen(pattern) + strlen(commands) + strlen(autofn));
-    sprintf(buf, autofn, backslashify(pattern, '/').c_str(), backslashify(commands, '"').c_str());
+    string bcommands = backslashify(commands, '"');
+    string bpattern = backslashify(pattern, '/');
+    char* buf = (char*)malloc(bpattern.length() + bcommands.length() + strlen(autofn));
+    sprintf(buf, autofn, bpattern.c_str(), bcommands.c_str());
     dSP;
     PUSHMARK(SP);
     SV* result = perl_eval_pv(buf, FALSE);

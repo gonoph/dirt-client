@@ -146,18 +146,21 @@ bool ScrollbackController::keypress_page_down(string&, void* mt) {
     return true;
 }
 
+// FIXME doesn't do anything.
 bool ScrollbackController::keypress_arrow_up(string&, void* mt) {
     ScrollbackController* mythis = (ScrollbackController*)mt;
     mythis->output->moveViewpoint(-1);
     return true;
 }
 
+// FIXME doesn't do anything.
 bool ScrollbackController::keypress_arrow_down(string&, void* mt) {
     ScrollbackController* mythis = (ScrollbackController*)mt;
     mythis->output->moveViewpoint(1);
     return true;
 }
 
+// FIXME doesn't do anything.
 bool ScrollbackController::keypress_home(string&, void* mt) {
     ScrollbackController* mythis = (ScrollbackController*)mt;
     mythis->output->moveViewpoint(-(mythis->output->viewpoint-mythis->output->scrollback)/mythis->output->width);
@@ -171,6 +174,7 @@ bool ScrollbackController::keypress_pause(string&, void* mt) {
     return true;
 }
 
+// FIXME doesn't do anything.
 bool ScrollbackController::keypress_end(string&, void* mt) {
     ((ScrollbackController*)mt)->close();
     return true;

@@ -240,6 +240,8 @@ Directly calling C++ (instead of interpreterPipe):
 
 Investigate removing Interpreter, or making Interpreter not have a command stack.
 Investigate removing Interpreter::mark
+When in scrollback, put "(N new lines)" in the status bar.
+/telnet command, or expand /open to take host/port arguments
 
 
 Hook:
