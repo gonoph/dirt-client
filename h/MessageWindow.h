@@ -14,7 +14,7 @@ public:
     void addInput(const char *s);
     virtual void idle();
     virtual void popUp();
-    static bool command_window(string&, void*);
+    static bool command_window(string&, void*, savedmatch*);
     ~MessageWindow();
     
 protected:

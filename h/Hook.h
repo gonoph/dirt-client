@@ -95,12 +95,12 @@ public:
 // and a pointer to an instance of the class (which must be cast to the 
 // appropriate class pointer type)  The command must match "commandname".
 class CommandHookStub : public HookStub {
-    bool (*callback)(string&, void*);
-    void *instance;
+    bool (*callback)(string&, void*, savedmatch*);
+    void *instance;                     // "this" pointer for static callback methods.
     string commandname;
 public:
     CommandHookStub(int p, float c, int n, bool F, bool en, bool col, string nm, vector<string> g, 
-                string cmdname, bool (*cbk)(string&,void*), void* ins);
+                string cmdname, bool (*cbk)(string&,void*,savedmatch*), void* ins);
     virtual bool operator() (string& data, savedmatch* sm = NULL);
     virtual void print();
     virtual ~CommandHookStub() {};
@@ -144,7 +144,7 @@ public:
     HookType add_type(const string& name);    // add a new hook type
     void add(HookType t, HookStub* callback); // Note: callback will be copied.
     void add(string name, HookStub* callback);  // Note: callback will be copied.
-    void addDirtCommand(string name, bool (*cbk)(string&,void*), void* instance);
+    void addDirtCommand(string name, bool (*cbk)(string&,void*,savedmatch*), void* instance);
     bool remove(string name);                   // returns true if successful, false 
     bool disable(string name);                  // if there was no hook with that name.
     bool disableGroup(string group);
@@ -161,10 +161,10 @@ public:
     void run(string const type, char* data = NULL, savedmatch* sm = NULL) { 
         return run(types[type], data, sm); 
     };
-    static bool command_hook(string&,   void*);
-    static bool command_disable(string&,void*);
-    static bool command_enable(string&, void*);
-    static bool command_group(string&,  void*);
+    static bool command_hook(string&,   void*, savedmatch*);
+    static bool command_disable(string&,void*, savedmatch*);
+    static bool command_enable(string&, void*, savedmatch*);
+    static bool command_group(string&,  void*, savedmatch*);
     ~Hook();        // Will destroy everything in hooks
 private:
     int max_type;   // = IDLE

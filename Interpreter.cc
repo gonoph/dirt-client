@@ -46,12 +46,12 @@ const char *one_argument (const char *argument, char *buf, bool smash_case) {
     return argument;
 }
 
-bool Interpreter::command_quit(string&, void*) {
+bool Interpreter::command_quit(string&, void*, savedmatch*) {
     dirtFinished = true;
     return true;
 }
 
-bool Interpreter::command_echo(string& str, void*) {
+bool Interpreter::command_echo(string& str, void*, savedmatch*) {
     OptionParser opt(str, "nW:");
     string s = opt.restStr();
     if(!opt.flag('n')) s.append("\n");
@@ -68,7 +68,7 @@ bool Interpreter::command_echo(string& str, void*) {
     return true;
 }
 
-bool Interpreter::command_status(string& str, void*) {
+bool Interpreter::command_status(string& str, void*, savedmatch*) {
     OptionParser opt(str, "W:");
     if(!opt.valid()) return true;
     if(!opt.gotOpt('W')) status->setf("%s", opt.restStr().c_str());
@@ -83,12 +83,12 @@ bool Interpreter::command_status(string& str, void*) {
     return true;
 }
 
-bool Interpreter::command_bell(string&, void*) {
+bool Interpreter::command_bell(string&, void*, savedmatch*) {
     screen->flash();
     return true;
 }
 
-bool Interpreter::command_exec(string& str, void*) {
+bool Interpreter::command_exec(string& str, void*, savedmatch*) {
     int w = 80, h=10, x=0, y=3, t=10;
     
     OptionParser opt(str, "w:h:x:y:t:");
@@ -118,7 +118,7 @@ bool Interpreter::command_exec(string& str, void*) {
     return true; 
 }
 
-bool Interpreter::command_clear(string& str, void*) {
+bool Interpreter::command_clear(string& str, void*, savedmatch*) {
     OptionParser opt(str, "W:");
     if(!opt.valid()) return true;
     string name;
@@ -141,14 +141,14 @@ bool Interpreter::command_clear(string& str, void*) {
     return true;
 }
 
-bool Interpreter::command_prompt(string& str, void*) {
+bool Interpreter::command_prompt(string& str, void*, savedmatch*) {
     OptionParser opt(str, "");
     if(!opt.valid()) return true;
     inputLine->set_prompt(opt.restStr().c_str());
     return true;
 }
 
-bool Interpreter::command_close(string&, void*) {
+bool Interpreter::command_close(string&, void*, savedmatch*) {
     if (!currentSession || currentSession->state == disconnected)
         status->setf ("You are not connected - nothing to close");
     else
@@ -162,7 +162,7 @@ bool Interpreter::command_close(string&, void*) {
     return true;
 }
 
-bool Interpreter::command_open(string& str, void*) {
+bool Interpreter::command_open(string& str, void*, savedmatch*) {
     OptionParser opt(str, "");
     if(!opt.valid()) return true;
     string name = opt.arg(1);
@@ -187,7 +187,7 @@ bool Interpreter::command_open(string& str, void*) {
     return true;
 }
 
-bool Interpreter::command_reopen(string&, void* mt) {
+bool Interpreter::command_reopen(string&, void* mt, savedmatch*) {
     Interpreter* mythis = (Interpreter*)mt;
     if (!lastMud)
         status->setf ("There is no previous MUD to which I can reconnect");
@@ -200,7 +200,7 @@ bool Interpreter::command_reopen(string&, void* mt) {
     return true;
 }
 
-bool Interpreter::command_send(string& str, void*) {
+bool Interpreter::command_send(string& str, void*, savedmatch*) {
     OptionParser opt(str, "nu");
     if(!opt.valid()) return true;
     string towrite = opt.restStr();
@@ -222,13 +222,13 @@ bool Interpreter::command_send(string& str, void*) {
     return true;
 }
 
-bool Interpreter::command_setinput(string& str, void*) {
+bool Interpreter::command_setinput(string& str, void*, savedmatch*) {
     OptionParser opt(str, "");
     inputLine->set(opt.restStr().c_str());
     return true;
 }
 
-bool Interpreter::command_save(string& str, void*) {
+bool Interpreter::command_save(string& str, void*, savedmatch*) {
     OptionParser opt(str, "a");
     if(!opt.valid()) return true;
     bool color = opt.gotOpt('a');
@@ -280,7 +280,8 @@ void Interpreter::execute() {
         if (line.first.length() > 0 && line.first[0] == commandCharacter) {
             hook.run(COMMAND, line.first, line.second);
             dirtCommand (line.first.c_str() + 1);  // FIXME remove this once all commands are class members
-            if(line.second) delete line.second;
+            //if(line.second) delete line.second; 
+            // FIXME we need to reference count the savedmatch.  This is a big memory leak.
         } else if(currentSession) {
             hook.run(SEND, line.first);
         } else

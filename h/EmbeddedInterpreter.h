@@ -15,8 +15,8 @@ class EmbeddedInterpreter
   public:
     virtual ~EmbeddedInterpreter() {}
     virtual bool load_file(const char*, bool suppress = false) = 0;
-    virtual bool eval(const char*, const char*, const char* = NULL, char* = NULL) = 0;
-    virtual bool run(const char*, const char*, const char* = NULL, char* = NULL, bool& = constboolfalse) = 0; 
+    virtual bool eval(const char*, const char*, const char* = NULL, char* = NULL, savedmatch* = NULL) = 0;
+    virtual bool run(const char*, const char*, const char* = NULL, char* = NULL, savedmatch* = NULL, bool& = constboolfalse) = 0; 
     virtual bool run_quietly(const char*, const char*, const char*, char*,
                               bool suppres = true) = 0;
     virtual void *match_prepare(const char*, const char*) = 0;
@@ -32,9 +32,9 @@ class EmbeddedInterpreter
 
     static void runCallouts();
 
-    static bool command_eval(string&,void*);
-    static bool command_load(string&,void*);
-    static bool command_run(string&,void*);
+    static bool command_eval(string&,void*,savedmatch*);
+    static bool command_load(string&,void*,savedmatch*);
+    static bool command_run(string&,void*,savedmatch*);
 
 protected:
     const char *findFile(const char *fname, const char *suffix); // given e.g. "foobar" and a suffix, search through the script paths
@@ -49,8 +49,8 @@ public:
     void add(EmbeddedInterpreter *e);
 
     virtual bool load_file(const char*, bool suppress = false);
-    virtual bool eval(const char*, const char*, const char* = NULL, char* = NULL);
-    virtual bool run(const char*, const char*, const char* = NULL, char* = NULL, bool& = constboolfalse);
+    virtual bool eval(const char*, const char*, const char* = NULL, char* = NULL, savedmatch* = NULL);
+    virtual bool run(const char*, const char*, const char* = NULL, char* = NULL, savedmatch* = NULL, bool& = constboolfalse);
     virtual bool run_quietly(const char*, const char*, const char*, char*, bool suppres = true);
     virtual void *match_prepare(const char*, const char*);
     virtual void *substitute_prepare(const char*, const char*) ;

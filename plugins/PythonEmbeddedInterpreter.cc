@@ -84,7 +84,7 @@ bool PythonEmbeddedInterpreter::load_file(const char *file, bool suppress)
   return true;
 }
 
-bool PythonEmbeddedInterpreter::eval(const char*, const char *expression, const char* arg, char *result)
+bool PythonEmbeddedInterpreter::eval(const char*, const char *expression, const char* arg, char *result, savedmatch*)
 {
   PyObject *obj;
   set("default_var", arg);
@@ -100,7 +100,7 @@ bool PythonEmbeddedInterpreter::eval(const char*, const char *expression, const 
 }
 
 bool PythonEmbeddedInterpreter::run(const char*, const char *function, const char *args,
-                                    char *out, bool& haserror)
+                                    char *out, savedmatch*, bool& haserror)
 {
   PyObject *func = get_function(function);
   PyObject *func_args, *res;

@@ -1,6 +1,8 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#include "Hook.h"
+
 #define INPUT_SIZE 512
 
 typedef enum {
@@ -77,7 +79,7 @@ extern class Config {
     
     void Save(const char *fname = NULL);
     void readMUD(FILE *fp, const char *mudname);
-    static bool command_writeconfig(string&,void*);
+    static bool command_writeconfig(string&,void*,savedmatch*);
 
     MUDList *mud_list;
     string filename;		   			// Name of the configuration file

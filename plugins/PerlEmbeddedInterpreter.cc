@@ -135,10 +135,10 @@ bool PerlEmbeddedInterpreter::run_quietly(const char* lang, const char *path, co
 
 // Run a function. Set $_ = arg. If out is non-NULL, copy $_ back there
 // when done. return false if parse error ocurred or if function doesn't exist
-bool PerlEmbeddedInterpreter::run(const char*, const char *function, const char *arg, char *out, bool& haserror) {
-    if(arg != NULL) sv_setpv(default_var, arg);
+bool PerlEmbeddedInterpreter::run(const char*, const char *function, const char *arg, 
+        char *out, savedmatch* sm, bool& haserror) {
     string oldarg(arg); // save it
-    char buf[1024];
+    char buf[MAX_MUD_BUF]; // FIXME
     bool retval;
     int nret;
     strcpy(buf, function);
@@ -158,6 +158,16 @@ bool PerlEmbeddedInterpreter::run(const char*, const char *function, const char 
     PUSHMARK(SP);
 // parameters here...
     PUTBACK;
+    if(sm) {
+        STRLEN n_a;
+        //report("PerlEmbeddedInterpreter::run: trying to rematch '%s' for function %s with matcher '%s'", sm->data.c_str(), function, SvPV((SV*)sm->matcher, n_a));
+        sv_setpv(default_var, sm->data.c_str());
+        nret = perl_call_sv((SV*)sm->matcher, G_EVAL|G_SCALAR|G_NOARGS);
+        SPAGAIN;
+        if(!nret) report_err("Matcher function did not return a value.");
+        else if(!POPi) report_err("PerlEmbeddedInterpreter::run: savedmatch failed to match the second time");
+    }
+    if(arg != NULL) sv_setpv(default_var, arg);
     nret = perl_call_pv((char*)buf, G_EVAL|G_NOARGS|G_SCALAR|G_KEEPERR);
     SPAGAIN;
     if (SvTRUE(ERRSV)) {
@@ -231,10 +241,10 @@ bool PerlEmbeddedInterpreter::match(void *perlsub, const char *str, char *const 
     else {
         char *s = SvPV(default_var, PL_na);
         if(out) strcpy(out, s);
-        if(!SvTRUE(POPs)) {
+        if(count && !POPi) {
             if(strlen(s)) report_err("PerlEmbeddedInterpreter::match: strlen(s) thinks the match succeded but return value disagrees.");
             retval = false;
-        else
+        } else
             retval = true;
     }
     PUTBACK;
@@ -260,17 +270,30 @@ void* PerlEmbeddedInterpreter::substitute_prepare(const char *pattern, const cha
 }
 
 // Evalute some loose perl code, put the result in out if non-NULL
-bool PerlEmbeddedInterpreter::eval(const char*, const char *expr, const char* arg, char* out) {
+bool PerlEmbeddedInterpreter::eval(const char*, const char *expr, const char* arg, 
+        char* out, savedmatch* sm) {
 //    report("eval got: '%s'", expr);
-    if(arg) sv_setpv(default_var, arg);
+    int nret;
+    bool retval;
+
     dSP;
+    ENTER;
+    SAVETMPS;
     PUSHMARK(SP);
+    PUTBACK;
+    if(sm) {
+        sv_setpv(default_var, sm->data.c_str());
+        nret = perl_call_sv((SV*)sm->matcher, G_EVAL|G_SCALAR|G_NOARGS);
+        if(!nret) report_err("Matcher function did not return a value.");
+        else if(!POPi) report_err("PerlEmbeddedInterpreter::run: savedmatch failed to match the second time");
+    }
+    if(arg) sv_setpv(default_var, arg);
     SV* res = perl_eval_pv((char*)expr, FALSE);
     STRLEN len;
     
     if (SvTRUE(ERRSV)) { // Perl will provide a warning message for us. (make sure init.pl gets loaded!)
         if(out) *out = NUL;
-        return false;
+        retval = false;
     }
     else {
         if(out) {
@@ -280,10 +303,14 @@ bool PerlEmbeddedInterpreter::eval(const char*, const char *expr, const char* ar
                 out[len] = '\0';  // Make sure string is null terminated -- sometimes perl strings aren't.
             } else *out = NUL; 
         }
-        return true;
+        retval = true;
     }
-    return false;
     SvREFCNT_dec(res);
+    SPAGAIN;
+    PUTBACK;
+    FREETMPS;
+    LEAVE;
+    return retval;
 }
 
 // Set a named global perl variable to this value

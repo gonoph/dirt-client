@@ -78,7 +78,7 @@ void MessageWindow::popUp()
     Window::popUp();
 }
 
-bool MessageWindow::command_window(string& str, void*) {
+bool MessageWindow::command_window(string& str, void*, savedmatch*) {
     int w = 80, h=10, x=0, y=3, t=10;
     bool popup = true;
     bool noborder = false;

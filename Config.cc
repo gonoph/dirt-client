@@ -605,7 +605,7 @@ Config::~Config() {
         Save();
 }
 
-bool Config::command_writeconfig(string& str, void*) {
+bool Config::command_writeconfig(string& str, void*, savedmatch*) {
     char name[128];
     const char* s;
     s = one_argument(str.c_str(), name, false);

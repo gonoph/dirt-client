@@ -50,7 +50,7 @@ void StackedInterpreter::add(EmbeddedInterpreter *e) {
 
 // Slight code duplication here, but can't do much about it since the functions called are different,
 // unless I start messing around with some functors I guess
-bool StackedInterpreter::run(const char* lang, const char *function, const char *arg, char *out, bool& haserror) {
+bool StackedInterpreter::run(const char* lang, const char *function, const char *arg, char *out, savedmatch* sm, bool& haserror) {
     char buf[interpreters.size()][MAX_MUD_BUF];
     int i = 0;
     bool res = false;
@@ -59,13 +59,13 @@ bool StackedInterpreter::run(const char* lang, const char *function, const char 
     
     if(lang && strlen(lang) > 0) {
         embhaserror = true; // tell the embedded interpreter that it should report errors to us.
-        res = interpreters[lang]->run(lang, function, arg, buf[i++], embhaserror) || res;  // || res has no effect since res is false.
+        res = interpreters[lang]->run(lang, function, arg, buf[i++], sm, embhaserror) || res;  // || res has no effect since res is false.
         if(haserror) err_somewhere |= embhaserror;
     } else {
         for(hash_map<string,EmbeddedInterpreter*,hash<string> >::iterator it = interpreters.begin(); it != interpreters.end(); it++) {
             if(it->first == "") continue; // skip the default one -- it's in the list twice
             embhaserror = true; // tell the embedded interpreter that it should report errors to us.
-            res = it->second->run(lang, function, arg, buf[i], embhaserror) || res;
+            res = it->second->run(lang, function, arg, buf[i], sm, embhaserror) || res;
              // If there was an error in any interpreter, err_somewhere should be true
              // haserror (as passed) indicates whether we should care if the interpreter fails.
             if(haserror) err_somewhere |= embhaserror;
@@ -87,8 +87,9 @@ bool StackedInterpreter::load_file(const char* filename, bool suppress) {
     return res;
 }
 
-bool StackedInterpreter::eval(const char* lang, const char* expr, const char* arg, char* out) {
-    return interpreters[lang]->eval(lang, expr, arg, out);
+bool StackedInterpreter::eval(const char* lang, const char* expr, const char* arg, 
+        char* out, savedmatch* sm) {
+    return interpreters[lang]->eval(lang, expr, arg, out, sm);
 }
 
 void *StackedInterpreter::match_prepare(const char* pattern, const char* replacement) {
@@ -325,7 +326,7 @@ const char *EmbeddedInterpreter::findFile(const char *filename, const char *suff
 // Then later on embed_interp is assigned a new value pointing to a StackedInterpreter.
 // If we pass embed_interp to hook.add(...) when Interpreter is constructed, it will
 // never see the interpreters!
-bool EmbeddedInterpreter::command_load(string& str, void*) {
+bool EmbeddedInterpreter::command_load(string& str, void*, savedmatch*) {
     OptionParser opt(str, "");
     if(!opt.valid()) return true;
     if(!embed_interp->load_file(opt.restStr().c_str())) {
@@ -334,25 +335,25 @@ bool EmbeddedInterpreter::command_load(string& str, void*) {
     return true;
 }
 
-bool EmbeddedInterpreter::command_run(string& str, void*) {
+bool EmbeddedInterpreter::command_run(string& str, void*, savedmatch* sm) {
     OptionParser opt(str, "L:");
     if(!opt.valid()) return true;
-    char out[1024]; // FIXME
+    char out[MAX_MUD_BUF]; // FIXME
 
     if(opt.argc() < 2) {
         report_err("%crun: Please pass a function name to run!\n", CMDCHAR);
         return true;
     }
-    embed_interp->run(opt.gotOpt('L')?opt['L'].c_str():NULL, opt.restStr().c_str(), NULL, out);
+    embed_interp->run(opt.gotOpt('L')?opt['L'].c_str():NULL, opt.restStr().c_str(), NULL, out, sm);
     str = out;
     return true;
 }
     
-bool EmbeddedInterpreter::command_eval(string& str, void*) {
+bool EmbeddedInterpreter::command_eval(string& str, void*, savedmatch* sm) {
     OptionParser opt(str, "L:rs");
     if(!opt.valid()) return true;
     char out[MAX_MUD_BUF];
-    embed_interp->eval(opt.gotOpt('L')?opt['L'].c_str():NULL, opt.restStr().c_str(), NULL, out);
+    embed_interp->eval(opt.gotOpt('L')?opt['L'].c_str():NULL, opt.restStr().c_str(), NULL, out, sm);
     if(opt.gotOpt('r')) report("%ceval result: %s\n", CMDCHAR, out);
     string strout(out);
     if(opt.gotOpt('s')) interpreter.add(strout);

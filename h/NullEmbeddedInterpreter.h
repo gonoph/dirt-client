@@ -9,9 +9,9 @@ class NullEmbeddedInterpreter : public EmbeddedInterpreter
   public:
     ~NullEmbeddedInterpreter() {}
     virtual bool load_file(const char*, bool suppress = false);
-    virtual bool eval(const char*, const char *, const char*, char *result) { if(result) *result = '\0'; return false; }
+    virtual bool eval(const char*, const char *, const char*, char *result, savedmatch* = NULL) { if(result) *result = '\0'; return false; }
     virtual void enable_function(const char*) {}
-    virtual bool run(const char*, const char*, const char* = NULL, char* = NULL, bool& haserror = constboolfalse) { 
+    virtual bool run(const char*, const char*, const char* = NULL, char* = NULL, savedmatch* = NULL, bool& haserror = constboolfalse) { 
         report("Not compiled with PERL or PYTHON support. Read the Readme file.\n"); 
         if(haserror) haserror = false;
         return false; 

@@ -38,7 +38,7 @@ Hook::Hook() : max_type(IDLE), hooks(), types() {
     }
 }
 
-bool Hook::command_hook(string& s, void* mt) {
+bool Hook::command_hook(string& s, void* mt, savedmatch*) {
     Hook* mythis = (Hook*)mt;
     OptionParser opt(s, "aFilDt:p:c:n:g:T:C:r:N:d:k:W:");
     if(!opt.valid()) {
@@ -204,7 +204,7 @@ bool Hook::command_hook(string& s, void* mt) {
     return true;
 }
 
-bool Hook::command_disable(string& s, void* mt) {
+bool Hook::command_disable(string& s, void* mt, savedmatch*) {
     Hook* mythis = (Hook*)mt;
     OptionParser opt(s, "g");
 
@@ -223,7 +223,7 @@ bool Hook::command_disable(string& s, void* mt) {
     return true;
 }
 
-bool Hook::command_enable(string& s, void* mt) {
+bool Hook::command_enable(string& s, void* mt, savedmatch*) {
     Hook* mythis = (Hook*)mt;
     OptionParser opt(s, "g");
 
@@ -243,7 +243,7 @@ bool Hook::command_enable(string& s, void* mt) {
     return true;
 }
 
-bool Hook::command_group(string& s, void* mt) {
+bool Hook::command_group(string& s, void* mt, savedmatch*) {
     Hook* mythis = (Hook*)mt;
     OptionParser opt(s, "l:");
 
@@ -342,7 +342,7 @@ void Hook::add(const string name, HookStub* callback) {
     add(types[name], callback);
 }
 
-void Hook::addDirtCommand(string name, bool (*cbk)(string&,void*), void* instance) {
+void Hook::addDirtCommand(string name, bool (*cbk)(string&,void*,savedmatch*), void* instance) {
     add(COMMAND, new CommandHookStub(-1, 1.0, -1, false, true, true,
         "__DIRT_COMMAND_" + name, vector<string>(1,"Dirt commands"), name, cbk, instance));
 }
@@ -356,9 +356,6 @@ void Hook::run(HookType t, string& data, savedmatch* sm) {
     string olduncolored = uncolored;  // To check if it changes.
     string olddata = data;
 
-    if(t == OUTPUT && data[0] == '>') {
-        report("About to crash...\n");
-    }
     for(hookstubset_type::iterator it = hookset->begin(); it != hookset->end(); it++) {
         for(size_t i=0;i<(*it)->size();i++) {  // Iterate over hooks of same priority
             stub = (*(*it))[i];
@@ -511,8 +508,8 @@ void CppHookStub::print() {
 }
 
 CommandHookStub::CommandHookStub(int p, float c, int n, bool F, bool en, bool col,
-        string nm, vector<string> g, string cmdname, bool (*cbk)(string&,void*), void* ins) 
-        : HookStub(p, c, n, F, en, col, nm, g) {
+        string nm, vector<string> g, string cmdname, bool (*cbk)(string&,void*,savedmatch*), 
+        void* ins) : HookStub(p, c, n, F, en, col, nm, g) {
     commandname = cmdname;
     callback = cbk;
     instance = ins;
@@ -526,13 +523,15 @@ bool CommandHookStub::operator() (string& data, savedmatch* sm) {
         && !data.compare(commandname, 1, commandname.length())
 #endif
         && (data.length() == commandname.length() + 1 || data[commandname.length()+1] == ' ')) {
-        if(sm) {
-            // This is expected to return true if the command was handled.
-            if(!embed_interp->match(sm->matcher, sm->data.c_str(), NULL)) {
-                report_err("savedmatch does not match.");
-            }
-        }
-        return(callback(data,instance)); 
+        //if(sm) {
+        //    // This is expected to return true if the command was handled.
+        //    if(!embed_interp->match(sm->matcher, sm->data.c_str(), NULL)) {
+        //        report_err("savedmatch does not match.");
+        //    }
+        //}
+        // FIXME here I think it's losing $1...$n because /run builds a local perl stack.
+        // may have to pass savedmatch to command_run (etc)
+        return(callback(data,instance,sm)); 
     }
     return false;
 }
@@ -559,20 +558,31 @@ bool TriggerHookStub::operator() (string& data, savedmatch* sm) {
     bool retval;
     char out[max(2*command.length(),1024)]; // FIXME buffer overflow
 
-    if(sm) report_err("TriggerHookStub::operator() called with existing savedmatch!");
+    //if(sm) report_err("TriggerHookStub::operator() called with existing savedmatch!");
+
     if(matcher) {
         retval = embed_interp->match(matcher, data.c_str(), out);   // match clobbers default_var.
         if(retval && command.length()) { 
             // SEND and COMMAND hooks must be inserted at the beginning of
             // the command stack, otherwise we will be reversing the
             // command order!  i.e. a;b -> b;a if there is a SEND hook on a.
-            if(type == SEND || type == COMMAND) interpreter.insert(command, data, matcher);
-            else interpreter.add(command, data, matcher);
+            if(sm) {
+                if(type == SEND || type == COMMAND) interpreter.insert(command, sm);
+                else interpreter.add(command, sm);
+            } else {
+                if(type == SEND || type == COMMAND) interpreter.insert(command, data, matcher);
+                else interpreter.add(command, data, matcher);
+            }
             retval = true;
         }
     } else { 
-        if(type == SEND || type == COMMAND) interpreter.insert(command);
-        else interpreter.add(command);
+        if(sm) {
+            if(type == SEND || type == COMMAND) interpreter.insert(command, sm);
+            else interpreter.add(command, sm);
+        } else {
+            if(type == SEND || type == COMMAND) interpreter.insert(command);
+            else interpreter.add(command);
+        }
         retval = true;
     }
     return retval;
