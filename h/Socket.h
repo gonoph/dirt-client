@@ -16,7 +16,7 @@ public:
     
     // IO
     int read (char *buf, int count);               // Return number of bytes actually available
-    void unread(char *buf, int count);             // Return that many bytes
+    void unread(const char *buf, int count);       // Return that many bytes
     
     void write (const char *buf, int count);       // Both accept NULs in the stream
 

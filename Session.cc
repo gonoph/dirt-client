@@ -548,6 +548,20 @@ void Session::inputReady() {
             if(code_pos >= 0) { code_pos = pos-(i-code_pos); }
             memcpy(input_buffer, lastline, pos);
             input_buffer[pos] = '\0';
+            // If the undelim_prompt option is set, and we're not in an ANSI sequence, 
+            // ANY leftover data is considered a prompt
+            if (config->getOption(opt_undelim_prompt) && code_pos < 0)  {
+                memcpy(prompt, line_begin, out-line_begin);
+                prompt[out-line_begin] = NUL;
+                hook.run(OUTPUT, (char*)prompt);
+                hook.run(PROMPT, (char*)prompt);
+                if(config->getOption(opt_snarf_prompt))
+                    inputLine->set_prompt((char*)prompt);
+                if (config->getOption(opt_showprompt)) {
+                    strcpy(out, "\n");
+                    print(out_buf); // FIXME print one line.
+                }
+            }
         } else {
             pos = 0;
             if(code_pos != -1) {

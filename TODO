@@ -146,6 +146,12 @@ prompts terminated by an empty packet? (Some Diku's, apparently...try
     duntroon.xidus.net:7000)  How to detect this?  Seems to be a TCP Ack.
     Consider putting things on the prompt line if nothing has been received in
     a few ms.
+    So for these kinds of muds use these options:
+        showprompt=0
+        undelim_prompt=1
+Mud-specific options: showprompt, undelim_prompt, echoinput.
+    Or do things like TinyFugue with DIKU, LP, Telnet-style muds?
+
 
 Hook:
 -----

@@ -106,14 +106,23 @@ void Socket::writeLine(const char *s) {
     buf[len] = '\r';
     buf[len+1] = '\n';
     outbuf.use(len+2);
+    if(config->getOption(opt_undelim_prompt)) {
+        inbuf.strncat(buf,len+2);
+    }
 }
 
 void Socket::write (const char *buf, int len) {
     outbuf.strncat(buf,len);
+    if(config->getOption(opt_undelim_prompt)) {
+        inbuf.strncat(buf,len);
+    }
 }
 
 void Socket::writeText(const char *buf) {
     outbuf.strcat(buf);
+    if(config->getOption(opt_undelim_prompt)) {
+        inbuf.strcat(buf);
+    }
 }
 
 const char* Socket::getErrorText() {
@@ -131,7 +140,7 @@ const char* Socket::getErrorText() {
     }
 }
 
-void Socket::unread(char *buf, int count) {
+void Socket::unread(const char *buf, int count) {
     inbuf.unshift(buf,count);
 }
 

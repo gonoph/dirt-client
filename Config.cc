@@ -150,15 +150,15 @@ const struct
         true, false, true
     },
 
+    {   '?',        "undelim_prompt", pt_bool, opt_undelim_prompt,
+        "Prompts are undelimited (any string at the end of a packet is considered a prompt)",
+        false, false, true
+    },
+
     {   '?',        "speedwalk_character", pt_char, opt_speedwalk_character,
         "What character starts a speedwalk",
         '.', '!', '~'
     },
-
-//    {   '?',        "expand_semicolon", pt_bool, opt_expand_semicolon,
-//        "Is ; expanded on the command line or just in aliases",
-//        false, false, true
-//    },
 
     {   'p',        "plugins",          pt_string, opt_plugins,
         "Dynamically loaded modules (seperate with ,)",

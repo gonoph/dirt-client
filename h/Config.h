@@ -31,6 +31,7 @@ typedef enum {
     opt_copyover,
     opt_interpreter_type,
     opt_snarf_prompt,
+    opt_undelim_prompt,
     opt_speedwalk_character,
     opt_expand_semicolon,
     opt_plugins,
