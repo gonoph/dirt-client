@@ -1,3 +1,7 @@
+Screen corruption under xterm...
+
+install should ignore CVS/ directories.
+
 rename directories: h -> include, o -> .libs, samples -> scripts
 
 Replace List with hash_map for:

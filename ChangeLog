@@ -1,3 +1,9 @@
+* Changes to configure.in, Makefile.in for debug/optimized builds, install depends
+  on all, and make perl required.
+
+Dirt 0.60.0
+* Made file release on sourceforge.
+
 Dirt 0.53.00 (First version after fork from mcl 0.53.00)
 
 * Replaced all cmd_ with mclcmd_ to separate client interface from server interface.
