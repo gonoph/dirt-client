@@ -155,7 +155,7 @@ sub volatile_completions {
     return 1;
 }
 
-&main::run($main::commandCharacter . "hook -F -T KEYPRESS __DIRT_COMPLETE_tab = /run -Lperl Completion::tab_complete");
+&main::run($main::commandCharacter . "hook -T KEYPRESS __DIRT_COMPLETE_tab = /run -Lperl Completion::tab_complete");
 
 &main::run($main::commandCharacter . "hook -F -T OUTPUT __DIRT_COMPLETE_volatile = /run -Lperl Completion::volatile_completions");
 

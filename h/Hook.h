@@ -16,6 +16,7 @@
 #define DIRT_HOOK_H
 
 #include <dirt.h>
+#include <sys/times.h>
 
 #include <set>      // stores list of HookStub's
 #include <vector>   // Stores list of sets of HookStub's by priority.
@@ -75,6 +76,7 @@ protected:
     vector<string>  groups;
     HookType type;
     bool    deleted;
+    int     ncall;
 public:                 // is defined *after* HookStub).
     HookStub(int p, float c, int n, bool F, bool en, bool col, string nm, vector<string> g);
     virtual bool operator() (string& data, savedmatch* sm = NULL) = 0; // Children must override this.

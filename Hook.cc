@@ -420,7 +420,7 @@ bool Hook::run(HookType t, string& data, savedmatch* sm) {
 }
 
 bool Hook::run(HookType t, char* data, savedmatch* sm) {
-    string s = (data)?data:"";
+    string s = data?data:"";
     bool retval = run(t, s, sm);
     if(data && data != s) strcpy(data, s.c_str());
     return retval;
@@ -635,7 +635,9 @@ void KeypressHookStub::print() {
 
 bool KeypressHookStub::operator() (string& data, savedmatch*) {
     MessageWindow* mw;
-
+    struct tms mytime;
+    int clocks;
+    times(&mytime);
     if(key == inputLine->getlastkey()) {
         if(window.length()) {
             if((mw = MessageWindow::find(window)) && mw->is_visible()) {

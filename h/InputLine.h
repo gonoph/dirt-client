@@ -48,9 +48,9 @@ protected:
     
     char input_buf[MAX_INPUT_BUF];
     char prompt_buf[MAX_PROMPT_BUF];
-    int cursor_pos;     // Where will the next character be inserted?
-    int max_pos;	// How many characters are there in the buffer?
-    int left_pos;	// What is the left position?
+    unsigned int cursor_pos;     // Where will the next character be inserted?
+    unsigned int max_pos;	// How many characters are there in the buffer?
+    unsigned int left_pos;	// What is the left position?
     
     bool ready;		// The input line holds a finished string (hmm)
     
