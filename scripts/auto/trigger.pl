@@ -60,13 +60,7 @@ sub command_trigger {
     if(defined pos && pos != length) {
         &main::report_err($main::commandCharacter . "trig: did not reach end of argument string. \n");
     }
-#    print("\@ARGV is: ", join(",", @ARGV) . "\n");
-#    @ARGV = split /\s+/, $_;  # FIXME we need to split such that we respect quotes!
-#    shift(@ARGV);  # drop /trig
-#    Getopt::Long::Configure("no_ignore_case");
-#    $Getopt::Long::bundling=1;
-#    GetOptions(\%opts, "l:s", "D+", "F+", "a+", "f+", "d=s", "p=i", "c=f", "n=i", "g=s", "L=s", "t=s");
-    getopts('lDFafd:p:c:n:g:L:t:', \%opts);
+    getopts('ac:d:DfFg:lL:n:p:t:', \%opts);
     my($fallthrough) = (0);
     my($hookcmd) = "/hook -T OUTPUT ";
 
@@ -117,10 +111,8 @@ sub command_trigger {
         return 1;
     }
     $name = $ARGV[0];
-#    &main::report("name is: $name");
     $trighash{'action'} = join(" ", @ARGV[2..$#ARGV]);
     $hookcmd .= "'__DIRT_TRIGGER_" . $name . "' = " . $trighash{'action'};
-#    &main::report("hook command is: $hookcmd");
     &main::run($hookcmd);
     $Triggers{$name} = \%trighash;  # main::save will save complex data structures for us!
     return 1;
@@ -170,3 +162,4 @@ sub command_disable {
 print "Loaded auto/trigger.pl\t(Execute commands on mud output)\n";
 
 1;
+

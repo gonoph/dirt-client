@@ -8,7 +8,7 @@ if(!defined %Aliases) {
 }
 my($regexdelim) = qr/[\#\/\%\&!,=:]/;           # regex delimiters
 my($aliasargs)  = "(?:\\\\s+([^\\\\s]+))?" x 20;# set the regex that automatically matches alias arguments
-#   $aliasargs   = $aliasargs;
+   $aliasargs   = qr/$aliasargs/;
     
 &main::run("/hook -T INIT -F -fL perl definealiases = Alias::definealiases");
 sub definealiases {
@@ -153,3 +153,4 @@ sub command_disable {
 print "Loaded auto/alias.pl\t(Shortcuts for commands)\n";
 
 1;
+

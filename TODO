@@ -122,6 +122,26 @@ Rip out Alias, Macro, Action:
 /enable blah;/hook -l blah
     -- semicolon parsing should come before command parsing.
 Recursion counter like tf has.
+So from ThreeKingoms.pl, strange things work, and other things don't:
+    &main::run('/hook -T SEND -t\'^kill\\\\s+(\\\\w+)\' grabkill = /eval \\$ThreeKingdoms::enemy = \\$1');
+        doesn't work.  Sets $ThreeKingdoms::enemy to an uninitialized value.  ($1 is no longer 
+        defined when it gets to the /eval call.
+    &main::run('/hook -T SEND -t\'^kill\\\\s+(\\\\w+)\' grabkill = /eval \\$ThreeKingdoms::enemy = "$1"');
+        works.  $1 substitution is done at trigger stage.  $ThreeKingdoms::enemy must be escaped
+        so that substitution is NOT done at trigger stage.  Perl gets: $ThreeKingdoms::enemy = "shit"
+How about this:
+    Allow perl regex like syntax on the command line:
+        /hook -t /this is a regex/ -F blah = blah
+        /hook -t /this: (\w+) will match any word/ -F word = /echo $1
+        /hook -t /this: won't give a warning about unmatched quotes/ noquotes = /echo woo!
+    Quoted regexes are subject to normal parsing rules.
+    Denote some regex delmiters and find the end the same way as in FilterProxy.
+    From perl: &run should take arguments:
+        &run("/hook myhook = /echo shit", '-t' => qr/this is a regex/);
+        any option given in the hash that follows will be transposed onto the command line
+        with the proper escaping.
+        Is this possible:
+            &run("/hook -t'" . /my regex/ . "' -F shit = /echo shit");
 
 
 Hook:

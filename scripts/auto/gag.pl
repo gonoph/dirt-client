@@ -67,7 +67,7 @@ sub command_gag {
     if(defined pos && pos != length) {
         &main::report_err($main::commandCharacter . "gag: did not reach end of argument string. \n");
     }
-    getopts('lDFafd:p:c:n:g:L:t:', \%opts);
+    getopts('ad:DFln:g:t:', \%opts);
     my($fallthrough) = (0);
     my($hookcmd) = "/hook -T OUTPUT -fL perl -p $pri ";
 
@@ -94,8 +94,8 @@ sub command_gag {
     else { $gaghash{a} = 0; }
     if(defined $opts{D}) { $hookcmd .= "-D "; $gaghash{D} = 1; }
     else { $gaghash{D} = ""; }
-    if(defined $opts{n}) { $hookcmd .= "-n '$opts{n}' "; $gaghash{n} = $opts{n}; }
-    else { $gaghash{n} = -1; } # default shots = infinite
+    if(defined $opts{F}) { $hookcmd .= "-F "; $aliashash{F} = 1; }
+    else { $aliashash{F} = 0; }
     if(defined $opts{g}) { $hookcmd .= "-g '$opts{g}' "; $gaghash{g} = $opts{g}; }
     else { $gaghash{g} = ""; }
     if(defined $opts{t}) { $hookcmd .= "-t '" . &main::backslashify($opts{t},"'") . "' "; $gaghash{t} = $opts{t}; }
@@ -157,3 +157,4 @@ sub command_disable {
 print "Loaded auto/gag.pl\t(Routines to gag mud output)\n";
 
 1;
+

@@ -104,7 +104,7 @@ Notes:
     from being interpreted as intended for the /hook command.
 
     These two hooks are different!  The first will receive the line of output
-    from the mud, the second will not!
+    from the mud in $_, the second will not!
         /hook -T OUTPUT -fL perl blah = blah
         /hook -T OUTPUT blah = /run blah
     The second gets fed to the COMMAND hook, as if you had typed '/run blah',
@@ -112,6 +112,7 @@ Notes:
     is a COMMAND hook, and the data it triggers on is the string "/run blah")
 
     Quoted expressions:
+    -------------------
         When specifying a trigger string, remember that dirt parses the 
     argument to -t as a quoted expression *before* passing the regex to the
     matcher.  You should always place the argument to -t in quotes.  So if you
@@ -122,6 +123,50 @@ Notes:
             /eval print "Jose told me to $1"
     Note that the right hand side is also evaluated as a quoted string, and
     parenthesized expressions are replaced ($1, $2, $3...)
+
+    Backreferences:
+    ---------------
+        When using backreferences (parenthesized subexpressions inside your
+    regex), realize that the right hand side is evaluated as a quoted perl
+    expression at the time the match is made.  This is *before* the right side
+    is executed.  Any $variable on the right side will be substituted at the
+    time the match is made.  This is mostly relevant if you want to use /eval
+    on the RHS of your hook.  You must escape any variable that appears on the
+    RHS if you want it to appear as a variable when /eval is executed.  For
+    example:
+        /hook -t'^Ogre (hits|smacks) you\\.' ogre = /eval $hittype = $1
+    This example will FAIL.  At the time the match is made, the RHS is 
+    evaluated as a perl quoted expression, and BOTH $hittype and $1 are
+    substituted for their values.  The /eval command that is run is:
+        /eval  = hits
+    (assuming $hittype was empty to begin with and the string matched had 
+    "hits" -- it will probably also give you a "Use of unitialized value"
+    warning if $hittype hasn't been used before).  Here's another wrong way to
+    do it:
+        /hook -t'^Ogre (hits|smacks) you\\.' ogre = /eval \$hittype = $1
+    We've escaped $hittype so that it isn't evaluated at the time the match is
+    made.  The /eval command that gets run is:
+        /eval $hittype = hits
+    This should give you a 'Unquoted string "hits" may clash with future
+    reserved word' warning from perl.  Yet another wrong way to do this is:
+        /hook -t'^Ogre (hits|smacks) you\\.' ogre = /eval \$hittype = \$1
+    Now we've escaped both variables on the RHS.  The /eval command that gets 
+    run is:
+        /eval $hittype = $1
+    Which is a valid perl statement, but if you typed this command by itself,
+    you wouldn't expect $1 to be initialized, right?  Perl matching may have 
+    occured between the time the trigger was matched and /eval is run, and the
+    contents of $1 are not guaranteed to be the same.  In fact, $1 will never
+    be the same since perl matching is used in figuring out that this is an 
+    /eval command (it's sent through the COMMAND hook).  To print out the 
+    $hittype variable, use: /eval run("/echo $hittype")
+
+    Finally, the RIGHT way to do this is:
+        /hook -t'^Ogre (hits|smacks) you\\.' ogre = /eval \$hittype = "$1"
+    The /eval command that gets run is:
+        /eval $hittype = "hits"
+    This time we have created a valid perl statement on the RHS, and it sets
+    our variable the way we desire.
 
 Examples:
     Here are four equivalent ways to define an alias using hooks:

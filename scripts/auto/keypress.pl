@@ -60,7 +60,7 @@ sub command_keypress {
     if(defined pos && pos != length) {
         &main::report_err($main::commandCharacter . "keypress: did not reach end of argument string. \n");
     }
-    getopts('d:DfFg:lL:p:n:', \%opts);
+    getopts('d:DfFg:lL:p:', \%opts);
     my($fallthrough) = (0);
     my($hookcmd) = "/hook -T KEYPRESS ";
 
@@ -93,8 +93,6 @@ sub command_keypress {
     else { $keypresshash{g} = ""; }
     if(defined $opts{L}) { $hookcmd .= "-L '$opts{L}' "; $keypresshash{L} = $opts{L}; }
     else { $keypresshash{L} = ""; }
-    if(defined $opts{n}) { $hookcmd .= "-n '$opts{n}' "; $keypresshash{n} = $opts{n}; }
-    else { $keypresshash{n} = -1; } # default shots = infinite
     if(defined $opts{p}) { $hookcmd .= "-p '$opts{p}' "; $keypresshash{p} = $opts{p}; }
     else { $keypresshash{p} = 0; } # default priority
 
@@ -156,3 +154,4 @@ sub command_disable {
 print "Loaded auto/keypress.pl\t(Execute commands with the press of a key)\n";
 
 1;
+

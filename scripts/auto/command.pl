@@ -60,7 +60,7 @@ sub command_command {
     if(defined pos && pos != length) {
         &main::report_err($main::commandCharacter . "command: did not reach end of argument string. \n");
     }
-    getopts('d:DfFg:lL:p:n:', \%opts);
+    getopts('d:DfFg:lL:p:', \%opts);
     my($fallthrough) = (0);
     my($hookcmd) = "/hook -T COMMAND ";
 
@@ -92,8 +92,6 @@ sub command_command {
     else { $commandhash{g} = ""; }
     if(defined $opts{L}) { $hookcmd .= "-L '$opts{L}' "; $commandhash{L} = $opts{L}; }
     else { $commandhash{L} = ""; }
-    if(defined $opts{n}) { $hookcmd .= "-n '$opts{n}' "; $commandhash{n} = $opts{n}; }
-    else { $commandhash{n} = -1; } # default shots = infinite
     if(defined $opts{p}) { $hookcmd .= "-p '$opts{p}' "; $commandhash{p} = $opts{p}; }
     else { $commandhash{p} = 0; } # default priority
 
@@ -154,3 +152,4 @@ sub command_disable {
 print "Loaded auto/command.pl\t(User defined commands)\n";
 
 1;
+

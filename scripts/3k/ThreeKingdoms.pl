@@ -13,7 +13,7 @@ use IO::Handle;
 use POSIX;
 
 # GLOBALs used by this module
-use vars qw(@room_exits @unusual_exits);
+use vars qw(@room_exits @unusual_exits $enemy);
 @room_exits = ();                     # list of the exits to the current room.
 @unusual_exits = ();
 
@@ -142,9 +142,8 @@ sub gauge ($$$$) {
 # This assumes a prompt that looks like this:
 # minHp/maxHp minMana/maxMana minMove/maxMove
 my($breedhp) = qr/^HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+)  Psi: ([0-9]+)\/([0-9]+)/;#  Focus: ([0-9]+)%  E: ([A-Z][a-z]+)/) {
-my($magehp) = qr/^ HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+)S?\/([0-9]+)%\/([0-9]+)% Sat: ([0-9]+)% Cnc: ([0-9]+)% Gols:([0-9]+)\/([0-9]+)% G2N:([0-9]+)%/;
-my($fremenhp) = qr/^HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+) W: ([0-9]+)\/([0-9]+)\(([0-9]+)\) L: ([0-9]+)%
-P: ([0-9]+)\/([0-9]+)% T: [a-z]+ G: ([0-9]+)/;
+my($magehp) = qr/^ HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+)S?\/([0-9]+)%\/([0-9]+)% Sat: ([0-9]+)% Cnc: ([0-9]+)% Gols:([0-9]+)\/([0-9]+)% G2N:([0-9]+)%( A)?( S)?( SS)?( mg)?( PE)?( PG)?( Mon\(...\):(\w\w))?/;
+my($fremenhp) = qr/^HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+) W: ([0-9]+)\/([0-9]+)\(([0-9]+)\) L: ([0-9]+)% P: ([0-9]+)\/([0-9]+)% T: [a-z]+ G: ([0-9]+)/;
 sub check_hpbar {
     if(/$magehp/) {
         &main::run("/clear hpbar");
@@ -152,14 +151,63 @@ sub check_hpbar {
         &main::run("/echo -W hpbar \"SP:  " . sprintf("(%3d/%3d)", $3, $4), &gauge(10, 1, $4, $3) . "\"");
         &main::run("/echo -W hpbar \"Sat: " . sprintf("(%3d/%3d)", $7, 100), &gauge(10,1, 100, 100-$7) . "\"");
         &main::run("/echo -W hpbar \"Cnc: " . sprintf("(%3d/%3d)", $8, 100), &gauge(10,1, 100, 100-$8) . "\"");
+        if(defined $18) {
+            my($percent);
+            my($estat) = $19;
+            if($estat =~ /pe/) { $percent = 100; }
+            elsif($estat =~ /br/) { $percent = 80; }
+            elsif($estat =~ /bl/) { $percent = 40; }
+            elsif($estat =~ /em/) { $percent = 20; }
+            elsif($estat =~ /De/) { $percent = 10; }
+            &main::run("/echo -W hpbar \"Enemy" . sprintf("(%7.7s):", $enemy) . &gauge(10,0,100,$percent) . "\"");
+        } else {
+            &main::run("/echo -W hpbar \"Enemy(none):            \"");
+        }
+        if(defined $12) {
+            &main::run("/echo -W hpbar \"" . $filledColor . "          Armor          " . $windowColor . "\"");
+        } else {
+            &main::run("/echo -W hpbar \"" . $emptyColor .  "          Armor          " . $windowColor . "\"");
+        }
+        if(defined $13) {
+            &main::run("/echo -W hpbar \"" . $filledColor . "          Shield         " . $windowColor . "\"");
+        } else {
+            &main::run("/echo -W hpbar \"" . $emptyColor .  "          Shield         " . $windowColor . "\"");
+        }
+        if(defined $14) {
+            &main::run("/echo -W hpbar \"" . $filledColor . "        Stoneskin        " . $windowColor . "\"");
+        } else {
+            &main::run("/echo -W hpbar \"" . $emptyColor .  "        Stoneskin        " . $windowColor . "\"");
+        }
+        if(defined $15) {
+            &main::run("/echo -W hpbar \"" . $filledColor . "       Minor Globe       " . $windowColor . "\"");
+        } else {
+            &main::run("/echo -W hpbar \"" . $emptyColor .  "       Minor Globe       " . $windowColor . "\"");
+        }
+        if(defined $16 || defined $17) {
+            if(defined $16) {
+                &main::run("/echo -W hpbar \"" . $filledColor . "  Protection from Evil   " . $windowColor . "\"");
+            } else {
+                &main::run("/echo -W hpbar \"" . $filledColor . "  Protection from Good   " . $windowColor . "\"");
+            }
+        } else {
+            &main::run("/echo -W hpbar \"" . $emptyColor .  "  Protection from Stuff  " . $windowColor . "\"");
+        }
     } else {
         # Let a few prompts splip by if creating a character or such
     }
 }
 
-
 &main::run("/hook -F -T OUTPUT -fL perl -p 100 check_hpbar = ThreeKingdoms::check_hpbar");
-&main::run("/window -w25 -h4 -x-0 -y4 -B -t0 -c31 hpbar");
+&main::run("/window -w25 -h10 -x-0 -y4 -B -t0 -c31 hpbar");
+# Why doesn't this work?
+# from perl you need 4 backslashes where you want ONE to appear.  *sigh*
+&main::run('/hook -T SEND -Ft\'^kill\\\\s+(\\\\w+)\' grabkill = phk;bt;/eval \\$ThreeKingdoms::enemy = "$1"');
+#&main::run("/hook -T SEND -C kill -fL perl grabkill = ThreeKingdoms::grabkill");
+#sub grabkill {
+#    if(/^kill\s(\w+)\s*$/) {
+#        $enemy = $1;
+#    }
+#}
 
 %opposite_dir = ( 
     'n' => 's',
