@@ -21,7 +21,7 @@ sub definealiases {
                 }
             }
         }
-        $hookcmd .= " '" . $name . "' = " . $Aliases{$name}->{'action'};
+        $hookcmd .= " -C '$name' '" . $name . "' = " . $Aliases{$name}->{'action'};
         &main::run($hookcmd);
     }
     &main::run($main::commandCharacter . "hook -d definealiases"); # delete myself from INIT list.
@@ -59,18 +59,16 @@ sub command_alias {
     if(defined pos && pos != length) {
         &main::report_err($main::commandCharacter . "alias: did not reach end of argument string. \n");
     }
-    getopts('ac:C:d:DfFg:lL:p:n:t:', \%opts);
+    getopts('d:DfFg:lL:p:', \%opts);
     my($fallthrough) = (0);
     my($hookcmd) = "/hook -T SEND ";
 
     if(defined $opts{l} && $opts{l}) {
-        &main::report(sprintf("%-35s%11s%7s%6s%6s %s\n", "Name", "Priority", "Chance", "Shots", "Flags", "Groups"));
+        &main::report(sprintf("%-15s%-35s%11s%6s %s\n", "Name", "Expansion", "Priority", "Flags", "Groups"));
         foreach $name (sort keys %Aliases) {
             my($aliasref) = $Aliases{$name};
-            &main::report(sprintf("%-35s%11s%7s%6s%2s%2s%2s %s\n", $name, $aliasref->{p}, $aliasref->{c}, 
-                $aliasref->{n}, $aliasref->{F}?"F":"", $aliasref->{D}?"D":"", $aliasref->{a}?"C":"", $aliasref->{g}));
-            &main::report("\tAlias:  ", $aliasref->{'C'}, $aliasref->{'t'});
-            &main::report("\tAction: ", $aliasref->{'action'});
+            &main::report(sprintf("%-15s%-35s%11s%4s%2s %s\n", $name, $aliasref->{'action'}, 
+                $aliasref->{p}, $aliasref->{F}?"F":"", $aliasref->{D}?"D":"", $aliasref->{g}));
         }
         return 1;
     }
@@ -83,16 +81,6 @@ sub command_alias {
         }
         return 1;
     }
-    if (defined $opts{C} && $opts{C} && defined $opts{t} && $opts{t}) {
-      &main::report_err($main::commandCharacter . "alias: options -C and -t cannot be used together.\n");
-      return 1;
-    }
-    if(defined $opts{a}) { $hookcmd .= "-a "; $aliashash{a} = 1; }
-    else { $aliashash{a} = 0; }
-    if(defined $opts{c}) { $hookcmd .= "-c '$opts{c}' "; $aliashash{c} = $opts{c}; }
-    else { $aliashash{c} = 1.0; } # default chance
-    if(defined $opts{C}) { $hookcmd .= "-C '$opts{C}' "; $aliashash{C} = $opts{C}; }
-    else { $aliashash{C} = ""; } # default chance
     if(defined $opts{D}) { $hookcmd .= "-D "; $aliashash{D} = 1; }
     else { $aliashash{D} = ""; }
     if(defined $opts{f}) { $hookcmd .= "-f "; $aliashash{f} = 1; }
@@ -103,12 +91,8 @@ sub command_alias {
     else { $aliashash{g} = ""; }
     if(defined $opts{L}) { $hookcmd .= "-L '$opts{L}' "; $aliashash{L} = $opts{L}; }
     else { $aliashash{L} = ""; }
-    if(defined $opts{n}) { $hookcmd .= "-n '$opts{n}' "; $aliashash{n} = $opts{n}; }
-    else { $aliashash{n} = -1; } # default shots = infinite
     if(defined $opts{p}) { $hookcmd .= "-p '$opts{p}' "; $aliashash{p} = $opts{p}; }
     else { $aliashash{p} = 0; } # default priority
-    if(defined $opts{t}) { $hookcmd .= "-t '" . &main::backslashify($opts{t}, "'") . "' "; $aliashash{t} = $opts{t}; }
-    else { $aliashash{t} = ""; }
 
     if($#ARGV < 2) { # /alias was dropped already.
         &main::report_err($main::commandCharacter . "alias: Not enough arguments.  See /help alias.");
@@ -117,7 +101,7 @@ sub command_alias {
     }
     $name = $ARGV[0];
     $aliashash{'action'} = join(" ", @ARGV[2..$#ARGV]);
-    $hookcmd .= "'" . $name . "' = " . $aliashash{'action'};
+    $hookcmd .= "-C '$name' '" . $name . "' = " . $aliashash{'action'};
     &main::run($hookcmd);
     $Aliases{$name} = \%aliashash;  # main::save will save complex data structures for us!
     return 1;
