@@ -1,11 +1,12 @@
-
 #include "dirt.h"
+#include "TTY.h"
+#include "Curses.h"
+#include "Screen.h"
+#include "Hook.h"
+
 #include <termios.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include "Curses.h"
-#include "cui.h"
-#include "Hook.h"
 
 void TTY::suspend() {
 	set_normal();

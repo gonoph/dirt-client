@@ -1,24 +1,27 @@
 #ifndef DIRT_SHELL_H
 #define DIRT_SHELL_H
 
+#include "Window.h"
+#include "Selectable.h"
+#include "Numbered.h"
+
 
 // A shell is a Window that is executing some program and showing the results
-class Shell : public ScrollableWindow, public Selectable, public Numbered
-{
-public:
+class Shell : public ScrollableWindow, public Selectable, public Numbered {
+ public:
     Shell (Window *_parent, const char *_command, int _w, int _h, int _x, int _y, int _timeout);
 
     virtual ~Shell() {
-        killProcess();
+	killProcess();
     }
 
     virtual int init_fdset(fd_set *readset, fd_set *) {
-        if (fd < 0)
-            return 0;
-        else {
-            FD_SET(fd, readset);
-            return fd;
-        }
+	if (fd < 0)
+	    return 0;
+	else {
+	    FD_SET(fd, readset);
+	    return fd;
+	}
     }
 
     virtual void check_fdset(fd_set* readset, fd_set* writeset);
@@ -26,11 +29,11 @@ public:
 
     // When asked to pop up selected by alt-X, update last_input
     virtual void popUp();
-    
-private:
+
+ private:
 
     void killProcess(); // finish off our child
-    
+
     String command;
     pid_t pid;
     int fd;

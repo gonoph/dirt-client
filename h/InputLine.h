@@ -1,6 +1,7 @@
 #ifndef DIRT_INPUTLINE_H
 #define DIRT_INPUTLINE_H
 
+#include "Window.h"
 
 #define MAX_PROMPT_BUF 80
 

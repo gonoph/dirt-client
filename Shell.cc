@@ -1,11 +1,11 @@
-
 #include "dirt.h"
-#include "cui.h"
+#include "Shell.h"
+
 #include <sys/wait.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
-#include "Shell.h"
+
 
 void Shell::killProcess() {
     if (fd > 0) {

@@ -1,9 +1,11 @@
 #include "dirt.h"
-#include "cui.h"
-//#include "MessageWindow.h"
-//#include "Window.h"
+#include "Window.h"
 #include "ProxyWindow.h"
+#include "Numbered.h"
+#include "MessageBox.h"
 #include "Curses.h"
+#include "Screen.h"
+
 #include <stdarg.h>
 #include <deque>
 #include <list>

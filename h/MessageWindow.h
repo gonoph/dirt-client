@@ -1,6 +1,9 @@
 #ifndef DIRT_MESSAGEWINDOW_H
 #define DIRT_MESSAGEWINDOW_H
 
+#include "Window.h"
+#include "Numbered.h"
+#include <string>
 
 // This is a small derivative of Window that is numbered and
 // can be written to and created by the user and can also dump output

@@ -1,6 +1,8 @@
 #ifndef DIRT_SCROLLBACKSEARCH_H
 #define DIRT_SCROLLBACKSEARCH_H
 
+#include "InputBox.h"
+#include "Screen.h"
 
 // The dialog box shown when you want to search scrollback
 class ScrollbackSearch : public InputBox {

@@ -1,15 +1,18 @@
 // a class to keep a list of commands and execute them one at a time
 
 #include "dirt.h"
-#include "cui.h"
+#include "Interpreter.h"
 #include "Option.h"
 #include "MessageWindow.h"
-#include "Interpreter.h"
+#include "OutputWindow.h"
 #include "Shell.h"
 #include "Chat.h"
 #include "Session.h"
+#include "Screen.h"
 #include "MUD.h"
 #include "Hook.h"
+#include "StatusLine.h"
+#include "InputLine.h"
 
 extern MUD *lastMud;
 

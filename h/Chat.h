@@ -3,6 +3,7 @@
 
 #include "Socket.h"
 #include "Hook.h"
+#include "Selection.h"
 
 // MudMaster/ZCHAT chat implementation
 

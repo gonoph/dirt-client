@@ -9,11 +9,12 @@
  */
 
 #include "dirt.h"
-#include "cui.h"
 #include "Hook.h"
 #include "Interpreter.h"
 #include "Option.h"
 #include "MessageWindow.h"
+#include "InputLine.h"
+
 #include <iomanip>
 
 HookStub::HookStub(int p, float c, int n, bool F, bool en, bool col, string nm, vector<string> g) 

@@ -1,9 +1,10 @@
 // Output window implementation
 
 #include "dirt.h"
-#include "cui.h"
+#include "OutputWindow.h"
 #include "InputBox.h"
 #include "ScrollbackSearch.h"
+#include "StatusLine.h"
 #include "Hook.h"
 
 OutputWindow::OutputWindow(Window *_parent)

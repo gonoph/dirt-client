@@ -1,6 +1,7 @@
 #include "dirt.h"
-#include "cui.h"
-
+#include "WindowGroup.h"
+#include "InputLine.h"
+#include "Label.h"
 
 // WindowGroup - a specialized window where one of the children at the time
 // is focused - the focused child receives keypresses first, even though

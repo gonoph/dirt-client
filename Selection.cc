@@ -1,6 +1,8 @@
 #include "dirt.h"
+#include "Selection.h"
 #include "Interpreter.h"
-#include "cui.h"
+#include "InputLine.h"
+#include "StatusLine.h"
 
 
 Selection::Selection(Window *_parent, int _w, int _h, int _x, int _y)

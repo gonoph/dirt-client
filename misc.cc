@@ -1,8 +1,10 @@
+#include "dirt.h"
+#include "misc.h"
+#include "OutputWindow.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include "dirt.h"
-#include "cui.h"
 
 void error(const char *fmt, ...) {
     va_list va;

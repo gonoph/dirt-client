@@ -1,8 +1,10 @@
 #ifndef DIRT_SCREEN_H
 #define DIRT_SCREEN_H
 
+#include "Window.h"
 
 class Buffer;
+
 class Screen  : public Window {
     int fd;				// For /dev/vcsa?
     

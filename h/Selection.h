@@ -1,13 +1,13 @@
 #ifndef DIRT_SELECTION_H
 #define DIRT_SELECTION_H
 
+#include "Window.h"
 
 typedef void SelectionCallback (void *data, const char *s, int n);
 
 // This is a window which contains some strings. The user can
 // select one of them
-class Selection : public Window
-{
+class Selection : public Window {
 public:
     Selection(Window *_parent, int _w, int _h, int _x, int _y);
     ~Selection();

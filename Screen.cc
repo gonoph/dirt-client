@@ -1,17 +1,19 @@
 // The Screen class is a derivative of Window that writes the resulting
 // data onto the physical screen
 
+#include "dirt.h"
+#include "Screen.h"
+#include "Buffer.h"
+#include "Curses.h"
+#include "Session.h"
+#include "Hook.h"
+#include "Numbered.h"
+
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/uio.h>
 #include <sys/socket.h> // Some libc/linux versions seem to have iovec there :(
-#include "dirt.h"
-#include "cui.h"
-#include "Buffer.h"
-#include "Curses.h"
-#include "Session.h"
-#include "Hook.h"
 
 // This isn't too pretty
 int get_screen_size_x()

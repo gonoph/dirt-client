@@ -1,11 +1,12 @@
 #include "dirt.h"
-#include "cui.h"
 #include "Hotkey.h"
 #include "InputBox.h"
 #include "ScrollbackSearch.h"
 #include "Interpreter.h"
 #include "Session.h"
 #include "Chat.h"
+#include "OutputWindow.h"
+#include "StatusLine.h"
 
 Hotkey *hotkey;
 

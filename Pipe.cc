@@ -1,11 +1,12 @@
 #include "dirt.h"
 #include "Pipe.h"
+#include "Interpreter.h"
+#include "OutputWindow.h"
+
 #include <unistd.h>
 #include <limits.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include "cui.h"
-#include "Interpreter.h"
 
 Pipe::Pipe(int fd1, int fd2) {
     // socketpair has apparently greater 'capacity' than pipe

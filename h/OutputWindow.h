@@ -1,7 +1,7 @@
 #ifndef DIRT_OUTPUTWINDOW_H
 #define DIRT_OUTPUTWINDOW_H
 
-
+#include "Window.h"
 class ScrollbackController;
 
 class OutputWindow : public Window

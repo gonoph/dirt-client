@@ -1,6 +1,17 @@
 // Sesssion.cc
 // This defines a Session structure which communicates with a MUD
 
+#include "dirt.h"
+#include "Session.h"
+#include "Screen.h"
+#include "Interpreter.h"
+#include "Curses.h"
+#include "Chat.h"
+#include "Hook.h"
+#include "StatusLine.h"
+#include "OutputWindow.h"
+#include "InputLine.h"
+
 #include <ctype.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -9,13 +20,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <arpa/telnet.h>
-#include "dirt.h"
-#include "cui.h"
-#include "Session.h"
-#include "Interpreter.h"
-#include "Curses.h"
-#include "Chat.h"
-#include "Hook.h"
 
 const int connectTimeout = 30;
 

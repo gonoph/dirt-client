@@ -1,6 +1,8 @@
 #ifndef DIRT_WINDOWGROUP_H
 #define DIRT_WINDOWGROUP_H
 
+#include "Window.h"
+class InputLine;
 
 enum val_type {val_quit, val_ok}; // Cancel or OK?
 

@@ -1,11 +1,11 @@
 #include "dirt.h"
-#include <sys/stat.h>
-#include <unistd.h>
-#include "cui.h"
 #include "Plugin.h"
 #include "Interpreter.h"
 #include "Hook.h"
+#include "StatusLine.h"
 
+#include <sys/stat.h>
+#include <unistd.h>
 
 // This table contain names of all options, corresponding switch names
 // and the variable that is to be set when the option is given

@@ -1,8 +1,14 @@
 // The input line
 #include "dirt.h"
-#include "cui.h"
+#include "InputLine.h"
 #include "Hook.h"
 #include "Interpreter.h"
+#include "Screen.h"
+#include "Selection.h"
+#include "OutputWindow.h"
+#include "StatusLine.h"
+#include "MessageBox.h"
+
 #include <sys/stat.h>
 #include <fstream>
 #include <iostream>

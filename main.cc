@@ -1,14 +1,18 @@
 #include "dirt.h"
-#include "cui.h"
 #include "Session.h"
+#include "Screen.h"
 #include "Hotkey.h"
 #include "Pipe.h"
 #include "Interpreter.h"
+#include "OutputWindow.h"
+#include "StatusLine.h"
+#include "InputLine.h"
 #include "Curses.h"
 #include "EmbeddedInterpreter.h"
 #include "Plugin.h"
 #include "Chat.h"
 #include "Hook.h"
+
 #include <signal.h>
 #include <unistd.h>
 

@@ -1,7 +1,7 @@
 // Implementation of a status line
 
 #include "dirt.h"
-#include "cui.h"
+#include "StatusLine.h"
 #include <stdarg.h>
 
 #define STATUSLINE_TIMEOUT 5

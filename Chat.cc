@@ -1,13 +1,16 @@
 #include "dirt.h"
-#include "cui.h"
 #include "Chat.h"
+#include "Interpreter.h"
+#include "OutputWindow.h"
+#include "StatusLine.h"
+#include "InputLine.h"
+
 #include <stdarg.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <net/if.h>
-#include "Interpreter.h"
 
 ChatServerSocket *chatServerSocket;
 MUD *chatMUD;
@@ -28,7 +31,7 @@ static void writeChatCommon(char *s) {
     char out[MAX_MUD_BUF];
     strcpy(out, s);
     hook.run(OUTPUT, out);
-        outputWindow->print(out);
+    outputWindow->print(out);
 //    else
 //        outputWindow->print(s);
 

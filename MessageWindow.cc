@@ -2,9 +2,7 @@
 // can be written to and created by the user and can also dump output
 // coming into it to the log file
 
-#include <vector>
 #include "dirt.h"
-#include "cui.h"
 #include "MessageWindow.h"
 #include "Option.h"
 #include "Interpreter.h"
@@ -13,6 +11,11 @@
 #include "Session.h"
 #include "MUD.h"
 #include "Hook.h"
+#include "Screen.h"
+#include "StatusLine.h"
+
+#include <vector>
+
 
 // Does this duplicate the Window::prev and Window::next pointers?
 vector<MessageWindow*> MessageWindow::list;

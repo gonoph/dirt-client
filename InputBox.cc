@@ -3,7 +3,6 @@
 // It centers itself on its parent
 
 #include "dirt.h"
-#include "cui.h"
 #include "InputBox.h"
 
 class InputBoxedLine : public InputLine
