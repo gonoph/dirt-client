@@ -67,17 +67,33 @@ bool Window::is_focused() {
 }
 
 void Window::insert (Window *window) {
-    if (find(window)) abort();
+    if (find(window))
+        error("Window::insert, window not found\n");
         
+    check();
+    Window *w;
+    for(w = child_first;w != child_last; w = w->next) {
+        if(w == window) {
+            report_err("Window::insert attempting to insert a window twice (1)!\n");
+            return;
+        }
+    }
+    for(w = child_last;w != child_first; w = w->prev) {
+        if(w == window) {
+            report_err("Window::insert attempting to insert a window twice (2)!\n");
+            return;
+        }
+    }
+
     if (child_last) {
         child_last->next = window;
+        window->next = NULL;
         window->prev = child_last;
     }
     else child_first = window;
 
     child_last = window;
     assert(window->parent == this);
-//    window->parent = this; // FIXME
     check();
 }
 
@@ -86,12 +102,21 @@ void Window::check() {
     int count;
 
     for (count = 0, w = child_first; w; w = w->next)
-        if (++count > 100)
-            abort();
+        if (++count > 100)  {
+            error("Window::check too many children via child_first\n");
+        }
 
-    for (count = 0, w = child_last; w; w = w->prev)
-        if (++count > 100)
-            abort();
+    for (count = 0, w = child_last; w; w = w->prev) {
+        if (++count > 100)  {
+            char buf[16384];
+            int ptr = 0;
+            for(count=0,w=child_last; w; w=w->prev) {
+                ptr += sprintf(buf+ptr, "%lx\r\n", w);
+                if(++count > 10) break;
+            }
+            error("Window::check too many children via child_last: \r\n%s", buf);
+        }
+    }
 }
 
 void Window::show(bool vis) {
@@ -104,28 +129,17 @@ void Window::show(bool vis) {
 void Window::remove (Window *window)
 {
     if (!find(window)) {
-//        abort();
-        report_err("Window::remove unable to remove window because it does not exist!");
+        report_err("Window::remove unable to remove window because it is not a child!");
         return;
     }
     
     if (window->prev) window->prev->next = window->next;
-    
     if (window->next) window->next->prev = window->prev;
-    
     if (window == child_first) child_first = window->next;
-    
-    else if (window == child_last) child_last = window->prev;
-    
-    else {  // FIXME seems like a window can't have more than 2 children?!?!
-        cerr << "Trying to remove a window that is not a child!" << endl;
-    }
-
+    if (window == child_last) child_last = window->prev;
     window->next = window->prev = NULL;
-		
     dirty = true;
     if (focused) focused->dirty = true;
-
     if (window == focused) focused = NULL;
     
     check();
@@ -134,8 +148,6 @@ void Window::remove (Window *window)
 Window::~Window()
 {
     Window *w, *w_next;
-    // Kill all children
-//    cerr << "Killing window: " << getName() << endl;
     
     check();
     for (w = child_first; w; w = w_next) {
@@ -146,7 +158,11 @@ Window::~Window()
         cerr << "   Killing a child: " << w->getName() << endl;
 //        w->die();
 //        w->check();
-        assert(this == w->parent);
+        //assert(this == w->parent); // This fails sometimes.  FIXME WHY?
+        if(this != w->parent) {
+            report_err("Window::~Window: Window has bogus parent.\n");
+            w->parent = NULL; // FIXME
+        }
         delete w;  // At this point, window has a deleted child in its list.
     }
 
@@ -508,8 +524,8 @@ void    Window::box (int x1, int y1, int x2, int y2, int _borders)
 void Window::clear_line(int _y)
 {
     // PROBLEM: if width changes!
-    if (_y > (height-1))
-        abort();
+    if (_y > (height-1)) 
+        error("Window::clear_line _y > height-1\n");
     memcpy(canvas+width*_y, clearLine, width * sizeof(attrib));
 }
 
