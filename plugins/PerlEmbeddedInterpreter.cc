@@ -8,6 +8,8 @@
 #include <perl.h>
 #include <unistd.h>
 
+static PerlInterpreter *my_perl = NULL;
+
 // Exported functions
 extern "C" EmbeddedInterpreter *createInterpreter() {
     return new PerlEmbeddedInterpreter();
@@ -24,7 +26,8 @@ extern "C" const char* versionFunction() {
 /* We have to init DynaLoader */
 
 extern "C" {
-   void boot_DynaLoader (CV* cv);
+   void boot_DynaLoader (pTHX_ CV* cv);
+//   void boot_Socket     (pTHX_ CV* cv);
    I32 dirt_perl_run();
    I32 dirt_perl_report();
    I32 dirt_perl_report_err();
@@ -56,46 +59,52 @@ I32 dirt_perl_report_err() {
     return 0;  // We return no arguments
 }
 
-static void xs_init(void)
+static void xs_init(pTHX)
 {
+// Adding stuff here is the way to call C++ from perl (see xchat source for more examples)
+// newXS("Dirt::run", dirt_perl_run, "Dirt"); or something
    newXS("DynaLoader::boot_DynaLoader", boot_DynaLoader, __FILE__);
+//   newXS("Socket::bootstrap", boot_Socket, __FILE__);
 }
 
 // Initialize the Perl Interpreter
 PerlEmbeddedInterpreter::PerlEmbeddedInterpreter() 
     : myname("perl") {
-    perl_interp = perl_alloc();
-    perl_construct((PerlInterpreter*)perl_interp);
-    
-    char *args[] = {"dirtInternalPerlInterpreter", "-w", "-e", ""};
-    if ((perl_parse(perl_interp, xs_init, 4, args, __environ)))
-        error ("perl_parse error - exiting");
-
+    char *args[] = {"dirtInternalPerlInterpreter", "-w", "-e", "0"};
+    if(!my_perl) {
+        my_perl = perl_alloc();
+        perl_construct(my_perl);
+        PL_perl_destruct_level = 1;
+        perl_interp = my_perl;
+        if(perl_parse(my_perl, xs_init, 4, args, (char**)NULL))
+           error ("perl_parse error - exiting");
+    } else perl_interp = my_perl;  // We don't ever create more than one perl interpreter.
 
     // Define some bare-minimum perl stuff to get the puppy running.
-    dSP;
-    PUSHMARK(SP);
+    //dSP;
+    //PUSHMARK(SP);
+
     // This is a little routine that works like require() but does not die if it fails.
-    perl_eval_pv(
+    eval_pv(
         "sub include {"
         "    my($fname) = shift;"
         "    if(defined $INC{$fname}) { delete $INC{$fname}; }"
         "    if(-f $fname) { "
         "        do $fname; "
-        "        return if(defined($@) && $@); # SIG{__DIE__} should have already printed a message from the previous line"
-        "        $INC{$fname} = $fname;"
+        "        return if(defined($@) && $@);" // SIG{__DIE__} should have already
+        "        $INC{$fname} = $fname;"        // printed a message from the previous line
         "    }"
         "    else { warn \"Could not load $fname because it does not exist.\n \"; }"
         "}" , FALSE);
 
     // Make all warnings pretty and easily distinguishable
-    perl_eval_pv(
+    eval_pv(
         "$SIG{__WARN__} = sub { "
         "    print(join \"\", map { \"\\@ \\xEA\\x04[Perl WARNING]\\xEA\\x07 $_\\n\" } split(/\\n/, join(\"\", @_)));"
         "};", FALSE);
 
     // Ditto for errors.
-    perl_eval_pv(
+    eval_pv(
         "$SIG{__DIE__} = sub { "
         "    print(join \"\", map { \"\\@ \\xEA\\x04[Perl ERROR]\\xEA\\x07 $_\\n\" } split(/\\n/, join(\"\", @_)));"
         "};", FALSE);
