@@ -100,7 +100,7 @@ $(OBJ_DIR):
 	mkdir $(OBJ_DIR)/plugins
 
 $(EXE): $(OBJ_FILES)
-	$(CXX) $(DIRT_LDFLAGS) -o $(EXE) $(OBJ_FILES) $(DIRT_LIBS)
+	$(CXX) $(CFLAGS) $(DIRT_LDFLAGS) -o $(EXE) $(OBJ_FILES) $(DIRT_LIBS)
 
 $(OBJ_DIR)/%.o: %.cc
 	$(CXX) -c $(DIRT_CXXFLAGS) $< -o $@
@@ -109,16 +109,16 @@ $(OBJ_DIR)/mccpDecompress.o: mccpDecompress.c
 	$(CC) -c $(DIRT_CFLAGS) $< -o $@
 
 $(OBJ_DIR)/plugins/perl.so:  o/plugins/PerlEmbeddedInterpreter.o
-	$(CC) $(LDFLAGS) -shared $< -o $@ $(PERL_LDFLAGS) $(LIBPTHREAD)
+	$(CXX) $(CFLAGS) $(LDFLAGS) -shared $< -o $@ $(PERL_LDFLAGS) $(LIBPTHREAD)
 
 $(OBJ_DIR)/plugins/PerlEmbeddedInterpreter.o: plugins/PerlEmbeddedInterpreter.cc
-	$(CC) -c $(DIRT_CFLAGS) $(PERL_CPPFLAGS) $< -o $@
+	$(CXX) $(CFLAGS) -c $(DIRT_CFLAGS) $(PERL_CPPFLAGS) $< -o $@
 
 $(OBJ_DIR)/plugins/python.so: o/plugins/PythonEmbeddedInterpreter.o
-	$(CC) $(LDFLAGS) -shared $< -o $@ $(PYTHON_LDFLAGS) $(LIBPTHREAD)
+	$(CXX) $(LDFLAGS) -shared $< -o $@ $(PYTHON_LDFLAGS) $(LIBPTHREAD)
 
 $(OBJ_DIR)/plugins/PythonEmbeddedInterpreter.o: plugins/PythonEmbeddedInterpreter.cc
-	$(CC) -c $(DIRT_CFLAGS) $(PYTHON_CPPFLAGS) $< -o $@
+	$(CXX) -c $(DIRT_CFLAGS) $(PYTHON_CPPFLAGS) $< -o $@
 
 install: $(EXE) all
 	$(INSTALL) -d $(INSTALL_ROOT)$(prefix)/{bin,lib/dirt/{auto,contrib,plugins,sys,doc,doc/commands}}
