@@ -68,8 +68,8 @@ sub command_keypress {
         &main::report(sprintf("%-6s%-35s%11s%7s%6s%6s %s\n", "Key", "Action", "Priority", "Chance", "Shots", "Flags", "Groups"));
         foreach $name (sort keys %Keypresses) {
             my($keypressref) = $Keypresses{$name};
-            &main::report(sprintf("%-6s%-35s%11s%7s%6s%2s%2s %s\n", $name, $keypressref->{'action'},
-	    $keypressref->{p}, $keypressref->{c}, $keypressref->{n}, $keypressref->{F}?"F":"", $keypressref->{D}?"D":"",
+            &main::report(sprintf("%-6s%-35s%11s%6s%2s%2s %s\n", $name, $keypressref->{'action'},
+	    $keypressref->{p}, $keypressref->{n}, $keypressref->{F}?"F":"", $keypressref->{D}?"D":"",
 	    $keypressref->{g}));
         }
         return 1;
