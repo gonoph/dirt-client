@@ -3,6 +3,12 @@
 * Fixed key behavior so both old/new key handling works.  (Need to move 
   hook.run(KEYPRESS...) to TTY.cc when conversion is complete)
 * Leave scrollback when at end, don't start in scrollback mode.
+* Fix hook so /gagasdf doesn't work.
+* Fix /status, /echo so /status doesn't print "/status" on the status line: opt.restStr()
+* Changed Window to use a list<Window*> to keep track of its children.  This
+    fixes several segfaults.
+* Fixed escaping in regexes.
+* Wrote doc/Escaping to describe how it works.
 
 Dirt 0.60.0
 * Made file release on sourceforge.
