@@ -487,7 +487,7 @@ static const char *type_to_string(ptype_t t) {
     case pt_char: return "<char>";
     case pt_bool: return "<0|1>";
     default:
-        return "<???>";
+        return "<\?\?\?>";
     }
 }
 

@@ -1,5 +1,5 @@
-#ifndef __MUD_H
-#define __MUD_H
+#ifndef _MUD_H_
+#define _MUD_H_
 
 #include <dirt.h>
 
@@ -56,4 +56,4 @@ public:
 extern MUD globalMUD;
 
 
-#endif
+#endif // _MUD_H_

@@ -197,7 +197,7 @@ private:
     ChatServerSocket(); // bind to port
     List<ChatConnection*> connections;
     
-    friend ChatConnection;
+    friend class ChatConnection;
     int id; // Stamp ID
     bool is_afk;
     int snoop_count;

@@ -61,9 +61,9 @@ private:
     mc_state *mcinfo;
     ColorConverter colorConverter;
 
-    friend NetworkStateWindow;
-    friend StatWindow;
-    friend TimerWindow;
+    friend class NetworkStateWindow;
+    friend class StatWindow;
+    friend class TimerWindow;
 
     void print(const char *s);				// Write to our output/log
 

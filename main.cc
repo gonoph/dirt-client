@@ -33,11 +33,9 @@ bool dirtFinished;
 
 InterpreterPipe *interpreterPipe;
 OutputPipe *outputPipe;
+HistorySet *history;
 
 int session_fd = -1; // Set to somethign else if recovering from copyover
-
-void load_history();
-void save_history();
 
 int main(int argc, char **argv) {
     
@@ -52,6 +50,7 @@ int main(int argc, char **argv) {
     srand(current_time);
     
     config = new Config(getenv("DIRTRC"));	// Load config file if no $DIRTRC, use .dirt/dirtrc
+    history = new HistorySet();
     
     // Parse command line switches: return first non-option	
     int non_option = config->parseOptions(argc, argv);
@@ -79,7 +78,7 @@ int main(int argc, char **argv) {
     outputWindow->printVersion();
     
     interpreter.setCommandCharacter((char)config->getOption(opt_commandcharacter));
-    load_history();
+    history->loadHistory();
     
     // Initialize keyboard driver
     tty = new TTY();
@@ -181,6 +180,7 @@ int main(int argc, char **argv) {
     delete chatServerSocket;
     delete currentSession;      // Close the current session, if any
     delete screen;              // Reset screen (this kills all subwindows too)
+//    FIXME this line causes a crash (on alternate tuesdays).  Probably memory corruption.
     delete tty;                 // Reset TTY state
     delete outputPipe;
     delete interpreterPipe;
@@ -202,7 +202,7 @@ int main(int argc, char **argv) {
              globalStats.tty_chars, globalStats.ctrl_chars
             );
 
-    save_history(); // OJ: better do this before config is deleted..
+    history->saveHistory();// OJ: better do this before config is deleted..
     delete config;     // Save configuration; updates stats too
     
     return 0;

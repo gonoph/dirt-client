@@ -173,20 +173,23 @@ Plugin * Plugin::loadPlugin(const char *filename, const char *args) {
     void *handle;
     
     // Try global path or home directory
-    snprintf(buf, sizeof(buf), "%s/.dirt/plugins/%s", getenv("HOME"), filename);
-    if (access(buf, R_OK) < 0) {
-        snprintf(buf, sizeof(buf), "%s/plugins/%s", DIRT_LOCAL_LIBRARY_PATH, filename);
+    snprintf(buf, sizeof(buf), "o/plugins/%s", filename); // If running from compile dir.
+    if(access(buf, R_OK) < 0) {
+        snprintf(buf, sizeof(buf), "%s/.dirt/plugins/%s", getenv("HOME"), filename);
         if (access(buf, R_OK) < 0) {
-            snprintf(buf, sizeof(buf), "%s/plugins/%s", DIRT_LIBRARY_PATH, filename);
-            if (access(buf, R_OK) < 0)
-                error ("Error loading %s: not found\n"
-                       "I tried looking for and failed to find:\n"
-                       "  %s/.dirt/plugins/%s\n"
-                       "  %s/plugins/%s\n"
-                       "  %s/plugins/%s\n"
-                       "If you installed the standard binary distribution, you probably\n"
-                       "forgot to move the plugin files to one of the above places.\n"
-                       , filename, getenv("HOME"), filename, DIRT_LOCAL_LIBRARY_PATH, filename, DIRT_LIBRARY_PATH, filename);
+            snprintf(buf, sizeof(buf), "%s/plugins/%s", DIRT_LOCAL_LIBRARY_PATH, filename);
+            if (access(buf, R_OK) < 0) {
+                snprintf(buf, sizeof(buf), "%s/plugins/%s", DIRT_LIBRARY_PATH, filename);
+                if (access(buf, R_OK) < 0)
+                    error ("Error loading %s: not found\n"
+                           "I tried looking for and failed to find:\n"
+                           "  %s/.dirt/plugins/%s\n"
+                           "  %s/plugins/%s\n"
+                           "  %s/plugins/%s\n"
+                           "If you installed the standard binary distribution, you probably\n"
+                           "forgot to move the plugin files to one of the above places.\n"
+                           , filename, getenv("HOME"), filename, DIRT_LOCAL_LIBRARY_PATH, filename, DIRT_LIBRARY_PATH, filename);
+            }
         }
     }
     

@@ -86,7 +86,7 @@ public:
     virtual void set_top_message (const char *s);
     virtual void set_bottom_message (const char *s);
 
-    friend WindowGroup;                    // argh
+    friend class WindowGroup;                    // argh
 
     Window* find(Window *w); // Is this window still one of my children?
 

@@ -18,17 +18,14 @@
 
 // C++ includes
 #include <string>
-#ifdef HAVE_EXT_HASH_MAP
-#include <ext/hash_map>
-#warn included ext/hash_map.
-#else
-#ifdef HAVE_HASH_MAP
+#if HAVE_HASH_MAP && !HAVE_EXT_HASH_MAP
 #include <hash_map>
-#endif
+#else
+#include <ext/hash_map>
 #endif
 
 using namespace std;
-#ifdef __GNU__
+#ifdef __GNUC__
 using namespace __gnu_cxx;
 #endif
 
@@ -51,8 +48,11 @@ inline int min(int a, int b) {
 	return a < b ? a : b;
 }
 
-#ifndef HAVE_HASH_STRING
+//#if !HAVE_HASH_STRING && HAVE_HASH_MAP  // gcc 3.X has hash<string>, 2.9.X does not
 // This is not provided by g++ (2.9.X) ... it should be.
+#ifdef __GNUC__
+namespace __gnu_cxx {
+#endif
 template <>     // create a hashing algorithm for string that uses the const char* hashing algo.
 class hash<string>
 {
@@ -62,6 +62,8 @@ public:
         return (h(str.c_str()));
     }
 };
+#ifdef __GNUC__
+}
 #endif
 
 // Ought to split it up

@@ -44,7 +44,7 @@ private:
     
     bool    fFrozen;    // Should we move viewpoint or not?
     ScrollbackController *sb;
-    friend ScrollbackController;
+    friend class ScrollbackController;
 };
 
 // This is an invisible object that controls the scrollback process

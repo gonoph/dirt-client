@@ -39,7 +39,7 @@ sub init {
     
     foreach $AutoDir (@AutoloadDirectories) {
         foreach (glob("$AutoDir/*.pl")) {
-            include $_;
+            do $_;
             #require $_;
         }
         

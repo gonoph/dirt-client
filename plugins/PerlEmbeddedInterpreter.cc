@@ -46,29 +46,29 @@ PerlEmbeddedInterpreter::PerlEmbeddedInterpreter()
     dSP;
     PUSHMARK(SP);
     // This is a little routine that works like require() but does not die if it fails.
-    perl_eval_pv("
-        sub include {
-            my($fname) = shift;
-            if(defined $INC{$fname}) { delete $INC{$fname}; }
-            if(-f $fname) { 
-                do $fname; 
-                return if(defined($@) && $@); # SIG{__DIE__} should have already printed a message from the previous line
-                $INC{$fname} = $fname;
-            }
-            else { warn \"Could not load $fname because it does not exist.\n \"; }
-        }" , FALSE);
+    perl_eval_pv(
+        "sub include {"
+        "    my($fname) = shift;"
+        "    if(defined $INC{$fname}) { delete $INC{$fname}; }"
+        "    if(-f $fname) { "
+        "        do $fname; "
+        "        return if(defined($@) && $@); # SIG{__DIE__} should have already printed a message from the previous line"
+        "        $INC{$fname} = $fname;"
+        "    }"
+        "    else { warn \"Could not load $fname because it does not exist.\n \"; }"
+        "}" , FALSE);
 
     // Make all warnings pretty and easily distinguishable
-    perl_eval_pv("
-        $SIG{__WARN__} = sub { 
-            print(join \"\", map { \"\\@ \\xEA\\x04[Perl WARNING]\\xEA\\x07 $_\\n\" } split(/\\n/, join(\"\", @_)));
-        };", FALSE);
+    perl_eval_pv(
+        "$SIG{__WARN__} = sub { "
+        "    print(join \"\", map { \"\\@ \\xEA\\x04[Perl WARNING]\\xEA\\x07 $_\\n\" } split(/\\n/, join(\"\", @_)));"
+        "};", FALSE);
 
     // Ditto for errors.
-    perl_eval_pv("
-        $SIG{__DIE__} = sub { 
-            print(join \"\", map { \"\\@ \\xEA\\x04[Perl ERROR]\\xEA\\x07 $_\\n\" } split(/\\n/, join(\"\", @_)));
-        };", FALSE);
+    perl_eval_pv(
+        "$SIG{__DIE__} = sub { "
+        "    print(join \"\", map { \"\\@ \\xEA\\x04[Perl ERROR]\\xEA\\x07 $_\\n\" } split(/\\n/, join(\"\", @_)));"
+        "};", FALSE);
     if(SvOK(ERRSV) && SvTRUE(ERRSV)) {  // shouldn't ever get here.
         report_err("Error evaluating include!\n");
         report_err("\t%s\n", SvPV(ERRSV, PL_na));
@@ -91,21 +91,11 @@ bool PerlEmbeddedInterpreter::load_file(const char *filename, bool suppress_erro
     if(!(fullname = findFile(filename, ".pl")) || stat(fullname, &stat_buf)) {
         return false;
     }
-    strcpy(s, fullname);
+    sprintf(s, "do '%s';", fullname);
 
     dSP;
-    ENTER;
-    SAVETMPS;
     PUSHMARK(SP);
-    XPUSHs(sv_2mortal(newSVpv(s, 0)));
-    PUTBACK;
-    perl_call_pv("include", G_SCALAR|G_DISCARD|G_EVAL);
-    SPAGAIN;
-    PUTBACK;
-    FREETMPS;
-    LEAVE;
-//        sprintf(s, "&include(\"%s\");", fullname); // the *other* way to do it.
-//        return eval(s);
+    perl_eval_pv(s, FALSE);
         
     if (SvOK(ERRSV) && SvTRUE(ERRSV)) {
         if(!suppress_error)

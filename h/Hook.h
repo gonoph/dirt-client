@@ -12,15 +12,19 @@
  * Note: the Hook class will delete the CppHookStub object if it is removed.
  */
 
-#ifndef __HOOK_H
-#define __HOOK_H
+#ifndef _HOOK_H_
+#define _HOOK_H_
 
-#include "dirt.h"
+#include <dirt.h>
 
 #include <set>      // stores list of HookStub's
 #include <vector>   // Stores list of sets of HookStub's by priority.
 #include <string>   // strings are better than char*
-#include <hash_map> // for types list
+#if HAVE_HASH_MAP && !HAVE_EXT_HASH_MAP
+#include <hash_map>
+#else
+#include <ext/hash_map>
+#endif
 
 template <class _Tp>
 struct priority_less : public binary_function<_Tp,_Tp,bool> 
@@ -173,4 +177,4 @@ private:
 
 extern Hook hook;
 
-#endif // __HOOK_H
+#endif // _HOOK_H_

@@ -514,7 +514,7 @@ CommandHookStub::CommandHookStub(int p, float c, int n, bool F, bool en, bool co
 
 bool CommandHookStub::operator() (string& data) {
     if(data.length() && data[0] == interpreter.getCommandCharacter() 
-        && !data.compare(commandname, 1, commandname.length())
+        && !data.compare(1, commandname.length(), commandname)
         && (data.length() == commandname.length() + 1 || data[commandname.length()+1] == ' ')) {
         // This is expected to return true if the command was handled.
         return(callback(data,instance)); 

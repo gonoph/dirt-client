@@ -22,8 +22,6 @@ typedef enum {
     opt_speedwalk,
     opt_timercolor,
     opt_timerstate,
-//    opt_borg,
-//    opt_borg_verbose,
     opt_commandcharacter,
     opt_escape_character,
     opt_interpdebug,
@@ -96,7 +94,7 @@ extern class Config {
     String string_options[max_option];
     
 
-    friend MUDSelection;				// messes with mud_list
+    friend class MUDSelection;				// messes with mud_list
 	
     time_t save_time;					// When was .dirtrc last modifed?
 

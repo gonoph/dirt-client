@@ -140,6 +140,8 @@ sub gauge ($$$$) {
     return $filledColor . (' ' x $n) . $emptyColor . (' ' x ($count-$n)) . $windowColor;
 }   
 
+my($elementalcounter)=0;
+my($lastcnc)=0;
 # This assumes a prompt that looks like this:
 # minHp/maxHp minMana/maxMana minMove/maxMove
 my($breedhp) = qr/^HP: ([0-9]+)\/([0-9]+) SP: ([0-9]+)\/([0-9]+)  Psi: ([0-9]+)\/([0-9]+)/;#  Focus: ([0-9]+)%  E: ([A-Z][a-z]+)/) {
@@ -193,6 +195,10 @@ sub check_hpbar {
         } else {
             &main::run("/echo -W hpbar \"" . $emptyColor .  "  Protection from Stuff  " . $windowColor . "\"");
         }
+        if($8 > 50 && $lastcnc <= 50) { main::run("say all, begone"); }
+        $lastcnc = $8;
+        #if($3 > 400) { main::run("cast lightning bolt"); }
+#        if($8 == 0 && ($elementalcounter++ % 10) == 0) { main::run("cast conjure elemental"); }
     } else {
         # Let a few prompts splip by if creating a character or such
     }

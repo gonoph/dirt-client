@@ -46,7 +46,12 @@ Selectable::Selectable() {
 }
 
 Selectable::~Selectable() {
-    for(unsigned int i=0;i < ioList.size();i++) if(ioList[i] == this) ioList.erase(&ioList[i]);
+    for(vector<Selectable*>::iterator it = ioList.begin(); it != ioList.end(); it++) {
+        if(*it == this) {
+            ioList.erase(it);
+            break;  // iterator is invalidated.
+        }
+    }
 }
 
 

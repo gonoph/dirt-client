@@ -1,6 +1,7 @@
 
 #include <string>
 #include "defs.h"
+using namespace std;
 
 void error (const char *fmt, ...) __attribute__((format(printf,1,2))) __attribute__((noreturn));
 unsigned hash_str( char *key);

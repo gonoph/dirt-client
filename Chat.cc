@@ -621,7 +621,7 @@ const char* ChatConnection::longDescription(bool verbose) {
     
     if (verbose) {
         if (person_status == afk  || person_status == inactive)
-            s += sprintf(s, person_status == afk ? "AFK:%-3d" : "Inc:%-3d", (current_time - inactive_since)/60);
+            s += sprintf(s, person_status == afk ? "AFK:%-3ld" : "Inc:%-3ld", (current_time - inactive_since)/60);
         else
             s += sprintf(s,  person_status == inactive ? "inact" : "     ");
     } else {
@@ -636,9 +636,9 @@ const char* ChatConnection::longDescription(bool verbose) {
     if (state == invalid)
         s += sprintf(s, verbose ? "INVALID STATE" : "????");
     else if (state == connecting)
-        s += sprintf(s, verbose ? "Connecting (timeout: %lds)" : "C%.3d", timeout - current_time);
+        s += sprintf(s, verbose ? "Connecting (timeout: %lds)" : "C%.3ld", timeout - current_time);
     else if (state == requesting)
-        s += sprintf(s, verbose ? "Connected, requesting permission (timeout: %lds)" : "P%.3d", timeout-current_time);
+        s += sprintf(s, verbose ? "Connected, requesting permission (timeout: %lds)" : "P%.3ld", timeout-current_time);
     else if (state == connected)
         s += sprintf(s, verbose ? "Connected" : "    ");
     else if (state == waiting_command_header)

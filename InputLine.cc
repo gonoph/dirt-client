@@ -5,33 +5,13 @@
 #include "Interpreter.h"
 #include <sys/stat.h>
 
-// A history for one input line
-// This class is used internally by InputLine
-class History {
-public:
-    History(int _id);
-    ~History();
-    
-    void add (const char *s,time_t);			// Add this string
-    const char * get (int no, time_t *timestamp);			// Get this string.
-
-    int id;								// Id number
-    
-private:
-    
-    char **strings;						// Array of strings
-    time_t *timestamps;
-    int max_history;					// Max number of strings
-    int current;						// Current place we will insert a new
-};
-
 History::History(int _id) : id (_id), current(0) {
-	max_history = config->getOption(opt_histsize);
+    max_history = config->getOption(opt_histsize);
     strings = new (char*)[max_history];
     timestamps = new time_t[max_history];
 	
-	// Hmm, not sure about this
-	memset(strings,0, max_history * sizeof(char*));
+    // Hmm, not sure about this
+    memset(strings,0, max_history * sizeof(char*));
 }
 
 History::~History() {
@@ -63,82 +43,47 @@ const char * History::get(int count, time_t* timestamp) {
     return strings[(current - count) % max_history];
 }
 
-
-
-// This class has a set of history arrays
-// This is so they can save between invokactions of the input line in
-// question without requiring globals
-class HistorySet {
-public:
-    ~HistorySet()  {
-        for (History *h = hist_list.rewind(); h; h = hist_list.next()) {
-            delete h;
-            hist_list.remove(h);
-        }
+HistorySet::HistorySet() : hist_list(hi_search_scrollback+1) {
+    for(int i=hi_none;i<=hi_search_scrollback;i++) {
+        hist_list[i] = new History(i);
     }
-
-    void saveHistory() {
-        if (config->getOption(opt_save_history)) {
-            FILE *fp = fopen(Sprintf("%s/.dirt/history", getenv("HOME")), "w");
-            if (fp) {
-                const char *s;
-                time_t t;
-                fchmod(fileno(fp), 0600);
-                FOREACH(History *,h,hist_list)
-                    for (int i = config->getOption(opt_histsize) ; i > 0; i--)
-                        if ((s = get((history_id)h->id,i, &t)))
-                            fprintf(fp, "%d %ld %s\n", h->id, t, s);
-                fclose(fp);
-            }
-        }
+}
+HistorySet::~HistorySet()  {
+    for (hist_list_t::iterator it = hist_list.begin(); it != hist_list.end(); it++) {
+        delete *it;
+        hist_list.erase(it);
     }
-
-    void loadHistory() {
-        if (config->getOption(opt_save_history)) {
-            FILE *fp = fopen(Sprintf("%s/.dirt/history", getenv("HOME")), "r");
-            if (fp) {
-                int id;
-                time_t t;
-                char buf[1024];
-                
-                while (3 == fscanf(fp, "%d %ld %1024[^\n]", &id, &t, buf))
-                    add((history_id)id,buf,t);
-                fclose(fp);
-            }
-        }
-    }
-    
-    const char *get (history_id id, int count, time_t* timestamp) {
-        return find(id)->get(count, timestamp);
-        
-    }
-    
-    void add (history_id id, const char *s, time_t t = 0) {
-        find(id)->add(s,t ? t : current_time);
-    }
-    
-private:
-    List<History*> hist_list;
-    
-    History * find(int id) {
-        for (History *h = hist_list.rewind(); h; h = hist_list.next())
-            if (h->id == id)
-                return h;
-        
-        History *new_hist = new History(id);
-        hist_list.insert(new_hist);
-        return new_hist;
-    }
-};
-
-static HistorySet history;
-
-void load_history() {
-    history.loadHistory();
 }
 
-void save_history() {
-    history.saveHistory();
+void HistorySet::saveHistory() {
+    if (config->getOption(opt_save_history)) {
+        FILE *fp = fopen(Sprintf("%s/.dirt/history", getenv("HOME")), "w");
+        if (fp) {
+            const char *s;
+            time_t t;
+            fchmod(fileno(fp), 0600);
+            for(hist_list_t::iterator it = hist_list.begin(); it != hist_list.end(); it++)
+                for (int i = config->getOption(opt_histsize) ; i > 0; i--)
+                    if ((s = get((history_id)(*it)->id,i, &t)))
+                        fprintf(fp, "%d %ld %s\n", (*it)->id, t, s);
+            fclose(fp);
+        }
+    }
+}
+
+void HistorySet::loadHistory() {
+    if (config->getOption(opt_save_history)) {
+        FILE *fp = fopen(Sprintf("%s/.dirt/history", getenv("HOME")), "r");
+        if (fp) {
+            int id;
+            time_t t;
+            char buf[1024];
+            
+            while (3 == fscanf(fp, "%d %ld %1024[^\n]", &id, &t, buf))
+                hist_list[id]->add(buf, t);
+            fclose(fp);
+        }
+    }
 }
 
 class InputHistorySelection : public Selection{
@@ -146,7 +91,7 @@ public:
     InputHistorySelection(Window *parent, int w, int h, int x, int y, InputLine& _input, bool _enterExecutes, history_id _historyId) : Selection(parent,w,h,x,y),
         inputLine(_input), enterExecutes(_enterExecutes), historyId(_historyId) {
             const char *s;
-            for (int i = 1; (s = history.get(historyId,i, NULL)); i++)
+            for (int i = 1; (s = history->get(historyId,i, NULL)); i++)
                 prepend_string(s);
         }
     
@@ -158,7 +103,7 @@ public:
     virtual void doSelect(int no) {
         time_t t;
         char buf[64];
-        assert(history.get(historyId, getCount() - no, &t));
+        assert(history->get(historyId, getCount() - no, &t));
         strftime(buf, sizeof(buf), "%H:%M:%S", localtime(&t));
 
         const char *unit = "second";
@@ -180,7 +125,7 @@ public:
     }
     
     virtual void doChoose(int no, int key) {
-        const char *s = history.get(historyId, getCount() - no,NULL);
+        const char *s = history->get(historyId, getCount() - no,NULL);
         assert(s != NULL);
         inputLine.set(s);
         inputLine.keypress(key);
@@ -208,18 +153,15 @@ private:
     history_id historyId;     // History to get the data from
 };
 
-const char *szDefaultPrompt = ">";
-
 InputLine::InputLine(Window *_parent, int _w, int _h, Style _style, int _x, int _y, history_id _id)
 : Window(_parent, _w, _h, _style, _x, _y),
 cursor_pos(0), max_pos(0), left_pos(0), ready(false), id(_id), history_pos(0)
 {
-    
 	set_default_prompt();
 }
 
 void InputLine::set_default_prompt() {
-	strcpy(prompt_buf, szDefaultPrompt);
+	strcpy(prompt_buf, ">");
 	adjust();
 	dirty = true;
 }
@@ -288,7 +230,7 @@ bool InputLine::keypress(int key) {
     }
     else if (key == key_ctrl_c) { // save line to history but don't execute
         if (strlen(input_buf) > 0) {
-            history.add (id, input_buf);
+            history->add (id, input_buf);
             set("");
             status->setf("Line added to history but not sent");
         }
@@ -341,7 +283,7 @@ bool InputLine::keypress(int key) {
         input_buf[max_pos] = NUL;
         
         if ((int)strlen(input_buf) >= config->getOption(opt_histwordsize))
-            history.add (id, input_buf);
+            history->add (id, input_buf);
         
         history_pos = 0; // Reset history cycling
         cursor_pos = 0;
@@ -400,7 +342,7 @@ bool InputLine::keypress(int key) {
         {
             lines = min (parent->height-4, lines);
             
-            if (!history.get(id,1, NULL))
+            if (!history->get(id,1, NULL))
                 status->setf ("There are no previous commands");
             else
             {
@@ -414,7 +356,7 @@ bool InputLine::keypress(int key) {
         }
         else {
             const char *s;
-            if (!(s = history.get(id, history_pos+1, NULL)))
+            if (!(s = history->get(id, history_pos+1, NULL)))
                 status->setf ("No previous history");
             else  {
                 set(s);
@@ -426,7 +368,7 @@ bool InputLine::keypress(int key) {
         const char *s;
         if (id == hi_none)
             status->setf("No history available");
-        else if (history_pos <= 1 || !(s = history.get(id,history_pos-1, NULL)))
+        else if (history_pos <= 1 || !(s = history->get(id,history_pos-1, NULL)))
         {
             status->setf ("No next history");
             history_pos = 0;

@@ -7,6 +7,9 @@
 #include <stdarg.h>
 #include <deque>
 #include <list>
+#include <iostream>
+
+using namespace std;
 
 Window* Numbered::list[10];
 
@@ -124,15 +127,15 @@ Window::~Window()
 {
     check();
     // Remove me
-    if (parent) parent->remove(this);
+    if (parent) { parent->remove(this); }
+    list<Window*>::iterator it;
     while(!children.empty()) { // After delete, iterators are invalid (due to child calling parent->remove)
-        list<Window*>::iterator it = children.begin();
+        it = children.begin();
         assert(*it != parent); // This fails sometimes too!
         assert(*it != this);
         assert(this != parent);
         assert(*it != NULL);
         if(*it) { // This should never be null, but check anyway.
-            cerr << "   Killing a child: " << (*it)->getName() << endl;
             assert(this == (*it)->parent); // This fails sometimes.  FIXME WHY?
             (*it)->die(); // calls delete
         } else {

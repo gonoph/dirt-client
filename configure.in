@@ -2,7 +2,7 @@
 dnl Dirt - Mud Client for Unix (mcl fork)
 dnl process this file with autoconf to produce a configure script.
 
-AC_REVISION($Revision: 1.4 $)
+AC_REVISION($Revision: 1.5 $)
 AC_INIT(main.cc)
 AC_CONFIG_AUX_DIR(admin)
 AC_LANG(C++)
@@ -54,7 +54,6 @@ AC_CHECK_LIB(z, main, [LIBZ="-lz"], LIBZ=)
 AC_CHECK_LIB(stdc++, main, [LIBSTDCPP="-lstdc++"], LIBSTDCPP=)
 
 dnl compiler features
-AC_CONFIG_HEADERS(h/config.h)
 AC_CHECK_HEADERS(hash_map)
 AC_CHECK_HEADERS(ext/hash_map)
 AC_MSG_CHECKING(whether we have hash<string>)
@@ -294,6 +293,7 @@ AC_PATH_PROG(XARGS,xargs,true)
 AC_PATH_PROG(CTAGS,ctags,true)
 AC_PATH_PROG(ECHO,echo,true)
 
+AC_CONFIG_HEADERS(h/config.h)
 AC_SUBST(CFLAGS)
 AC_SUBST(CXXFLAGS)
 AC_SUBST(LDFLAGS)

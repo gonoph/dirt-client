@@ -8,7 +8,11 @@
 #define OPTION_H
 
 #include <limits.h>
+#if HAVE_HASH_MAP && !HAVE_EXT_HASH_MAP
 #include <hash_map>
+#else
+#include <ext/hash_map>
+#endif
 #include <string>
 #include <vector>
 
