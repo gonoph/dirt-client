@@ -1,43 +1,11 @@
 # Trigger Package
 
-#% COMMAND /trigger [list|add|add_dis|delete|enable|disable|action|help]
-
-=head1 /trig    [list|add|add_dis|delete|enable|disable|action|help]
-
-execute commands in response to data sent from the mud
-
-=head1 USAGE
-
-/def from TinyFugue:
-    I<add>            Add a trigger
-    I<delete>         Delete a trigger
-    -n<number>        number of times to execute
-    -E<expr>          evaluate expression first, if true, do trigger
-    -t<regex>         trigger pattern
-    -b<key>           bind to key (string)
-    -B<key>           bind to named key
-    -p<pri>           priority                  (use order instead?)
-    -c<chance>        probability that trigger will execute
-    -F                fall-through (not fall through option?)
-    -a[ngGurfdBbhC]   attributes (normal/gag/norecord/underline/reverse/flash/dim/bold/bell/hilite/Color)
-    -P[<n>][nurfdBhC] partial hilite (<n>th subexpression in regex
-    -i                invisible
-    -A                match ANSI too (ANSI normally stripped and string is straight text)
-    <name>
-    = <body>
-
-Regex should be delimited as perl regex (find regex to match regex), plus extra modifier:
-    m//c
-c denotes match "color" rather than ignore/strip it.
-
-=cut
-
 package Trigger;
 use vars qw(%Triggers); # vars that will be exported in the Trigger:: namespace
 use Getopt::Std;
 if(!defined %Triggers) {
     %Triggers = ();
-} #else {
+}
     
 &main::run("/hook -T INIT -F -fL perl definetriggers = Trigger::definetriggers");
 sub definetriggers {
@@ -69,7 +37,7 @@ sub command_trigger {
     @ARGV = (); # reset it.
     if(/${main::commandCharacter}trig(?:ger)?(.*)/) { $_ = $1; }
     else { report_err("This doesn't seem to be a /trig command!\n"); }
-    while(/\G\s+(?:(-[A-Za-z]+)?\"([^\"]*?)\"|(-[A-Za-z]+)?\'([^\']*?)\'|(=)|([^ \t\n"']+)|(?:\/(.*?(?:\\\\)*)\/))/g) {
+    while(/\G\s+(?:(-[A-Za-z]+\s*)?\"([^\"]*?)\"|(-[A-Za-z]+\s*)?\'([^\']*?)\'|(=)|([^ \t\n"']+)|(?:\/(.*?(?:\\\\)*)\/))/g) {
         if(defined $1) { 
             push @ARGV, $1; 
             push @ARGV, $2;
@@ -168,7 +136,7 @@ sub command_trigger {
 #    &main::report("name is: $name");
     $trighash{'action'} = join(" ", @ARGV[2..$#ARGV]);
     $hookcmd .= "'" . $name . "' = " . $trighash{'action'};
-#    &main::report("hook command is: $hookcmd");
+    &main::report("hook command is: $hookcmd");
     &main::run($hookcmd);
     $Triggers{$name} = \%trighash;  # main::save will save complex data structures for us!
     return 1;
@@ -210,165 +178,6 @@ sub command_disable {
     }
     return 1;
 }
-
-
-
-
-# Apply triggers to mud output
-sub trigscan {
-    return unless defined $_;
-#    print "@ Trigscan: '$_'\n";:
-    $colored = $_;
-    $uncolored = $_;
-    $uncolored =~ s/\xEA.//sg;
-#    $_ = $uncolored;
-    my ($t, $a);
-    foreach $t (keys %Triggers) {
-#        print "@   Trigscan trying $t\n";
-        next unless $uncolored =~ /$t/ && $Triggers{$t}->[1];
-        $a = $Triggers{$t}->[0];
-#        print "@ Running command: '$a'\n";
-        eval "\&main::run(\"$a\");";
-#        if($a =~ /\$/ && $a !~ /^$commandCharacter/) {
-#            eval "\&main::dirt_send(\"$a\");";
-#        } else {
-#            my($default_var) = $_;
-#            $_ = $a;
-#            &main::hook_run("send");
-#            $_ = $default_var;
-#        }
-	last;
-    }
-}
-
-
-# command '/trigger' (list/delete/enable/disable/action/add/help/add_dis)
-sub old_trigger {
-    my ($cmd, $trigstr, $trigact);
-    
-    ($cmd, $_) = split /\s+/, $_, 2;
-    $cmd = "" unless defined $cmd;
-    $_ = "" unless defined $_;
-    if ($cmd eq "help") {
-	&trigger_help();
-    } elsif ($cmd eq "" || $cmd eq "list") {
-	if ($cmd eq "") {
-	    print "For help, type: trigger help\n";
-	}
-	&trigger_list();
-    } elsif ($cmd eq "delete" || $cmd eq "enable" || $cmd eq "disable"
-	     || $cmd eq "action") {
-	my $i = 0;
-	unless (/^(\d+).*/) {
-	    print "trigger: $cmd: invalid argument\n";
-	    return;
-	}
-	foreach $t (keys %Triggers) {
-	    next unless ++$i == $1;
-	    if ($cmd eq "delete") {
-		print "trigger: deleting trigger $i\n";
-		delete $Triggers{$t};
-	    } elsif ($cmd eq "enable") {
-		print "trigger: enabling trigger $i\n";
-		$Triggers{$t}->[1] = 1;
-	    } elsif ($cmd eq "disable") {
-		print "trigger: disabling trigger $i\n";
-		$Triggers{$t}->[1] = 0;
-	    } elsif ($cmd eq "action") {
-		if (/^(\d+)\s+(.*)/) {
-		    $Triggers{$t}->[0] = $2;
-		    print "trigger: redefined action of trigger $i to: $2\n";
-		} else {
-		    print "trigger: action: invalid syntax\n";
-		}
-	    }
-	    return;
-	}
-	print "trigger: $cmd: $1: no such trigger\n";
-    } elsif ($cmd eq "add" || $cmd eq "add_dis") {
-	if (/^("([^\\"]*(\\.|"))*)\s+(.*)/) {  # huh?
-	    $trigstr = $1;
-	    $trigact = $4;
-	    $trigstr =~ s/.//;
-	    $trigstr =~ s/.$//;
-	    $trigstr =~ s/\\"/"/g;
-        } elsif (/^(\/([^\\\/]*(\\.|\/))*)\s+(.*)/) {
-            $trigstr = $1;
-            $trigact = $4;
-	    $trigstr =~ s/.//;
-	    $trigstr =~ s/.$//;
-	    $trigstr =~ s/\\\//\//g;
-	} elsif (/^(\S+)\s+(.*)/) {
-	    $trigstr = $1;
-	    $trigact = $2;
-	} else {
-	    print "trigger: add: invalid syntax\n";
-	    return;
-	}
-	unless ($trigact ne "") {
-	    print "trigger: add: empty action string\n";
-	    return;
-	}
-	$Triggers{$trigstr} = [ $trigact, 1 ];
-	$Triggers{$trigstr}->[1] = 0 if $cmd eq "add_dis";
-	&trigger_list($trigstr) unless $Loading;
-    } else {
-	print "trigger: invalid command\n";
-	&trigger_help();
-    }
-}
-#*main::dirtcmd_trig = \&main::dirtcmd_trigger;
-
-# Lists defined triggers (activated by '/trigger list')
-sub trigger_list {
-    my $t = shift;
-    my $i = 0;
-    my $ts;
-    $t = "" unless defined $t;
-    foreach (keys %Triggers) {
-	if (++$i == 1 && $t eq "") {
-	    print "Currently defined triggers:\n";
-	}
-	next unless $t eq "" || $_ eq $t;
-	print "*" unless $Triggers{$_}->[1];
-	($ts = $_) =~ s/"/\\"/g;
-	$ts = "\"$_\"";
-	printf "%2d) $ts $Triggers{$_}->[0]\n", $i;
-    }
-    print "No triggers defined.\n" if $i == 0;
-}
-
-# Help for triggers (activated by '/trigger help')
-sub trigger_help {
-    print <<EOF;
-Usage: trigger [<command> [<arguments>]]
-
-Valid commands are:
-add <regexp> <action>	If the <regexp> is matched in an input line, <action>
-			string is sent to the MUD.  If <regexp> must contain
-			blanks, enclose it in double quotes ("").  Double quote
-			itself must be preceded by a backslash if it is to be
-			included in a quoted string.  <action> should not be
-			quoted.
-
-list			Display currently defined triggers.  Each trigger is
-			preceded by its number, which is used to reference it
-			in other commands.  Disabled triggers are printed with
-			an asterisk (*) before the number.  An empty command
-			also lists the triggers.
-
-action <number> <newac>	Redefine the action of trigger <number> to <newac>.
-
-delete <number>		Delete trigger <number>.
-
-disable <number>	Disable trigger <number>.
-
-enable <number>		Enable trigger <number>.
-EOF
-}
-
-#&main::hook_add("output", "Trigger::trigscan", \&trigscan);
-#&main::run($main::commandCharacter . "hook -a -p2147483645 -F -T OUTPUT -fL perl trigscan = Trigger::trigscan");
 
 print "Loaded auto/trigger.pl\t(Cause commands to be executed when mud output is received)\n";
 
