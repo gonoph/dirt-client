@@ -136,15 +136,24 @@ static struct
 key_codes[] =
 {
 
+// In principle, the KEY form of these should work for all, and they keys
+// should be looked up using lookup_key
+//
+
 EKEY(escape,		"")
+//KEY(arrow_up,           "kcuu1")
 KEY2(arrow_up,	        "kcuu1", "[A")
+//KEY(arrow_down,	        "kcud1")
 KEY2(arrow_down,	"kcud1", "[B")
+//KEY(arrow_right,        "kcuf1")
 KEY2(arrow_right,       "kcuf1", "[C")
-KEY2(arrow_left,	"kkcub1", "[D")
+//KEY(arrow_left,	        "kcub1")
+KEY2(arrow_left,	"kcub1", "[D")
 KEY(page_up,	        "kpp")
 KEY(page_down,	        "knp")
-KEY2(end,		"kend", "[F")
-KEY(home,		"khome")
+KEY2(end,		"kend",  "[8~")
+//KEY(end,                "kend")
+KEY2(home,		"khome", "[7~")
 KEY(insert,		"kich1")
 KEY(delete,		"kdch1")
 KEY(f1,			"kf1")

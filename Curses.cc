@@ -23,7 +23,7 @@ const char* lookup_key(const char *name) {
     const char *x = tigetstr(const_cast<char*>(name));
     if (x == (char*) -1)
         x = NULL;
-//    fprintf(stderr, "Lookup %s => %s\n", name, x);
+//    report("Lookup %s => %s\n", name, x);
     return x;
 }
 

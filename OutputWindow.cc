@@ -85,20 +85,19 @@ void OutputWindow::moveViewpoint(int amount)
 		fQuit = true; // Leave
 	else
 	{
-		viewpoint += amount * width;
-		if (viewpoint < scrollback) { 
-			viewpoint = scrollback;
-                        hook.enableGroup("ScrollbackController_volatile");
-                }
-		
-		if (viewpoint > canvas) { // We're at the end of the scrollback buffer.
-			viewpoint = canvas;
-                        fQuit = true;
-                }
-		status->sticky_status = true;
-		status->setf("Scrollback: line %d of %d",
-			(viewpoint - scrollback) / width,
-			(canvas-scrollback) / width + height);
+            hook.enableGroup("ScrollbackController_volatile");
+            viewpoint += amount * width;
+            if (viewpoint < scrollback) {  // Don't scroll past top
+                    viewpoint = scrollback;
+            }
+            if (viewpoint > canvas) { // We're at the end of the scrollback buffer.
+                    viewpoint = canvas;
+            }
+            if(viewpoint == canvas) fQuit = true;
+            status->sticky_status = true;
+            status->setf("Scrollback: line %d of %d",
+                    (viewpoint - scrollback) / width,
+                    (canvas-scrollback) / width + height);
 	}
 	dirty = true;
         if(fQuit) sb->close();
@@ -122,13 +121,13 @@ ScrollbackController::ScrollbackController(Window *_parent, OutputWindow *_outpu
         "__DIRT_ScrollbackController_pause", mygroups, "", "", 
         key_pause, "", &ScrollbackController::keypress_pause, (void*)this));
     mygroups.push_back("ScrollbackController_volatile");
-    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
+    hook.add(KEYPRESS, new KeypressHookStub(1, 1.0, -1, false, true, true, 
         "__DIRT_ScrollbackController_end", mygroups, "", "", 
         key_end, "", &ScrollbackController::keypress_end, (void*)this));
-    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, false, true, 
+    hook.add(KEYPRESS, new KeypressHookStub(1, 1.0, -1, false, false, true, 
         "__DIRT_ScrollbackController_arrow_up", mygroups, "", "", 
         key_arrow_up, "", &ScrollbackController::keypress_arrow_up, (void*)this));
-    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, false, true, 
+    hook.add(KEYPRESS, new KeypressHookStub(1, 1.0, -1, false, false, true, 
         "__DIRT_ScrollbackController_arrow_down", mygroups, "", "", 
         key_arrow_down, "", &ScrollbackController::keypress_arrow_down, (void*)this));
 }
