@@ -103,7 +103,11 @@ void Window::show(bool vis) {
 
 void Window::remove (Window *window)
 {
-    if (!find(window)) abort();
+    if (!find(window)) {
+//        abort();
+        report_err("Window::remove unable to remove window because it does not exist!");
+        return;
+    }
     
     if (window->prev) window->prev->next = window->next;
     
