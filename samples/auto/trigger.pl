@@ -37,7 +37,7 @@ sub command_trigger {
     @ARGV = (); # reset it.
     if(/${main::commandCharacter}trig(?:ger)?(.*)/) { $_ = $1; }
     else { report_err("This doesn't seem to be a /trig command!\n"); }
-    while(/\G\s+(?:(-[A-Za-z]+)?\s*\"(.*?[[^\\](?:\\\\)*|)\"|(-[A-Za-z]+)?\s*\'(.*?[^\\](?:\\\\)*|)\'|(=)|(-[A-Za-z]*t) *($regexdelim)(.*?[^\\](?:\\\\)*)?\7|([^ \t\n"']+))/g) {
+    while(/\G\s+(?:(-[A-Za-z]+)?\s*\"(.*?[^\\](?:\\\\)*|)\"|(-[A-Za-z]+)?\s*\'(.*?[^\\](?:\\\\)*|)\'|(=)|(-[A-Za-z]*t) *($regexdelim)(.*?[^\\](?:\\\\)*)?\7|([^ \t\n"']+))/g) {
         if(defined $1) { 
             push @ARGV, $1; 
             push @ARGV, &main::debackslashify($2);
