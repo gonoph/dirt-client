@@ -111,6 +111,8 @@ bool Hook::command_hook(string& s, void* mt) {
             trigstr.append(1, c);
         }
         trigstr.append(opt['C']);
+        trigstr.append("(?:(?=\\s)|$)");  // zero-width positive lookahead -- next char must be a space.
+                                          // or end of string
     } else if(opt.gotOpt('r')) {
         mythis->run(type, opt['r']);
         return true;
