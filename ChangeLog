@@ -49,6 +49,7 @@
         /hook -t'stuff' mystuff = /run -Lperl stuff_function
 * Fixed PerlEmbeddedInterpreter::match so that it will return the correct
     value match even if there is no command given.
+* Action.cc and Alias.cc removed for good.
 
 Dirt 0.60.0
 * Made file release on sourceforge.
