@@ -121,10 +121,10 @@ ScrollbackController::ScrollbackController(Window *_parent, OutputWindow *_outpu
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_ScrollbackController_pause", mygroups, "", "", 
         key_pause, "", &ScrollbackController::keypress_pause, (void*)this));
+    mygroups.push_back("ScrollbackController_volatile");
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, 
         "__DIRT_ScrollbackController_end", mygroups, "", "", 
         key_end, "", &ScrollbackController::keypress_end, (void*)this));
-    mygroups.push_back("ScrollbackController_volatile");
     hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, false, true, 
         "__DIRT_ScrollbackController_arrow_up", mygroups, "", "", 
         key_arrow_up, "", &ScrollbackController::keypress_arrow_up, (void*)this));

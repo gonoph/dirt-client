@@ -226,9 +226,6 @@ void Window::print(const char *s)
             // If scroll succeeds, it is assumed to have adjusted cursor_x/y
             // Note that we do not scroll until we actually WRITE something
             // at the bottom line!
-            while (cursor_y >= height)
-                if (!scroll())
-                    return;
                 
             // Wordwrap required?
             if (cursor_x > width-1)
@@ -238,6 +235,10 @@ void Window::print(const char *s)
             }
             // Recalculate where our output is now that there has been a scroll	
             out = canvas + cursor_y * width + cursor_x;
+
+            while (cursor_y >= height)
+                if (!scroll())
+                    return;
             
             *out++ = (color << 8) + *in;
             cursor_x++;

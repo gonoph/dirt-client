@@ -270,13 +270,14 @@ bool Screen::refreshTTY() {
 
                     // It is  more efficient to just print the actual skipped character in some
                     // cases rather than goto (especially when it's e.g. a space in our current color)
-                    if (last_y == y && last_x == x-1 && (canvas[offset-1] >> 8) == saved_color)
+                    if ( (last_y == y && last_x == x-1) && 
+                                (canvas[offset-1] >> 8) == saved_color)
                         printCharacter(canvas[offset-1] & 0xFF, acs_enabled);
                     else {
                         // just on the line above? then we can just send a newline to go down
 // FIXME was 1, but this causes screen corruption
 #if 0 
-                        if (x == 0 && last_y == y-1)
+                        if (x == 0 && last_y == y-1) 
                             out->printf("\r\n");
                         else
 #endif

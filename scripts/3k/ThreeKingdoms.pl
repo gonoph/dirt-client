@@ -179,7 +179,7 @@ sub check_hpbar {
             elsif($estat =~ /bl/) { $percent = 40; }
             elsif($estat =~ /em/) { $percent = 20; }
             elsif($estat =~ /De/) { $percent = 10; }
-            &main::run("/echo -W hpbar \"Enemy" . sprintf("(%7.7s):", $enemy) . &gauge(10,0,100,$percent) . "\"");
+            &main::run("/echo -W hpbar \"Enemy" . sprintf("(%7.7s):", defined $enemy?$enemy:"unknown") . &gauge(10,0,100,$percent) . "\"");
         } else {
             $incombat=0;
             &main::run("/echo -W hpbar \"Enemy(none):            \"");

@@ -1,3 +1,4 @@
+* Fixed not printing a char in the first column when a line wrapped.
 * Screen no longer scrolls in scrollback.
 * Hook execution problems fixed.  Now run() from perl gets executed
   immediately, instead of being put on the command stack.  (not done yet for python)
