@@ -461,7 +461,6 @@ void Session::inputReady() {
             
             /* IAC: next character is a telnet command */
             if (input_buffer[i] == IAC) {
-                report("Found telnet IAC.\n");
                 if (++i < count + pos) {	/* just forget it if it appears at the end of a buffer */
                     /* spec: handle prompts that split across reads */
                     if (input_buffer[i] == GA || input_buffer[i] == EOR) { /* this is a prompt */
