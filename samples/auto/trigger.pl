@@ -21,7 +21,7 @@ sub definetriggers {
                 }
             }
         }
-        $hookcmd .= " " . $name . " = " . $Triggers{$name}->{'action'};
+        $hookcmd .= " '" . &main::backslashify($name, '\'') . "' = " . $Triggers{$name}->{'action'};
         &main::run($hookcmd);
     }
     &main::run($main::commandCharacter . "hook -d definetriggers"); # delete myself from INIT list.
@@ -37,26 +37,21 @@ sub command_trigger {
     @ARGV = (); # reset it.
     if(/${main::commandCharacter}trig(?:ger)?(.*)/) { $_ = $1; }
     else { report_err("This doesn't seem to be a /trig command!\n"); }
-    while(/\G\s+(?:(-[A-Za-z]+)?\s*\"(.*?[^\\](?:\\\\)*|)\"|(-[A-Za-z]+)?\s*\'(.*?[^\\](?:\\\\)*|)\'|(=)|(-[A-Za-z]*t) *($regexdelim)(.*?[^\\](?:\\\\)*)?\7|([^ \t\n"']+))/g) {
+    while(/\G\s+(?:(-[A-Za-z]+)?\s*([\"'])(.*?[^\\](?:\\\\)*|)\2|(=)|(-[A-Za-z]*t) *($regexdelim)(.*?[^\\](?:\\\\)*)?\6|([^ \t\n"']+))/g) {
         if(defined $1) { 
             push @ARGV, $1; 
-            push @ARGV, &main::debackslashify($2);
-        } elsif(defined $2) { 
-            push @ARGV, &main::debackslashify($2);
-        } elsif(defined $3) {
-            push @ARGV, $3;
-            push @ARGV, &main::debackslashify($4);
-        } elsif(defined $4) {
-            push @ARGV, &main::debackslashify($4);
-        } elsif(defined $5) { # The rest is the thing to be executed 
-            push @ARGV, $5;
+            push @ARGV, &main::debackslashify($3);
+        } elsif(defined $3) { 
+            push @ARGV, &main::debackslashify($3);
+        } elsif(defined $4) { # The rest is the thing to be executed 
+            push @ARGV, $4;
             if(m/\G\s+(.*)$/g) { push @ARGV, $1; }
             last;
-        } elsif(defined $6) {
-            push @ARGV, $6;
-            push @ARGV, (defined $8)?$8:"";     # NO debackslashify.
-        } elsif(defined $9) {
-            push @ARGV, $9;
+        } elsif(defined $5) {
+            push @ARGV, $5;
+            push @ARGV, (defined $7)?$7:"";     # NO debackslashify.
+        } elsif(defined $8) {
+            push @ARGV, $8;
         } else {
             &main::report_err($main::commandCharacter . "trig: Error parsing command into \@ARGV\n");
             last;
@@ -88,7 +83,7 @@ sub command_trigger {
     }
     if(defined $opts{d} && $opts{d}) {
         if(defined $Triggers{$opts{d}}) {
-            &main::run($main::commandCharacter . "hook -d " . $opts{d});
+            &main::run($main::commandCharacter . "hook -d '" . &main::backslashify($opts{d},'\'') . "'");
             delete $Triggers{$opts{d}};
         } else {
             &main::report_err($main::commandCharacter . "trig: cannot delete trigger '$opts{d}' because it isn't defined.\n");
