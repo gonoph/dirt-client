@@ -15,7 +15,7 @@ sub check_repeat {
 }
 
 #&hook_add("userinput", "check_repeat", \&check_repeat);
-&main::run("/hook -T USERINPUT -fL perl check_repeat = Repeat::check_repeat");
+&main::run("/hook -T USERINPUT -fL perl __DIRT_REPEAT_check = Repeat::check_repeat");
 
 print "Loaded auto/repeat.pl\t(Will cause <enter> on blank prompt to send last command)\n";
 

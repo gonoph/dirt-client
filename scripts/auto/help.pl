@@ -14,21 +14,21 @@ $windowColor = &main::str_to_color('white_blue');
 &main::run("/window -x 0 -y 10 -w -1 -h $height -H -t 0 -c 31 help");
 
 # open the help window when alt-h is pressed.
-&main::run("/hook -k alt_h -fL perl openhelpwindow = Help::openhelpwindow");
+&main::run("/hook -g 'Dirt keys' -k alt_h -fL perl __DIRT_HELP_open = Help::openhelpwindow");
 sub openhelpwindow {
     &main::run("/window -s help");
-    &main::run("/disable openhelpwindow");
+    &main::run("/disable __DIRT_HELP_open");
     return 1;
 }
 
 # Close the help window when either esc or alt-h are pressed.
-&main::run("/hook -k alt_h -W help -fL perl alt_h_closehelpwindow = Help::closehelpwindow");
+&main::run("/hook -g 'Dirt keys' -k alt_h -W help -fL perl __DIRT_HELP_alt_h_close = Help::closehelpwindow");
 sub closehelpwindow {
     &main::run("/window -i help");
-    &main::run("/enable openhelpwindow");
+    &main::run("/enable __DIRT_HELP_open");
     return 1;
 }
-&main::run("/hook -k escape -W help -fL perl esc_closehelpwindow = Help::closehelpwindow");
+&main::run("/hook -g 'Dirt keys' -k escape -W help -fL perl __DIRT_HELP_esc_close = Help::closehelpwindow");
 
 # Redraw window
 sub redraw {
@@ -47,7 +47,7 @@ sub redraw {
 }
 
 # Scrolling with page_down key
-&main::run("/hook -k page_down -W help -fL perl help_pgdn = Help::pgdn");
+&main::run("/hook -g 'Dirt keys' -k page_down -W help -fL perl __DIRT_HELP_pgdn = Help::pgdn");
 sub pgdn {
     &main::run("/clear help");
     if($height-2 > $#helpcontents) { $viewpos = 0; }
@@ -65,7 +65,7 @@ sub pgdn {
 }
 
 # Scrolling with page_up key
-&main::run("/hook -k page_up -W help -fL perl help_pgup = Help::pgup");
+&main::run("/hook -g 'Dirt keys' -k page_up -W help -fL perl help_pgup = Help::pgup");
 sub pgup {
     &main::run("/clear help");
     $viewpos -= $height - 4; # 2 for border, 2 overlap
@@ -86,7 +86,7 @@ sub arrow_up {
     $viewpos -= 1;
 }
 
-&main::run("/hook -T COMMAND -C help -fL perl help = Help::command_help");
+&main::run("/hook -g 'Dirt commands' -T COMMAND -C help -fL perl __DIRT_HELP_command = Help::command_help");
 sub command_help {
     &main::run("/clear help");
     if(/^.help (\w+)/) {
@@ -158,6 +158,6 @@ sub command_help {
         &main::run("/status -W help 'Keys available:                           [Esc] [Alt-H]'");
     }
     &main::run("/window -s help");
-    &main::run("/disable openhelpwindow");
+    &main::run("/disable __DIRT_HELP_open");
 }
 

@@ -67,7 +67,7 @@ Screen::Screen() : Window(NULL, get_screen_size_x(), get_screen_size_y()), fd(0)
     }
 
     init_curses(usingVirtual);
-    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, "Screen::keypress_ctrl_l",
+    hook.add(KEYPRESS, new KeypressHookStub(-1, 1.0, -1, false, true, true, "__DIRT_BUILTIN_Screen::keypress_ctrl_l",
         vector<string>(1, "Dirt keys"), "", "", NULL, key_ctrl_l, "", &Screen::keypress_ctrl_l, (void*)this));
 }
 

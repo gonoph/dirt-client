@@ -24,7 +24,7 @@ $AutocompleteSmashCase = 0;
 # Looks through @Volatile (created from mud output) and offers completions
 sub tab_complete {
     my ($word,$complete,$n);
-    unless (defined $main::Key) { print "\$main::Key is not defined!!\n"; }
+    unless (defined $main::Key) { &main::report_err("\$main::Key is not defined!!\n"); }
     if ($main::Key eq $main::keyTab) {
         # Try tab completion
         ($word) = /(\w*).{$LastCompletionLen}$/;
@@ -66,7 +66,7 @@ sub tab_complete {
 }
 
 # list/add/delete static completions
-&main::run($main::commandCharacter . "hook -T COMMAND -C complete -fL perl complete = Completion::command_complete");
+&main::run($main::commandCharacter . "hook -T COMMAND -C complete -fL perl __DIRT_COMPLETE_command = Completion::command_complete");
 sub command_complete {
     my ($count);
     my (%opts);
@@ -77,7 +77,7 @@ sub command_complete {
 #    print "$_ running...\$opts{l}: ", (defined $opts{'l'})?$opts{'l'}:"undefined", "\n";
 
     if(defined $opts{c} && $opts{c} && defined $opts{C} && $opts{C}) {
-        print "ERROR: /complete: Options -c and -C are mutually exclusive!\n";
+        &main::report_err("/complete: Options -c and -C are mutually exclusive!\n");
     } elsif(defined $opts{c} && $opts{c}) {
         $AutocompleteSmashCase = 1;
     } elsif(defined $opts{C} && $opts{C}) {
@@ -96,30 +96,30 @@ sub command_complete {
     if(defined $opts{d} && $opts{d}) {
         if(defined $Completions{$opts{d}}) {
             delete $Completions{$opts{d}};
-            print $main::commandCharacter . "complete: Deleted completion: $Completions{$opts{d}}\n";
+            &main::report($main::commandCharacter . "complete: Deleted completion: $Completions{$opts{d}}\n");
         } else {
-            print "ERROR: ${main::commandCharacter}complete: cannot delete completion $opts{d} because it is not defined.\n";
+            &main::report_err($main::commandCharacter . "complete: cannot delete completion $opts{d} because it is not defined.\n");
         }
     }
     if(defined $opts{'l'} && $opts{'l'}) {
-        print "Current autocompletion parameters:\n";
-        print "    Minimum word size: $AutocompleteMin\n";
-        print "    Maximum history size: $AutocompleteSize\n";
-        print "    Lowercase all input: ", $AutocompleteSmashCase ? "on" : "off", "\n";
-        print "    Volatile completions list: \n";
+        &main::report("Current autocompletion parameters:\n");
+        &main::report("    Minimum word size: $AutocompleteMin\n");
+        &main::report("    Maximum history size: $AutocompleteSize\n");
+        &main::report("    Lowercase all input: ", $AutocompleteSmashCase ? "on" : "off", "\n");
+        &main::report("    Volatile completions list: \n");
         my($line) = "\t";
         foreach my $var (@Volatile) {
             $line .= $var . ", ";
-            if(length $line  > 70) { print $line . "\n"; $line = "\t"; }
+            if(length $line  > 70) { &main::report($line . "\n"); $line = "\t"; }
         }
-        print $line . "\n";
+        &main::report($line . "\n");
         $line = "\t";
-        print "\n    Static completions list: \n";
+        &main::report("    Static completions list: \n");
         foreach my $var (keys %Completions) {
             $line .= $var . ", ";
-            if(length $line  > 70) { print $line . "\n"; $line = ""; }
+            if(length $line  > 70) { &main::report($line . "\n"); $line = ""; }
         }
-        print $line . "\n";
+        &main::report($line . "\n");
     }
 #    $_ = $defaultvar;
     return 1;
@@ -155,9 +155,9 @@ sub volatile_completions {
     return 1;
 }
 
-&main::run($main::commandCharacter . "hook -T KEYPRESS -fL perl tab_complete = Completion::tab_complete");
+&main::run($main::commandCharacter . "hook -T KEYPRESS -fL perl __DIRT_COMPLETE_tab = Completion::tab_complete");
 
-&main::run($main::commandCharacter . "hook -F -T OUTPUT -fL perl volatile_completions = Completion::volatile_completions");
+&main::run($main::commandCharacter . "hook -F -T OUTPUT -fL perl __DIRT_COMPLETE_volatile = Completion::volatile_completions");
 
 print "Loaded auto/complete.pl\t(will complete words when you press <tab>)\n";
 
