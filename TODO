@@ -1,46 +1,9 @@
-Focus mechanism:
-    Keypresses which go with a "focused" window should grab higher priority when active.
-    Add options to /group to do most /hook operations, on the WHOLE GROUP.
-        Do the same with hook?  If no =, then try to change the attributes of a hook?
-    Should not be able to pull up command history while in scrollback
-    Keypresses for modal windows (/help) should have higher priority than 
-        background keys (scrollback)
-    What about /help, history combo?  Who should get up/dn pgup/pgdn?
-        help should trap up/dn to prevent history from popping up.
-    
-Window::popup() is completely fucked.
-    And by extension, Window::insert(), Window::remove().
-    this was removed from /window -s and /window -i...
-
-Screen corruption under xterm...
-
-install should ignore CVS/ directories.
-
-rename directories: h -> include, o -> .libs, samples -> scripts
-
-Replace List with hash_map for:
-    Actions (MUD.h)
-    Macros (MUD.h)
-    Hooks (not yet written)
-
-Write Hook class
-
-Remove List entirely
-
-Replace h/String.h with STL string
-
-Event class: parent of Action, Macro, Hook:
-    has priority, group, enable/disable, mud this event belongs to
-    method to check whether event is activated (checking group enable/disables, and enable/disable)
-
-Serialize event objects (children), and dump them to files for persistence.
-
-Arguments to /run: PerlEmbeddedInterpreter::run
-
-
 TODO before release:
 -----
-List.h -> libstdc++
+rename directories: h -> include, o -> .libs, samples -> scripts
+h/String.h -> STL string
+h/List.h -> libstdc++
+install should ignore CVS/ directories.
 Rewrite terminal handling, use TERMIOS
     -> Split screen scrollback
     -> /window, /exec interface
@@ -51,21 +14,12 @@ Repeat -> C++, with inverse last command a la zmud.
 Commands -> static autocomplete
 Perl eval: %
 Evaluating commands ('/') in send
-Change name: crud?
 Each of the keys in InputLine.cc, InputLine::keypress must be turned into a 
     HookStub (subclass HookStub for keypress events? -- make it a friend of
     InputLine so it can manipulate input_buf, etc)  I left perl hook_run there
     for now.
 Actions must be rewritten.  See Session.cc:674, Session::triggerCheck.
-(fixed?)Dirt consumes 100% CPU.  (read on socket(8), read -1 bytes on socket, errno=0 (EOF), read on pipe...)
-    I'm pretty sure this is the chat server socket.  It's set for non-blocking 
-    IO, so select() always returns even when it's not connected and there's no data.
-2) Rewrite all /commands to use the new Hook system.
-/disable, /enable need to be totally rewritten.
-3) Get hooks working from perl.
-remove one_argument, convert to OptionParser.
-String -> string
-List -> vector
+finish removing one_argument, convert to OptionParser.
 Write Variables class, test it with small perl/C++ program.
 Make all keys in InputLine.cc be KEYPRESS hooks.
 /debug command to turn on debugging.  For instance, print which hook catches
@@ -104,10 +58,6 @@ When output is redirected to a file, screen (even more) badly corrupted.  Could 
 Write Python exception handler a la SIG{__WARN__} in perl.
 Rearrange StackedInterpreter, so everything doesn't fail...what to do if both interpreters
     define a given function?  What to do if only one does?
-Implement -L (language) option for /hook.  How to do this in TriggerHookStub::operator()?
-    argument to EmbeddedInterpreter::run specifying language?
-    Why not do this: /hook ... = /run blah  (because /run gets put on interpreter stack
-    and by the time the interpreter gets to it, the data in $_ may be lost.
 /eval for python doesn't return values:     /eval -rLpython 1+2
 Make sure in all circumstances, only ONE embedded interpreter attempts to run a command
     (re: /hook -f tries both...)
@@ -118,25 +68,9 @@ Perl warnings from hooks should print the hook name.
     /hook -t"^(.*)$" -TOUTPUT -F printuncolored = /eval print "$asdfasdf\n";
 /eval -- print $Trigger::Triggers{'zsays'}->{'t'}
     doesn't work...
-Removing extra \n at beginning of OutputWindow::printVersion clears up initial corruption.
-    Add it back for testing.  Could a pair of consecutive \n's be the problem?
-    Note: /echo "" does not cause screen to scroll. (until more output is received).
 Key: alt-n, alt-p for next, previous match (alt-/)
-Commenting out block on Screen.cc:265 seems to fix screen corruption.
 Is ProxyWindow used at all?  (remove it)
-Crash in Window::~Window when deleting w. (why? does this manifest itself with other windows?)
-    When hitting alt-1, crash.
-    Dies in Window::check on child_last loop.  It seems child_last = child_last->prev => infinite loop.
-    Still crashes on exit: Window::remove doesn't find() the window to be removed, but I've
-        made this condition non-fatal.  (sweep it under the rug...no one will notice)
-    fixed?
-    Convert child_first, child_last, prev, next to a list<Window*> children;
 Lines that wrap are missing the first character on the wrapped line.
-Escaping in regexes is broken:
-    /trig -F -t'\*' star = /echo found a star!          gives an error
-    Ok, now works but you need an extra \.  Fix it so you only need one. (unbackslashify in OptionParser?)
-    ...Must debackslashify quoted arguments in OptionParser to get rid of escaped quotes.
-    perl debackslashify doesn't work.  (Test C++ version too...)
 Auto-hook disabler seems to disable the next hook run after an error (which is not always 
     the same hook!)  i.e. make a bad /trig and then type something -- it will disable tab_complete.
 Consider a "gag" attribute: will still allow all hooks to match (and modify!) the line,
@@ -144,11 +78,28 @@ Consider a "gag" attribute: will still allow all hooks to match (and modify!) th
 Error parsing init script (i.e. trigger.pl) causes obscure error with no backtrace.
     error in parsing gag.pl generated NO message AT ALL.
 Killing help window causes help to misbehave.  Check for window and recreate it if necessary?
-Malloc-related hang on exit.
 /delay, /repeat, or /run command that will let me schedule something to be sent.
 Should Window::focused be static?
 /input, /inputline like command to set input line.
 Aliases don't work at all...
+xterm doesn't send alt- key sequences properly...
+/gag -Ft'^\\s*$' blankline
+    doesn't work...
+Try to initiate a ytalk with the dirt terminal...hang? no...just fucks up the screen.
+    Turn mesg n on dirt startup...
+Make a perl class to do a scrollable text box (/help) and one to do a selection 
+    list box (/alias, /trig, /gag, etc)
+Add options to /group to do most /hook operations, on the WHOLE GROUP.
+    Do the same with hook?  If no =, then try to change the attributes of a hook?
+Focus mechanism:
+    Keypresses which go with a "focused" window should grab higher priority when active.
+    Should not be able to pull up command history while in scrollback
+    Keypresses for modal windows (/help) should have higher priority than 
+        background keys (scrollback)
+    What about /help, history combo?  Who should get up/dn pgup/pgdn?
+        help should trap up/dn to prevent history from popping up.
+Option to use favorite language for /echo?  (i.e. /echo -> /eval print
+    "<args>\n" so variable expansions work)
 
 
 Hook:
@@ -179,38 +130,22 @@ convert:
     auto/gag
         alt-g to bring up gags?
     auto/highlight
+        alt-h to bring up highlights?
     auto/mudftp
+        Converted, needs to be tested.
     auto/repeat
         bind KEYPRESS to clear line and place new text on command line.  Inverse last command.
     auto/trigger
-        rewrite, '/trig -e' to edit a trigger (copy it to the command line)
-        Needs to retreive enabled/disabled state from client, so that it can be
-        saved persistently.  (Can always overload /enable and /disable with -F)
+        '/trig -e' to edit a trigger (copy it to the command line)
         Add '/trig -r' to run a named trigger.
-    sys/color
-    sys/config
-    sys/functions
+        make alt-t bring up window with triggers in it. Pressing enter on one
+        should copy it to the command line for modification.
     sys/idle
-    sys/init
     sys/keys
 rename samples -> scripts
 Continue converting commands in Interpreter.cc
 Message if command not found...
-Check/remove List and String
-Escaped stuff:
-    Things that need to be escaped: [.;\$|]
-        ;   command separator                                   (configurable)
-        .   speedwalk character (only at beginning of command)  (configurable)
-        \   escaped backslash                                   (configurable?)
-        $   variables (assuming Vars package is completed, integrated with Perl/Python)
-        |   pipe (assuming pipe command is written)
-    In general, assume a package needs a "special" character.  When parsing, check
-    that it is not preceeded by an odd number of escapes.  If so, ignore it, if not,
-    parse as usual.  Before sending commands to the mud, they should be unescaped:  
-    any escaped character left should be replaced with its counterpart (including 
-    the escape character).  => 'unescape' hook (or part of writeMUD?)
-Action -> /trig, make alt-t bring up window with triggers in it.  Pressing
-    enter on one should copy it to the command line for modification.
+Action -> /trig, 
 Subst -> /trig, check that parenthesis/$n backtracing works.
 Alias -> /alias, alt-a should bring up list of aliases.
 /help, alt-h should bring up help window.  bind pgup/pgdn to help window.
@@ -226,3 +161,8 @@ write message on top bar
 write message on bottom bar
 Do all this with /status?  Extend /window?
 list bound keys on status line (right justified).
+
+Screen:
+-------
+Ncurses seems well suited to all this.
+Screen.cc, Window.cc use memset on canvas to draw to screen, Screen::refresh redraws.
