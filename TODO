@@ -220,6 +220,27 @@ Remove dirtCommand
 Tokenizer (use in Option.cc?) http://www.boost.org/libs/tokenizer/index.htm
 PerlEmbeddedInterpreter::match determines if the match was successful by grabbing $_
     and seeing if it is empty.  This will FAIL if commands is empty...
+Debug mode for hooks.  Dump everything that matches.
+    /debug <HookType>       -- dump the names of hooks that matched the HookType
+    /hook -lt 'adsf'        -- list the hooks that will match the string 'adsf'
+    /hook -l -T COMMAND -t 'asdf'    -- etc.
+Print an error message if a /command isn't caught by any hook.
+    /asdf   -> unknown command: '/asdf'
+
+Directly calling C++ (instead of interpreterPipe):    
+    http://www-106.ibm.com/developerworks/linux/library/l-inline
+    use C-Inline library?
+    Swig?
+    aaahhh seems to work well.  Now need to deal with removing Interpreter and
+    getting return values back from /run.
+        For most purposes "caught" (return value from hook.run) is equivalent
+        to the /run return value.
+    Python: exactly:
+        http://www.python.org/doc/current/ext/extending-with-embedding.html
+
+Investigate removing Interpreter, or making Interpreter not have a command stack.
+Investigate removing Interpreter::mark
+
 
 Hook:
 -----

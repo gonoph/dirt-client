@@ -1,10 +1,10 @@
-#include <EXTERN.h>
 #include "dirt.h"
 #include "misc.h"
 #include "PerlEmbeddedInterpreter.h"
 #include "Pipe.h"
 #include "Interpreter.h"
 
+#include <EXTERN.h>
 #include <perl.h>
 #include <unistd.h>
 
@@ -25,8 +25,36 @@ extern "C" const char* versionFunction() {
 
 extern "C" {
    void boot_DynaLoader (CV* cv);
+   I32 dirt_perl_run();
+   I32 dirt_perl_report();
+   I32 dirt_perl_report_err();
 }
 
+// This is called from perl as run(...)
+I32 dirt_perl_run() {
+    dSP;                            /* initialize stack pointer      */
+    SV* arg = POPs;                 /* My argument */
+    STRLEN n_a;
+    interpreter.add(SvPV(arg, n_a));
+    return 0;  // We return no arguments
+}
+
+// FIXME this should properly handle multiple arguments
+I32 dirt_perl_report() {
+    dSP;
+    SV* arg = POPs;
+    STRLEN n_a;
+    report(SvPV(arg, n_a));
+    return 0;  // We return no arguments
+}
+
+I32 dirt_perl_report_err() {
+    dSP;
+    SV* arg = POPs;
+    STRLEN n_a;
+    report_err(SvPV(arg, n_a));
+    return 0;  // We return no arguments
+}
 
 static void xs_init(void)
 {
@@ -147,7 +175,6 @@ bool PerlEmbeddedInterpreter::run(const char*, const char *function, const char 
     strcpy(buf, function);
     string cmd = "";
     
-//    report("PerlEmbeddedInterpreter::run(%s, %s, out)", function, arg);
     if(haserror) {
         CV* cv = perl_get_cv((char*)buf,FALSE); // Just check if it exists.
         if (!cv) { 
@@ -164,6 +191,7 @@ bool PerlEmbeddedInterpreter::run(const char*, const char *function, const char 
     SV* res = perl_eval_pv(cmd.c_str(), FALSE);
     if (SvTRUE(ERRSV)) { // Perl handles printing of errors for us...
         if(out) strcpy(out, oldarg.c_str()); // return unmodified argument.
+//        report("PerlEmb... out: %s\n", out);
         retval = true;  // What to return in this case...
         if(haserror) haserror = true;
     } else { // No error
@@ -176,6 +204,7 @@ bool PerlEmbeddedInterpreter::run(const char*, const char *function, const char 
         }
         retval = SvTRUE(res);
     }
+    //report("PerlEmbeddedInterpreter::run(%s, %s, %s)", function, arg, out);
     return retval;
 }
 
@@ -252,7 +281,6 @@ void* PerlEmbeddedInterpreter::substitute_prepare(const char *pattern, const cha
 // Evalute some loose perl code, put the result in out if non-NULL
 bool PerlEmbeddedInterpreter::eval(const char*, const char *expr, const char* arg, 
         char* out, savedmatch* sm) {
-//    report("eval got: '%s'", expr);
     int nret;
     bool retval;
     char tmp[MAX_MUD_BUF];
@@ -268,8 +296,7 @@ bool PerlEmbeddedInterpreter::eval(const char*, const char *expr, const char* ar
     if (SvTRUE(ERRSV)) {      // Perl will provide a warning message for us. 
         if(out) *out = NUL;   //(make sure init.pl gets loaded!)
         retval = false;
-    }
-    else {
+    } else {
         if(out) {
             if(SvOK(default_var)) { // Prevents uninitialized value warnings of $_ = undef;
                 char *s = SvPV(default_var, PL_na);

@@ -342,8 +342,9 @@ const char *EmbeddedInterpreter::findFile(const char *filename, const char *suff
 // Then later on embed_interp is assigned a new value pointing to a StackedInterpreter.
 // If we pass embed_interp to hook.add(...) when Interpreter is constructed, it will
 // never see the interpreters!
-bool EmbeddedInterpreter::command_load(string& str, void*, savedmatch*) {
+bool EmbeddedInterpreter::command_load(string& str, void*, savedmatch* sm) {
     OptionParser opt(str, "");
+    if(sm) sm->retval = true;
     if(!opt.valid()) return true;
     if(!embed_interp->load_file(opt.restStr().c_str())) {
 	int CmdChar = config->getOption(opt_commandcharacter);
@@ -353,6 +354,7 @@ bool EmbeddedInterpreter::command_load(string& str, void*, savedmatch*) {
 }
 
 bool EmbeddedInterpreter::command_run(string& str, void*, savedmatch* sm) {
+    bool retval;
     OptionParser opt(str, "L:");
     if(!opt.valid()) return true;
     char out[MAX_MUD_BUF]; // FIXME
@@ -362,23 +364,29 @@ bool EmbeddedInterpreter::command_run(string& str, void*, savedmatch* sm) {
         report_err("%crun: Please pass a function name to run!\n", CmdChar);
         return true;
     }
-    embed_interp->run(opt.gotOpt('L')?opt['L'].c_str():NULL, opt.restStr().c_str(), NULL, out, sm);
-    if(sm) sm->data = out;
-    else str = out;
+    retval = embed_interp->run(opt.gotOpt('L')?opt['L'].c_str():NULL, opt.restStr().c_str(), NULL, out, sm);
+    if(sm) {
+        sm->retval = retval;
+        sm->data = out;
+    } else str = out;
     return true;
 }
     
 bool EmbeddedInterpreter::command_eval(string& str, void*, savedmatch* sm) {
+    bool retval;
     OptionParser opt(str, "L:rs");
     if(!opt.valid()) return true;
     char out[MAX_MUD_BUF];
-    embed_interp->eval(opt.gotOpt('L')?opt['L'].c_str():NULL, opt.restStr().c_str(), NULL, out, sm);
+//    report("command_eval passing savedmatch '%s' to embed_interp->eval\n", sm->data.c_str());
+    retval = embed_interp->eval(opt.gotOpt('L')?opt['L'].c_str():NULL, opt.restStr().c_str(), NULL, out, sm);
     if(opt.gotOpt('r')) {
 	int CmdChar = config->getOption(opt_commandcharacter);
 	report("%ceval result: %s\n", CmdChar, out);
     }
-    if(sm) sm->data = out;
-    else str = out;
+    if(sm) {
+        sm->retval = retval;
+        sm->data = out;
+    } else str = out;
     string strout(out);
     if(opt.gotOpt('s')) interpreter.add(strout);
     return true;

@@ -54,13 +54,15 @@ const char *one_argument (const char *argument, char *buf, bool smash_case) {
     return argument;
 }
 
-bool Interpreter::command_quit(string&, void*, savedmatch*) {
+bool Interpreter::command_quit(string&, void*, savedmatch* sm) {
     dirtFinished = true;
+    if(sm) sm->retval = true;
     return true;
 }
 
-bool Interpreter::command_echo(string& str, void*, savedmatch*) {
+bool Interpreter::command_echo(string& str, void*, savedmatch* sm) {
     OptionParser opt(str, "nW:");
+    if(sm) sm->retval = true;
     string s = opt.restStr();
     if(!opt.flag('n')) s.append("\n");
 
@@ -77,8 +79,9 @@ bool Interpreter::command_echo(string& str, void*, savedmatch*) {
     return true;
 }
 
-bool Interpreter::command_status(string& str, void*, savedmatch*) {
+bool Interpreter::command_status(string& str, void*, savedmatch* sm) {
     OptionParser opt(str, "W:");
+    if(sm) sm->retval = true;
     if(!opt.valid()) return true;
     if(!opt.gotOpt('W')) status->setf("%s", opt.restStr().c_str());
     else {
@@ -93,13 +96,15 @@ bool Interpreter::command_status(string& str, void*, savedmatch*) {
     return true;
 }
 
-bool Interpreter::command_bell(string&, void*, savedmatch*) {
+bool Interpreter::command_bell(string&, void*, savedmatch* sm) {
     screen->flash();
+    if(sm) sm->retval = true;
     return true;
 }
 
-bool Interpreter::command_exec(string& str, void*, savedmatch*) {
+bool Interpreter::command_exec(string& str, void*, savedmatch* sm) {
     int w = 80, h=10, x=0, y=3, t=10;
+    if(sm) sm->retval = true; // FIXME return the return value from the command instead?
     
     OptionParser opt(str, "w:h:x:y:t:");
     if(!opt.valid()) return true;
@@ -129,8 +134,9 @@ bool Interpreter::command_exec(string& str, void*, savedmatch*) {
     return true; 
 }
 
-bool Interpreter::command_clear(string& str, void*, savedmatch*) {
+bool Interpreter::command_clear(string& str, void*, savedmatch* sm) {
     OptionParser opt(str, "W:");
+    if(sm) sm->retval = true;
     if(!opt.valid()) return true;
     string name;
     if(opt.gotOpt('W')) name = opt['W'];
@@ -154,14 +160,16 @@ bool Interpreter::command_clear(string& str, void*, savedmatch*) {
     return true;
 }
 
-bool Interpreter::command_prompt(string& str, void*, savedmatch*) {
+bool Interpreter::command_prompt(string& str, void*, savedmatch* sm) {
     OptionParser opt(str, "");
+    if(sm) sm->retval = true;
     if(!opt.valid()) return true;
     inputLine->set_prompt(opt.restStr().c_str());
     return true;
 }
 
-bool Interpreter::command_close(string&, void*, savedmatch*) {
+bool Interpreter::command_close(string&, void*, savedmatch* sm) {
+    if(sm) sm->retval = true;
     if (!currentSession || currentSession->state == disconnected)
         status->setf ("You are not connected - nothing to close");
     else
@@ -175,8 +183,9 @@ bool Interpreter::command_close(string&, void*, savedmatch*) {
     return true;
 }
 
-bool Interpreter::command_open(string& str, void*, savedmatch*) {
+bool Interpreter::command_open(string& str, void*, savedmatch* sm) {
     OptionParser opt(str, "");
+    if(sm) sm->retval = true;
     if(!opt.valid()) return true;
     string name = opt.arg(1);
     int CmdChar = config->getOption(opt_commandcharacter);
@@ -202,8 +211,9 @@ bool Interpreter::command_open(string& str, void*, savedmatch*) {
     return true;
 }
 
-bool Interpreter::command_reopen(string&, void* mt, savedmatch*) {
+bool Interpreter::command_reopen(string&, void* mt, savedmatch* sm) {
     Interpreter* mythis = (Interpreter*)mt;
+    if(sm) sm->retval = true;
     if (!lastMud)
         status->setf ("There is no previous MUD to which I can reconnect");
     else
@@ -215,8 +225,9 @@ bool Interpreter::command_reopen(string&, void* mt, savedmatch*) {
     return true;
 }
 
-bool Interpreter::command_send(string& str, void*, savedmatch*) {
+bool Interpreter::command_send(string& str, void*, savedmatch* sm) {
     OptionParser opt(str, "nu");
+    if(sm) sm->retval = true;
     if(!opt.valid()) return true;
     string towrite = opt.restStr();
 
@@ -237,14 +248,16 @@ bool Interpreter::command_send(string& str, void*, savedmatch*) {
     return true;
 }
 
-bool Interpreter::command_setinput(string& str, void*, savedmatch*) {
+bool Interpreter::command_setinput(string& str, void*, savedmatch* sm) {
     OptionParser opt(str, "");
+    if(sm) sm->retval = true;
     inputLine->set(opt.restStr().c_str());
     return true;
 }
 
-bool Interpreter::command_save(string& str, void*, savedmatch*) {
+bool Interpreter::command_save(string& str, void*, savedmatch* sm) {
     OptionParser opt(str, "a");
+    if(sm) sm->retval = true;
     if(!opt.valid()) return true;
     bool color = opt.gotOpt('a');
     
@@ -319,8 +332,8 @@ void Interpreter::execute(string& data) {
         pair<string,savedmatch*> line = commands->front();
         commands->pop_front();  // destroy the command on the top of the stack.
         if (line.first.length() > 0 && line.first[0] == commandCharacter) {
-            hook.run(COMMAND, line.first, &sm);
-            if(sm.data != data) data = sm.data;
+            hook.run(COMMAND, line.first, &sm); // If line.first, by chance, deletes the parent hook
+            if(sm.data != data) data = sm.data; // we're screwed.
             dirtCommand (line.first.c_str() + 1);  // FIXME remove this once all commands are class members
         } else if(currentSession) {
             hook.run(SEND, line.first);

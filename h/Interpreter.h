@@ -11,11 +11,11 @@ class Interpreter {
 public:
     Interpreter();
     // add a command to the end of the stack.
-    void add(string& s, string& data, string regex) { 
+    void add(string& s, string& data, string& regex) { 
         commands->push_back(pair<string,savedmatch*>(s, new savedmatch(data, regex))); 
     };  // This gets deleted in Interpreter::execute
     void add(string& s) { commands->push_back(pair<string,savedmatch*>(s,NULL)); }; 
-    void add(const char* s, string& data, string regex) { string str(s); add(str, data, regex); };
+    void add(const char* s, string& data, string& regex) { string str(s); add(str, data, regex); };
     void add(const char* s) { string str(s); add(str); }
     void add(string& s, savedmatch* sm) { 
         commands->push_back(pair<string,savedmatch*>(s, new savedmatch(*sm))); 

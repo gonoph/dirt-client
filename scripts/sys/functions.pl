@@ -1,29 +1,18 @@
 
 use Carp;
+use DynaLoader;
 
-# Run a client command.
-sub run {
-    my $x = join(" ", @_);
-
-    # Protect against accidents
-#    $x =~ s/;/\\;/;
-    $x =~ s/\n/ /;
-    $x = $x . "\n";
-#    print "@ main::run running command: $x";
-    syswrite INTERP, $x, length($x);
-}
-
-# Print a message as if from the client (i.e. preceede by @)
-sub report {
-    $str = "@ " . join(" ", @_); 
-    if($str !~ /\n$/) { $str .= "\n"; }
-    print $str;
-}
-
-sub report_err {
-    $str = "@ ${Red_Black}[ERROR]${White_Black} " . join(" ", @_);
-    if($str !~ /\n$/) { $str .= "\n"; }
-    print $str;
+BEGIN {
+    $sym_run = DynaLoader::dl_find_symbol(0,    "dirt_perl_run");
+    $sym_report = DynaLoader::dl_find_symbol(0, "dirt_perl_report");
+    $sym_report_err = DynaLoader::dl_find_symbol(0, "dirt_perl_report_err");
+    if(defined $sym_run && defined $sym_report && defined $sym_report_err) { 
+        DynaLoader::dl_install_xsub("run",    $sym_run);
+        DynaLoader::dl_install_xsub("report", $sym_report);
+        DynaLoader::dl_install_xsub("report_err", $sym_report_err);
+    } else {
+        die("The perl module for dirt was not compiled properly (symbols missing)\n");
+    }
 }
 
 # This value is the file descriptor of the interpreter pipe and is set by
@@ -50,11 +39,6 @@ sub debackslashify { # unescape
     $ret .= substr($var,$pos,length($var)-$pos);
     return $ret;
 }
-
-# is this used?
-#sub main::lc {
-#  &main::run(lc $_);
-#}
 
 # Create wrappers for other dirt functions
 foreach (qw/load open close reopen quit speedwalk bell echo status exec window kill print alias action send help eval run setinput clear prompt send_unbuffered chat chatall/) {

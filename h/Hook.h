@@ -31,6 +31,7 @@
 struct savedmatch {
     string  data;    // Mud string that was matched.  (ALWAYS a mud string)
     string  regex;   // Regex used
+    bool    retval;
     savedmatch(string& d, string& re) : data(d), regex(re) {};
     savedmatch(savedmatch& sm) : data(sm.data), regex(sm.regex) {};
 };
@@ -73,6 +74,7 @@ protected:
     string  name;
     vector<string>  groups;
     HookType type;
+    bool    deleted;
 public:                 // is defined *after* HookStub).
     HookStub(int p, float c, int n, bool F, bool en, bool col, string nm, vector<string> g);
     virtual bool operator() (string& data, savedmatch* sm = NULL) = 0; // Children must override this.
@@ -154,21 +156,23 @@ public:
     // FIXME the following bool return types are only needed for KEYPRESS hooks and
     // their interaction with the OLD keypress system.  They can be changed to void
     // when the old keypress system is removed.
-    void run(HookType type, string& data, savedmatch* sm = NULL);           // data may be modified.
-    void run(HookType type, char* data = NULL, savedmatch* sm = NULL);
-    void run(string const type, string& data, savedmatch* sm = NULL) { 
+    bool run(HookType type, string& data, savedmatch* sm = NULL);           // data may be modified.
+    bool run(HookType type, char* data = NULL, savedmatch* sm = NULL);
+    bool run(string const type, string& data, savedmatch* sm = NULL) { 
         return run(types[type], data, sm); 
     };
-    void run(string const type, char* data = NULL, savedmatch* sm = NULL) { 
+    bool run(string const type, char* data = NULL, savedmatch* sm = NULL) { 
         return run(types[type], data, sm); 
     };
     static bool command_hook(string&,   void*, savedmatch*);
     static bool command_disable(string&,void*, savedmatch*);
     static bool command_enable(string&, void*, savedmatch*);
     static bool command_group(string&,  void*, savedmatch*);
+    void gc();      // Garbage collect -- delete any hooks that may have been removed.
     ~Hook();        // Will destroy everything in hooks
 private:
     int max_type;   // = IDLE
+    int deleted_count;
 
     // These two data structures hold the same data (and should be consistent).
     // 'hooks' is for quickly calling all hooks of a particular type.

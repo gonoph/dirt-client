@@ -160,11 +160,15 @@ sub check_hpbar {
     if(/$magehp/) {
         $linectr = 0;
         &main::run("/clear hpbar");
-        &main::run("/echo -W hpbar \"HP:  " . sprintf("(%3d/%3d)", $1, $2), &gauge(10, 1, $2, $1) . "\"");
-        &main::run("/echo -W hpbar \"SP:  " . sprintf("(%3d/%3d)", $3, $4), &gauge(10, 1, $4, $3) . "\"");
+        &main::run("/echo -W hpbar \"HP:  " . sprintf("(%3d/%3d)", $1, $2) . " " 
+            . &gauge(10, 1, $2, $1) . "\"");
+        &main::run("/echo -W hpbar \"SP:  " . sprintf("(%3d/%3d)", $3, $4) . " " 
+            . &gauge(10, 1, $4, $3) . "\"");
         $sps = $3;
-        &main::run("/echo -W hpbar \"Sat: " . sprintf("(%3d/%3d)", $7, 100), &gauge(10,1, 100, 100-$7) . "\"");
-        &main::run("/echo -W hpbar \"Cnc: " . sprintf("(%3d/%3d)", $8, 100), &gauge(10,1, 100, 100-$8) . "\"");
+        &main::run("/echo -W hpbar \"Sat: " . sprintf("(%3d/%3d)", $7, 100) . " " 
+            . &gauge(10,1, 100, 100-$7) . "\"");
+        &main::run("/echo -W hpbar \"Cnc: " . sprintf("(%3d/%3d)", $8, 100) . " " 
+            . &gauge(10,1, 100, 100-$8) . "\"");
         $cnc = $8;
         if(defined $18) {
             $incombat=1;
@@ -243,9 +247,9 @@ sub check_hpbar {
 &main::run("/window -w25 -h10 -x-0 -y4 -B -t0 -c31 hpbar");
 # Why doesn't this work?
 # from perl you need 4 backslashes where you want ONE to appear.  *sigh*
-&main::run('/hook -T SEND -Ft\'^kill\\\\s+(\\\\w+)\' grabkill = phk;bt;/eval \\$ThreeKingdoms::enemy = "$1"');
+&main::run('/hook -T SEND -Ft\'^kill\\\\s+(\\\\w+)\' grabkill = phk;bt;/eval $ThreeKingdoms::enemy = $1');
 if(!defined $enemy) { $enemy = ""; } # don't want it to be undef.
-&main::run('/hook -T SEND -Ft\'^tk\\\\s+(\\\\w+)\' grabtk = /eval \\$ThreeKingdoms::enemy = "$1"');
+&main::run('/hook -T SEND -Ft\'^tk\\\\s+(\\\\w+)\' grabtk = /eval $ThreeKingdoms::enemy = $1;');
 &main::run("/hook -p 10000 -T SEND -C (kill|tk) dontkilldraal = /run -Lperl ThreeKingdoms::dontkilldraal");
 sub dontkilldraal {
     if(/^(?:kill|tk)\s(\w+)\s*$/) {
@@ -254,6 +258,7 @@ sub dontkilldraal {
             return 1;  # This isn't a fallthrough so returning 1 will cause it to stop here.
         }
     }
+    return 0;
 }
 
 %opposite_dir = ( 

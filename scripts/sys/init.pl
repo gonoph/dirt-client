@@ -1,11 +1,14 @@
-# This utility function needs be located in this file
-# Use this, not require directly!
+# Be careful with errors in this file.  If loading this file fails, Carp will
+# not be loaded and you will not see perl errors in dirt!
 
 use Carp qw(carp cluck croak confess); # verbose warning/error messages.
 use IO::Handle;
+require DynaLoader;
 
-#open(LOG, ">/tmp/dirtlog") || die "unable to open dirtlog\n";
-#LOG->autoflush(1);
+#BEGIN {
+#    open(LOG, "+>/tmp/dirtlog") || die "unable to open dirtlog\n";
+#    LOG->autoflush(1);
+#}
 
 # Fallback to global installation
 push @INC, "$ENV{HOME}/.dirt", "/usr/local/lib/dirt", "/usr/lib/dirt";
@@ -16,8 +19,7 @@ if (-f "/etc/debian_version") {
 }
 require "sys/functions.pl"; # Lots of utility functions
 
-# FIXME make this an INIT hook instead?
-&run($commandCharacter . "hook -T INIT perl_init = /run -Lperl init");
+&run($commandCharacter . "hook -T INIT perl_init = ${commandCharacter}run -Lperl init");
 sub init {
     require "sys/color.pl";     # Color code definitions
     require "sys/idle.pl";      # Callouts
@@ -25,8 +27,8 @@ sub init {
     require "sys/keys.pl";      # $keySomething definitions
     
     if(-f "$DIRT_HOME/lib/dirt/localinit.pl") {
-      require "localinit.pl";
-   }
+        require "localinit.pl";
+    }
     
     # Do autoloading. Just use builtin glob, to reduce dependency
     # on Perl version

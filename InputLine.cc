@@ -482,7 +482,10 @@ bool InputLine::keypress_enter(string& inputline, void* mt) {
     mythis->left_pos = 0;
     mythis->ready = false;
     hook.run(USERINPUT, inputline);
-    interpreter.add(inputline);
+    if(inputline[0] == interpreter.getCommandCharacter())
+        hook.run(COMMAND, inputline);
+    else hook.run(SEND, inputline);
+    // FIXME interpreter.add(inputline);
     if (config->getOption (opt_echoinput))		// echo input if wanted
         outputWindow->printf ("%c>> %s\n", SOFT_CR, inputline.c_str());
     inputline = "";

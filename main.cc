@@ -144,6 +144,7 @@ int main(int argc, char **argv) {
     Selectable::select(0, 0); // Allow the embedded interpreters to run once before we run INIT
     interpreter.execute();    // execute any commands the interpreters may have added.
     hook.run(INIT);           // Run INIT to allow scripts to initialize themselves.
+    hook.gc();
 
     for (dirtFinished = false; !dirtFinished; ) {
         screen->refresh(); // Update the screen here
@@ -175,6 +176,7 @@ int main(int argc, char **argv) {
             inputLine->set_default_prompt();
             screen->flash();
         }
+        hook.gc();
     }
 
     set_title("xterm");

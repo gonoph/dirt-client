@@ -1,4 +1,8 @@
-* Fixed problems with things happening or being printed out of order.
+* Screen no longer scrolls in scrollback.
+* Hook execution problems fixed.  Now run() from perl gets executed
+  immediately, instead of being put on the command stack.  (not done yet for python)
+* Return values from perl properly determine fallthrough (/hook ... = /eval 1;)
+* Fixed problems with things happening or being printed out of hook's priority order.
 * /hook -fL is gone, in favor of properly implemented /run and /eval.  Anywhere
       you previously used: /hook -fL perl -t'stuff' mystuff = do_mystuff
       (where do_mystuff is a perl procedure), you can now use:

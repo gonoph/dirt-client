@@ -136,6 +136,7 @@ ScrollbackController::ScrollbackController(Window *_parent, OutputWindow *_outpu
 bool ScrollbackController::keypress_page_up(string&, void* mt) {
     ScrollbackController* mythis = (ScrollbackController*)mt;
     mythis->output->moveViewpoint(-mythis->output->height/2);
+    mythis->output->freeze();
     return true;
 }
 

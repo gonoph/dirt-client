@@ -23,10 +23,11 @@
 #include <algorithm>  // min(), max()
 
 HookStub::HookStub(int p, float c, int n, bool F, bool en, bool col, string nm, vector<string> g) 
-    : priority(p), chance(c), shots(n), fallthrough(F), enabled(en), color(col), name(nm), groups(g) 
+    : priority(p), chance(c), shots(n), fallthrough(F), enabled(en), 
+    color(col), name(nm), groups(g), deleted(false)
 {}
 
-Hook::Hook() : max_type(IDLE), hooks(), types() {
+Hook::Hook() : max_type(IDLE), deleted_count(0), hooks(), types() {
 // I think the hash_map is case insensitive?!?!?!?
     /*types["command"]   = types["Command"]   =*/ types["COMMAND"]   = COMMAND;
     /*types["userinput"] = types["Userinput"] =*/ types["USERINPUT"] = USERINPUT;
@@ -44,9 +45,10 @@ Hook::Hook() : max_type(IDLE), hooks(), types() {
     }
 }
 
-bool Hook::command_hook(string& s, void* mt, savedmatch*) {
+bool Hook::command_hook(string& s, void* mt, savedmatch* sm) {
     Hook* mythis = (Hook*)mt;
     OptionParser opt(s, "aFilDt:p:c:n:g:T:C:r:N:d:k:W:");
+    if(sm) sm->retval = true;
     if(!opt.valid()) {
         // OptionParser will print the error message for us.
         return true;
@@ -161,7 +163,15 @@ bool Hook::command_hook(string& s, void* mt, savedmatch*) {
         return true;
     } else if(opt.gotOpt('d')) {
         if(mythis->hooknames.find(opt['d']) != mythis->hooknames.end()) {
-            mythis->remove(opt['d']);
+            // We may have been called by the hook we're deleting.  If we
+            // removed it here we'd cause a segfault.  In addition, we'd
+            // invalidate any iterators in use.  So instead we mark the
+            // HookStub for deletion, and let the gc() (Garbage Collection)
+            // function take care of it.  (gc() called at end of main loop)
+            mythis->hooknames[opt['d']]->deleted = true;
+            mythis->hooknames[opt['d']]->enabled = false;
+            mythis->deleted_count++;
+            //mythis->remove(opt['d']);
 //            report("Removed hook %s.\n", opt['d'].c_str());
         } else {
             report_err("%chook: Hook %s is not defined.\n", CmdChar, opt['d'].c_str());
@@ -212,9 +222,10 @@ bool Hook::command_hook(string& s, void* mt, savedmatch*) {
     return true;
 }
 
-bool Hook::command_disable(string& s, void* mt, savedmatch*) {
+bool Hook::command_disable(string& s, void* mt, savedmatch* sm) {
     Hook* mythis = (Hook*)mt;
     OptionParser opt(s, "g");
+    if(sm) sm->retval = true;
 
     if(!opt.valid()) return true;
     if(opt.argc() < 2) {
@@ -232,9 +243,10 @@ bool Hook::command_disable(string& s, void* mt, savedmatch*) {
     return true;
 }
 
-bool Hook::command_enable(string& s, void* mt, savedmatch*) {
+bool Hook::command_enable(string& s, void* mt, savedmatch* sm) {
     Hook* mythis = (Hook*)mt;
     OptionParser opt(s, "g");
+    if(sm) sm->retval = true;
 
     if(!opt.valid()) return true;
     if(opt.argc() < 2) {
@@ -252,10 +264,11 @@ bool Hook::command_enable(string& s, void* mt, savedmatch*) {
     return true;
 }
 
-bool Hook::command_group(string& s, void* mt, savedmatch*) {
+bool Hook::command_group(string& s, void* mt, savedmatch* sm) {
     Hook* mythis = (Hook*)mt;
     OptionParser opt(s, "l:");
     int CmdChar = config->getOption(opt_commandcharacter);
+    if(sm) sm->retval = true;
 
     if(!opt.valid()) return true;
     if(opt.gotOpt('l')) {
@@ -316,9 +329,6 @@ void Hook::add(HookType t, HookStub* callback) {
     if(callback->type > max_type) {
         report_err("Hook::add(%d, %p) has HookType too big!\n", t, callback);
     }
-    // HUH?
-//    if(callback->name.c_str() == NULL) { callback->name = ""; }
-//    if(callback->group.c_str() == NULL) { callback->group = ""; }
 
     if((stub = hooknames[callback->name])) {
         remove(callback->name);
@@ -357,10 +367,12 @@ void Hook::addDirtCommand(string name, bool (*cbk)(string&,void*,savedmatch*), v
         "__DIRT_COMMAND_" + name, vector<string>(1,"Dirt commands"), name, cbk, instance));
 }
 
-void Hook::run(HookType t, string& data, savedmatch* sm) {
+// Returns true if the hook was caught.
+bool Hook::run(HookType t, string& data, savedmatch* sm) {
     hookstubset_type* hookset = hooks[t];
     HookStub *stub;
     bool done = false;
+    bool caughtsomewhere = false;
     string uncolored = uncolorize(data);
     string olduncolored = uncolored;  // To check if it changes.
     string olddata = data;
@@ -379,7 +391,6 @@ void Hook::run(HookType t, string& data, savedmatch* sm) {
               (stub->chance == 1.0 || (float)rand()/(float)RAND_MAX <= stub->chance)) {
                 bool caught = false;
                 if(stub->color) {
-                    // If we have a savematch, the data of 
                     caught = stub->operator()(data, sm);  // call HookStub::operator()
                     if(data != olddata) {
                         uncolored = olduncolored = uncolorize(data);
@@ -393,6 +404,7 @@ void Hook::run(HookType t, string& data, savedmatch* sm) {
                     }
                 }
                 if(stub->shots > 0) stub->shots--;
+                caughtsomewhere = caught || caughtsomewhere;
                 if(!stub->fallthrough && caught) {
                     done = true;
                     break; // don't process lower priority hooks
@@ -403,12 +415,15 @@ void Hook::run(HookType t, string& data, savedmatch* sm) {
         if(done) break; // gotta break out of both loops.
         // We should also do a select and print anything perl/python may have printed.
     }
+    if(sm) return sm->retval;
+    else return caughtsomewhere;
 }
 
-void Hook::run(HookType t, char* data, savedmatch* sm) {
+bool Hook::run(HookType t, char* data, savedmatch* sm) {
     string s = (data)?data:"";
-    run(t, s, sm);
+    bool retval = run(t, s, sm);
     if(data && data != s) strcpy(data, s.c_str());
+    return retval;
 }
 
 // These (remove/disable/enable) are O(n) operations.  I assuming you won't be
@@ -495,6 +510,18 @@ bool Hook::enableGroup(string group) {
     return false;
 }
 
+void Hook::gc() {
+    if(!deleted_count) return;  // Return quickly if nothing has been deleted.
+    while(deleted_count) {
+        for(hooknames_type::iterator it=hooknames.begin();it != hooknames.end();it++) {
+            if(it->second->deleted) remove(it->first);
+            deleted_count--;
+            break;
+            // This invalidates our iterator
+        }
+    }
+}
+
 // delete all hooks stored in hooks.
 Hook::~Hook() {
     for(int i=0;i<=max_type;i++) {
@@ -558,11 +585,11 @@ TriggerHookStub::TriggerHookStub(int p, float c, int n, bool F, bool en, bool co
     }
 }
 
-bool TriggerHookStub::operator() (string& data, savedmatch* sm) {
+bool TriggerHookStub::operator() (string& data, savedmatch*) {
     bool retval;
     char out[std::max(2*(unsigned long)command.length(),1024UL)]; // FIXME buffer overflow
-
-    //if(sm) report_err("TriggerHookStub::operator() called with existing savedmatch!");
+    string mycmd(command); // FIXME No one should be allowed to modify command.
+    savedmatch mysm(data, regex);
 
     if(matcher) {
         retval = embed_interp->match(matcher, data.c_str(), out);   // match clobbers default_var.
@@ -570,25 +597,18 @@ bool TriggerHookStub::operator() (string& data, savedmatch* sm) {
             // SEND and COMMAND hooks must be inserted at the beginning of
             // the command stack, otherwise we will be reversing the
             // command order!  i.e. a;b -> b;a if there is a SEND hook on a.
-            if(sm) {
-                if(type == SEND || type == COMMAND) interpreter.insert(command, sm);
-                else interpreter.add(command, sm);
-            } else {
-                if(type == SEND || type == COMMAND) interpreter.insert(command, data, regex);
-                else interpreter.add(command, data, regex);
-            }
-            retval = true;
+            if(command[0] == interpreter.getCommandCharacter())
+                retval = hook.run(COMMAND, mycmd, &mysm);
+            else if(type == SEND || type == COMMAND) interpreter.insert(mycmd, data, regex);
+            else interpreter.add(out);
         }
     } else { 
-        if(sm) {
-            if(type == SEND || type == COMMAND) interpreter.insert(command, sm);
-            else interpreter.add(command, sm);
-        } else {
-            if(type == SEND || type == COMMAND) interpreter.insert(command);
-            else interpreter.add(command);
-        }
-        retval = true;
+        if(command[0] == interpreter.getCommandCharacter())
+           retval = hook.run(COMMAND, mycmd, &mysm);
+        else if(type == SEND || type == COMMAND) interpreter.insert(mycmd);
+        else interpreter.add(mycmd);
     }
+    if(data != mysm.data) data = mysm.data;
     return retval;
 }
 

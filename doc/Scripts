@@ -4,3 +4,33 @@ Functions Available:
             aliases, semicolons, speedwalk, etc. will be expanded.
     report -- Print a message to the user as if it came from the client (i.e.
             preceede by @)
+    report_err -- same as report, but put [ERROR] in red in front of the message
+    print -- goes to the output window, and is not preceeded by @
+
+Perl functions take one argument in $_ (the line that triggered it) and return
+a boolean.  The return value indicates whether the hook has been "caught" and
+whether lower-priority hooks should see the hook.  This only matters for
+non-fallthrough hooks.  For instance:
+    /hook -t 'shit' -p4 fallthrough4 = /eval 0;
+    /hook -Ft'shit' -p3 fallthrough3 = /echo This should print.
+    /hook -t 'shit' -p2 fallthrough2 = /eval 1;
+    /hook -Ft'shit' -p1 fallthrough1 = /echo This should not print.
+hook fallthrough2 returns 1 (boolean true) indicating that the non-fallthrough
+hook has been caught, so the lower priority hook fallthrough1 will never be
+called.
+
+In addition, the sub-match variables $1..$n will be set if a regex triggered
+your hook.  For instance:
+    /hook -t'^Joe says: (.*)' joesays = /eval print("Joe told me $1");
+will print whatever was matched in the parenthesis from your regex.
+
+The variable $_ will contain the hook string that caused your perl function to
+be run.  For OUTPUT hooks this is a mud line, for COMMAND hooks this is a
+/command, possibly typed by the user.  If $_ is modified when your function
+exits, lower priority hooks will see the MODIFIED string!  When in doubt, save
+a copy of $_ and restore it at the end of your function.  One must also be
+careful that if you triggered on a colored mud line, and then modify it, the
+colorization will be lost.  Use the -a argument to /hook to make your script
+see the colorized line.  Without the -a argument, dirt will remove any ANSI
+codes from the string.  If you want to match on color, you should use the
+${main::red} and similar variables defined in scripts/sys/color.pl.

@@ -84,13 +84,14 @@ void MessageWindow::popUp()
     Window::popUp();
 }
 
-bool MessageWindow::command_window(string& str, void*, savedmatch*) {
+bool MessageWindow::command_window(string& str, void*, savedmatch* sm) {
     int w = 80, h=10, x=0, y=3, t=10;
     bool popup = true;
     bool noborder = false;
     int color = bg_black|fg_white;
     string logfile;
     string name;
+    if(sm) sm->retval = true;
 
 //    outputWindow->printf("MessageWindow::command_window\n");
     OptionParser opt(str, "HBisklw:h:x:y:t:L:c:");
