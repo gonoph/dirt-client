@@ -212,7 +212,12 @@ bool Hook::command_disable(string& s, void* mt) {
         return true;
     }
     if(opt.gotOpt('g')) for(int i=1;i<opt.argc();i++) mythis->disableGroup(opt.arg(i));
-    else for(int i=1;i<opt.argc();i++) mythis->disable(opt.arg(i));
+    else for(int i=1;i<opt.argc();i++) {
+        if(mythis->hooknames.find(opt.arg(i)) != mythis->hooknames.end())
+            mythis->disable(opt.arg(i));
+        else 
+            report_err("/disable: '%s' is not a defined hook!\n", opt.arg(i).c_str());
+    }
     return true;
 }
 
@@ -227,7 +232,12 @@ bool Hook::command_enable(string& s, void* mt) {
     }
     if(opt.gotOpt('g')) for(int i=1;i<opt.argc();i++) 
         mythis->enableGroup(opt.arg(i));
-    else for(int i=1;i<opt.argc();i++) mythis->enable(opt.arg(i));
+    else for(int i=1;i<opt.argc();i++) {
+        if(mythis->hooknames.find(opt.arg(i)) != mythis->hooknames.end())
+            mythis->enable(opt.arg(i));
+        else 
+            report_err("/enable: '%s' is not a defined hook!\n", opt.arg(i).c_str());
+    }
     return true;
 }
 
