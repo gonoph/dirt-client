@@ -19,19 +19,23 @@ sub dirtcmd_set {
 
 # Do variable substitution.
 sub expand_vars {
-	s/\$(\w+)
-         /die "Undefined variable $1 used" unless defined $Vars{$1};
-          $Vars{$1}
-         /gex;
-	s/\$\((\w+)\)
-         /die "Undefined variable $1 used" unless defined $Vars{$1};
-          $Vars{$1}
-         /gex;
+	# Do variables first: $varname or ${varname}
+	# Don't error if the variable doesn't exist, just ignore it
+	s/(?<!\\)\$([_a-zA-Z]+)
+	 /(defined($Vars{$1}) ? $Vars{$1} : "\$$1")
+	 /gex;
+	s/(?<!\\)\${([_a-zA-Z]+)}
+	 /(defined($Vars{$1}) ? $Vars{$1} : "\$$1")
+	 /gex;
 
-	s/\@{(.*?)}/eval $1/ge;
+	# Eval, usually for math stuff, but really any Perl: @{3 + 1} or even @{print "hello"}
+	s/\@{(.*?)}
+	 /eval $1
+	 /gex;
 }
 
-send_add(\&expand_vars);
+#send_add(\&expand_vars);
+&run($commandCharacter . "hook -T SEND -Fp 1000 -L perl variable_expansion = expand_vars");
 
 # Add some color
 {
@@ -45,6 +49,6 @@ send_add(\&expand_vars);
     $Vars{off} = "\e0m";
 }
 
+print "Loaded auto/vars.pl\t(Perform inline variable and subroutine substitution)\n";
 
-
-
+1;
