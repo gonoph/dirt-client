@@ -479,3 +479,9 @@ alt-k   keys (needs keys -- add, delete, grabkey, etc)
 alt-q   quit
 alt-s   toggle session statistics (UR of screen)
 alt-l   toggle clock/timer
+
+Other mud clients:
+http://xpertmud.sourceforge.net/            perl scripting
+http://www.andreasen.org/mcl/               daddy
+http://www.brotherhood.com/~mud/nice/mcpl/  perl/tk client.
+http://dwizardry.dhs.org/mudix.html         mudix

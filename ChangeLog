@@ -9,6 +9,7 @@
     fixes several segfaults.
 * Fixed escaping in regexes.
 * Wrote doc/Escaping to describe how it works.
+* Alias module added (/alias), thanks to Kurt Hutchinson!
 * Renamed samples/ -> scripts/
 * Fixed bug in OptionParser when an argument had an-embedded-dash.
 * OptionParser now uses = as well as -- to terminate option processing.

@@ -104,8 +104,6 @@ Focus mechanism:
         help should trap up/dn to prevent history from popping up.
 Option to use favorite language for /echo?  (i.e. /echo -> /eval print
     "<args>\n" so variable expansions work)
-After typing 'inventory' the next line appears after the last line of the inventory, not
-    on the next line? (only in cancer's shop)
 Saved.pl should not be clobbered if it has been modified since last loading.
 
 Hook:
