@@ -1,13 +1,13 @@
 Focus mechanism:
     Keypresses which go with a "focused" window should grab higher priority when active.
     Add options to /group to do most /hook operations, on the WHOLE GROUP.
+        Do the same with hook?  If no =, then try to change the attributes of a hook?
     Should not be able to pull up command history while in scrollback
     Keypresses for modal windows (/help) should have higher priority than 
         background keys (scrollback)
     What about /help, history combo?  Who should get up/dn pgup/pgdn?
         help should trap up/dn to prevent history from popping up.
     
-
 Window::popup() is completely fucked.
     And by extension, Window::insert(), Window::remove().
     this was removed from /window -s and /window -i...
@@ -121,14 +121,35 @@ Perl warnings from hooks should print the hook name.
 Removing extra \n at beginning of OutputWindow::printVersion clears up initial corruption.
     Add it back for testing.  Could a pair of consecutive \n's be the problem?
     Note: /echo "" does not cause screen to scroll. (until more output is received).
-/echo prints: "/echo"
 Key: alt-n, alt-p for next, previous match (alt-/)
 Commenting out block on Screen.cc:265 seems to fix screen corruption.
 Is ProxyWindow used at all?  (remove it)
 Crash in Window::~Window when deleting w. (why? does this manifest itself with other windows?)
+    When hitting alt-1, crash.
+    Dies in Window::check on child_last loop.  It seems child_last = child_last->prev => infinite loop.
+    Still crashes on exit: Window::remove doesn't find() the window to be removed, but I've
+        made this condition non-fatal.  (sweep it under the rug...no one will notice)
+    fixed?
+    Convert child_first, child_last, prev, next to a list<Window*> children;
 Lines that wrap are missing the first character on the wrapped line.
 Escaping in regexes is broken:
     /trig -F -t'\*' star = /echo found a star!          gives an error
+    Ok, now works but you need an extra \.  Fix it so you only need one. (unbackslashify in OptionParser?)
+    ...Must debackslashify quoted arguments in OptionParser to get rid of escaped quotes.
+    perl debackslashify doesn't work.  (Test C++ version too...)
+Auto-hook disabler seems to disable the next hook run after an error (which is not always 
+    the same hook!)  i.e. make a bad /trig and then type something -- it will disable tab_complete.
+Consider a "gag" attribute: will still allow all hooks to match (and modify!) the line,
+    but when it gets to the end, it will not be written to the screen.
+Error parsing init script (i.e. trigger.pl) causes obscure error with no backtrace.
+    error in parsing gag.pl generated NO message AT ALL.
+Killing help window causes help to misbehave.  Check for window and recreate it if necessary?
+Malloc-related hang on exit.
+/delay, /repeat, or /run command that will let me schedule something to be sent.
+Should Window::focused be static?
+/input, /inputline like command to set input line.
+Aliases don't work at all...
+
 
 Hook:
 -----
