@@ -42,8 +42,7 @@ bool Hook::command_hook(string& s, void* mt) {
     Hook* mythis = (Hook*)mt;
     OptionParser opt(s, "aFilfDt:p:c:n:g:T:L:C:r:N:d:k:W:");
     if(!opt.valid()) {
-// OptionParser will print the error message for us.
-//        report("ERROR: %s: Syntax error.", opt.arg(0).c_str());
+        // OptionParser will print the error message for us.
         return true;
     }
     int   priority    = opt.gotOpt('p')?atoi(opt['p'].c_str()):0;
@@ -159,7 +158,6 @@ bool Hook::command_hook(string& s, void* mt) {
         }
         action = action.substr(actpos, action.length()-actpos);
     } else action = opt.arg(3);
-//    report("/hook thinks action is: %s", action.c_str());
 
     HookStub* stub = NULL;
     if(opt.gotOpt('k')) { // KEYPRESS hook, use KeypressHookStub
@@ -308,18 +306,15 @@ void Hook::add(const string name, HookStub* callback) {
 }
 
 void Hook::addDirtCommand(string name, bool (*cbk)(string&,void*), void* instance) {
-//    static int crap = -1;
     add(COMMAND, new CommandHookStub(-1, 1.0, -1, false, true, true,
         "__DIRT_COMMAND_" + name, vector<string>(1,"Dirt commands"), name, cbk, instance));
 }
 
 void Hook::run(HookType t, string& data) {
-//    report("Hook::run(%d, %s)\n", t, data.c_str());
     hookstubset_type* hookset = hooks[t];
     HookStub *stub;
     bool done = false;
     string uncolored = data;
-    // FIXME Copy the string, removing color codes.
     uncolored = uncolorize(data);
     string olduncolored = uncolored;  // To check if it changes.
     string olddata = data;
@@ -331,11 +326,9 @@ void Hook::run(HookType t, string& data) {
                 done = true;
                 break;
             }
-//if(t==COMMAND) report("Hook::run trying to run '%s'\n", stub->name.c_str());
             if(stub->enabled &&
               (stub->shots != 0) &&
               (stub->chance == 1.0 || (float)rand()/(float)RAND_MAX <= stub->chance)) {
-//if(t==KEYPRESS) report("Hook::run running '%s' with data '%s'\n", stub->name.c_str(), data.c_str());
                 bool caught = false;
                 if(stub->color) {
                     caught = stub->operator()(data);  // call HookStub::operator()
@@ -351,13 +344,8 @@ void Hook::run(HookType t, string& data) {
                         uncolored = olduncolored = uncolorize(data);
                     }
                 }
-//if(t==KEYPRESS) report("  Hook::run returned with data '%s'\n", data.c_str());
                 if(stub->shots > 0) stub->shots--;
                 if(!stub->fallthrough && caught) {
-                    if(stub->type == KEYPRESS) {
-//DEBUG report("    %s: %s\n", stub->name.c_str(), data.c_str());
-                    } else {
-                    }
                     done = true;
                     break; // don't process lower priority hooks
                 }
@@ -486,11 +474,9 @@ CommandHookStub::CommandHookStub(int p, float c, int n, bool F, bool en, bool co
 }
 
 bool CommandHookStub::operator() (string& data) {
-//    outputWindow->printf("In CommandHookStub::operator(%s) for command %s\n", data.c_str(), commandname.c_str());
     if(data.length() && data[0] == interpreter.getCommandCharacter() 
         && !data.compare(commandname, 1, commandname.length())
         && (data.length() == commandname.length() + 1 || data[commandname.length()+1] == ' ')) {
-//        cout << "CommandHookStub::operator(" << data << ") calling callback for command " << commandname << endl;
         // This is expected to return true if the command was handled.
         return(callback(data,instance)); 
     }
@@ -520,12 +506,10 @@ bool TriggerHookStub::operator() (string& data) {
     char* matchfun;
     bool haderrs = true;
 
-//    report("TriggerHookStub %s got: '%s'\n", name.c_str(), data.c_str());
     if(matcher) {
         retval = embed_interp->match(matcher, data.c_str(), matchfun);   // match clobbers default_var.
         myfun = matchfun;   // matchfun points to $_ and will get clobbered, copy it out.
         if(retval && matchfun && matchfun[0] != '\0') { 
-//            report("  matched.  Running command: '%s'\n", matchfun);
             if(language) {
                 retval = embed_interp->run(language, myfun.c_str(), data.c_str(), out, haderrs);
                 if(haderrs) {
@@ -542,10 +526,8 @@ bool TriggerHookStub::operator() (string& data) {
             }
         }
     } else { 
-//        report("  no matcher.  Running command: '%s'\n", command.c_str());
         if(language) {
             retval = embed_interp->run(language, command.c_str(), data.c_str(), out, haderrs);
-//            report("TriggerHookStub %s data after run: '%s' out: '%s' language: '%s'\n", name.c_str(), data.c_str(), out, language?language:"none");
             if(haderrs) {
                 report_err("Embedded Interpreter function '%s' is not defined or had errors.", command.c_str());
                 report_err("Disabling hook %s to prevent further errors.\n", name.c_str());
@@ -556,12 +538,10 @@ bool TriggerHookStub::operator() (string& data) {
             strcpy(out, command.c_str()); // Have to copy in case someone
             interpreter.add(command.c_str());
             retval = true;
-//            report("TriggerHookStub added command '%s'\n", command.c_str());
 // FIXME      hook.run(COMMAND, out);       // modifies out.  (c_str is const)
 // this should work instead of interpreter.add
         }
     }
-//    report("TriggerHookStub finishing with data: '%s'\n", data.c_str());
     return retval;
 }
 
