@@ -2,7 +2,7 @@
 dnl Dirt - Mud Client for Unix (mcl fork)
 dnl process this file with autoconf to produce a configure script.
 
-AC_REVISION($Revision: 1.2 $)
+AC_REVISION($Revision: 1.3 $)
 AC_INIT(main.cc)
 AC_CONFIG_AUX_DIR(admin)
 AC_LANG(C++)
@@ -22,6 +22,12 @@ AC_ARG_ENABLE(efence, [  --enable-efence         enable electric fence malloc de
 AC_ARG_ENABLE(perl,   [  --disable-perl          disable perl scripting support], PERL="$enable_perl")
 AC_ARG_ENABLE(python, [  --enable-python         enable python scripting support], PYTHON="$enable_python")
 AC_ARG_WITH(install_root, [  --with-install-root     directory to consider as the install root [default=/]], INSTALL_ROOT="$with_install_root")
+
+
+AC_PATH_PROG(sedpath, sed)
+if test "_$sedpath" = _; then
+        AC_MSG_ERROR("Cannot find sed: I need it\!")
+fi
 
 dnl supply default CFLAGS, if not specified by `CFLAGS=flags ./configure'
 if test -z "${CFLAGS}"; then
@@ -141,17 +147,40 @@ esac
 
 if test "x$enable_perl" != "xno" -a "x$PERL" != "xno"; then
 	AC_MSG_CHECKING(for perl version)
-	$PERL -e 'require 5.004' > /dev/null 2>&1
+	$PERL -e 'require 5.008' > /dev/null 2>&1
 	if test $? -ne 0 ; then
-		echo "perl 5.004 (or greater) is required"
+		echo "perl 5.008 (or greater) is required"
                 echo "disabling perl scripting support"
                 PERL="no"
 		WITH_PERL=""
 	else
-		perl_version=`$PERL -e 'print $]'`
-		AC_MSG_RESULT($perl_version)
-                PERL_CPPFLAGS=`$PERL -MExtUtils::Embed -e perl_inc`
-                PERL_LDFLAGS=`$PERL -MExtUtils::Embed -e ldopts`
+            AC_PATH_PROG(perlpath, perl)
+            AC_MSG_CHECKING(for Perl compile flags)
+            PERL_CFLAGS=`$perlpath -MExtUtils::Embed -e ccopts 2>/dev/null`
+            PERL_CPPFLAGS=`$perlpath -MExtUtils::Embed -e ccopts 2>/dev/null`
+            if test "_$PERL_CFLAGS" = _ ; then
+                    AC_MSG_RESULT([not found, building without perl.])
+                    perl=no
+            else
+                    PERL_LDFLAGS=`$perlpath -MExtUtils::Embed -e ldopts |$sedpath 's/-lgdbm //'`
+                    PERL_LDFLAGS=`echo $PERL_LDFLAGS |$sedpath 's/-ldb //'`
+                    PERL_LDFLAGS=`echo $PERL_LDFLAGS |$sedpath 's/-lndbm //'`
+                    if test "$system" = "Linux"; then
+                            PERL_LDFLAGS=`echo $PERL_LDFLAGS |$sedpath 's/-lnsl //'`
+                            PERL_LDFLAGS=`echo $PERL_LDFLAGS |$sedpath 's/-lposix //'`
+                    fi
+                    PERL_LDFLAGS=`echo $PERL_LDFLAGS |$sedpath 's/-lc //'`
+                    AC_MSG_RESULT(ok)
+                    CFLAGS="$CFLAGS $PERL_CFLAGS"
+                    LIBS="$LIBS $PERL_LDFLAGS"
+                    AC_DEFINE(USE_PERL)
+                    AC_CHECK_FUNCS(eval_pv)
+            fi
+
+#		perl_version=`$PERL -e 'print $]'`
+#		AC_MSG_RESULT($perl_version)
+#                PERL_CPPFLAGS=`$PERL -MExtUtils::Embed -e perl_inc`
+#                PERL_LDFLAGS=`$PERL -MExtUtils::Embed -e ldopts`
                 dnl | $PERL -pe 's/-l(gdbm|ndbm|posix|db)\b//g'`
 		WITH_PERL="perl"
 	fi
@@ -160,6 +189,40 @@ else
 	echo "could not find a valid perl interpreter"
 	echo "disabling perl scripting support"
 fi
+
+if test "$perl" = yes; then
+        AC_PATH_PROG(perlpath, perl)
+        AC_MSG_CHECKING(for Perl compile flags)
+        PERL_CFLAGS=`$perlpath -MExtUtils::Embed -e ccopts 2>/dev/null`
+        if test "_$PERL_CFLAGS" = _ ; then
+                AC_MSG_RESULT([not found, building without perl.])
+                perl=no
+        else
+                PERL_LDFLAGS=`$perlpath -MExtUtils::Embed -e ldopts |$sedpath 's/-lgdbm //'`
+                PERL_LDFLAGS=`echo $PERL_LDFLAGS |$sedpath 's/-ldb //'`
+                PERL_LDFLAGS=`echo $PERL_LDFLAGS |$sedpath 's/-lndbm //'`
+                if test "$system" = "Linux"; then
+                        PERL_LDFLAGS=`echo $PERL_LDFLAGS |$sedpath 's/-lnsl //'`
+                        PERL_LDFLAGS=`echo $PERL_LDFLAGS |$sedpath 's/-lposix //'`
+                fi
+                PERL_LDFLAGS=`echo $PERL_LDFLAGS |$sedpath 's/-lc //'`
+                AC_MSG_RESULT(ok)
+                CFLAGS="$CFLAGS $PERL_CFLAGS"
+                LIBS="$LIBS $PERL_LDFLAGS"
+                AC_DEFINE(USE_PERL)
+                AC_CHECK_FUNCS(eval_pv)
+
+                AC_MSG_CHECKING(for old perl)
+                PERL_OLD=`$perlpath -e 'if($]<5.006){printf"yes\n";}else{printf"no\n";}'`
+                if test "$PERL_OLD" = "yes"; then
+                        AC_DEFINE(OLD_PERL)
+                        AC_MSG_RESULT(yes)
+                else
+                        AC_MSG_RESULT(no)
+                fi
+        fi
+fi
+
 
 dnl do we have python installed in this system
 case "x$enable_python" in
