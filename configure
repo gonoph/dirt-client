@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.1.1.1 
+# From configure.in Revision: 1.2 
 # Guess values for system-dependent variables and create Makefiles.
 # Generated automatically using autoconf version 2.13 
 # Copyright (C) 1992, 93, 94, 95, 96 Free Software Foundation, Inc.
@@ -1584,59 +1584,13 @@ done
 test -n "$PYTHON" || PYTHON="no"
 
         ;;
-        "x")
-	for ac_prog in python python2.0 python1.6 python1.5 python1.4 python1.3
-do
-# Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
-echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:1594: checking for $ac_word" >&5
-if eval "test \"`echo '$''{'ac_cv_path_PYTHON'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  case "$PYTHON" in
-  /*)
-  ac_cv_path_PYTHON="$PYTHON" # Let the user override the test with a path.
-  ;;
-  ?:/*)			 
-  ac_cv_path_PYTHON="$PYTHON" # Let the user override the test with a dos path.
-  ;;
-  *)
-  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
-  ac_dummy="$PATH"
-  for ac_dir in $ac_dummy; do 
-    test -z "$ac_dir" && ac_dir=.
-    if test -f $ac_dir/$ac_word; then
-      ac_cv_path_PYTHON="$ac_dir/$ac_word"
-      break
-    fi
-  done
-  IFS="$ac_save_ifs"
-  ;;
-esac
-fi
-PYTHON="$ac_cv_path_PYTHON"
-if test -n "$PYTHON"; then
-  echo "$ac_t""$PYTHON" 1>&6
-else
-  echo "$ac_t""no" 1>&6
-fi
-
-test -n "$PYTHON" && break
-done
-test -n "$PYTHON" || PYTHON="no"
-
-        ;;
         "xno")
 	echo "python scripting support disabled in command line"
 	WITH_PYTHON=""
         ;;
-        *)
-	echo "using $enable_python as the python binary"
-        ;;
 esac
 
-if test "x$enable_python" != "xno" -a "x$PYTHON" != "xno"; then
+if test "x$enable_python" = "xyes" -o "x$PYTHON" = "xyes"; then
 			PYTHON_CPPFLAGS=`$PYTHON -c '
 import sys
 print "-I%s/include/python%s" % (sys.prefix, sys.version[:3])'`
@@ -1644,28 +1598,29 @@ print "-I%s/include/python%s" % (sys.prefix, sys.version[:3])'`
 import sys
 print "-L%s/lib/python%s/config -lpython%s" % (sys.prefix, sys.version[:3], sys.version[:3])'`
 		WITH_PYTHON="python"
+        echo "PYTHON_CPPFLAGS=$PYTHON_CPPFLAGS"
+        echo "PYTHON_LDFLAGS=$PYTHON_LDFLAGS"
 else
 	WITH_PYTHON=""
-	echo "could not find a valid python interpreter"
 	echo "disabling python scripting support"
 fi
 
 save_CFLAGS="$CFLAGS"
 CFLAGS="-fno-rtti"
 echo $ac_n "checking if the flag -fno-rtti is supported by the system compiler""... $ac_c" 1>&6
-echo "configure:1657: checking if the flag -fno-rtti is supported by the system compiler" >&5
+echo "configure:1612: checking if the flag -fno-rtti is supported by the system compiler" >&5
 if eval "test \"`echo '$''{'ac_cv_flag_no_rtti'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1662 "configure"
+#line 1617 "configure"
 #include "confdefs.h"
 int a;
 int main() {
 int a;
 ; return 0; }
 EOF
-if { (eval echo configure:1669: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:1624: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ac_cv_flag_no_rtti=yes
 else
@@ -1694,19 +1649,19 @@ esac
 save_CFLAGS="$CFLAGS"
 CFLAGS="-fno-exceptions"
 echo $ac_n "checking if the flag -fno-exceptions is supported by the system compiler""... $ac_c" 1>&6
-echo "configure:1698: checking if the flag -fno-exceptions is supported by the system compiler" >&5
+echo "configure:1653: checking if the flag -fno-exceptions is supported by the system compiler" >&5
 if eval "test \"`echo '$''{'ac_cv_flag_no_exceptions'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1703 "configure"
+#line 1658 "configure"
 #include "confdefs.h"
 int a;
 int main() {
 int a;
 ; return 0; }
 EOF
-if { (eval echo configure:1710: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:1665: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ac_cv_flag_no_exceptions=yes
 else
@@ -1782,7 +1737,7 @@ COMPILED_BY=`whoami`@`uname -n`
 # Extract the first word of "rm", so it can be a program name with args.
 set dummy rm; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:1786: checking for $ac_word" >&5
+echo "configure:1741: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_RM'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -1818,7 +1773,7 @@ fi
 # Extract the first word of "find", so it can be a program name with args.
 set dummy find; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:1822: checking for $ac_word" >&5
+echo "configure:1777: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_FIND'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -1854,7 +1809,7 @@ fi
 # Extract the first word of "xargs", so it can be a program name with args.
 set dummy xargs; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:1858: checking for $ac_word" >&5
+echo "configure:1813: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_XARGS'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -1890,7 +1845,7 @@ fi
 # Extract the first word of "ctags", so it can be a program name with args.
 set dummy ctags; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:1894: checking for $ac_word" >&5
+echo "configure:1849: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_CTAGS'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -1926,7 +1881,7 @@ fi
 # Extract the first word of "echo", so it can be a program name with args.
 set dummy echo; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:1930: checking for $ac_word" >&5
+echo "configure:1885: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_ECHO'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
