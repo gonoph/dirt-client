@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include "defs.h"
 #include "Buffer.h"
+#include "misc.h"
 
 int Buffer::find_mem_size (int min_size) {
 	int i;
@@ -100,7 +101,7 @@ int Buffer::printf(const char *fmt, ...) {
 	va_end (va);
 
     if (res >= (int)sizeof(buf)-2)
-        abort();
+        error("Buffer::printf: res > (int)sizeof(buf)-2\n");
     else
         strcat(buf);
 

@@ -1,4 +1,5 @@
 #include "StaticBuffer.h"
+#include "misc.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -61,7 +62,7 @@ char *getstatic(int len)
 	char *buf;
 	
     if (len > STATIC_SIZE)
-        abort();
+        error("getstatic: len > STATIC_SIZE\n");
 	
 	if (s_offset + len >= STATIC_SIZE)
 		s_offset = 0;
