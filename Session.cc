@@ -485,7 +485,7 @@ void Session::inputReady() {
             }
             
             // Escape sequence
-            else if (input_buffer[i] == '\e')		
+            else if (input_buffer[i] == '\e')
                 code_pos = i;
             
             // Attention
@@ -524,8 +524,10 @@ void Session::inputReady() {
                     *out++ = input_buffer[i];	/* Add to output buffer */
             }
             
-            /* Check if the code should terminate here */
-            if (code_pos >= 0 && isalpha (input_buffer[i])) {
+            /* Check if the ANSI code should terminate here */
+            if(code_pos >= 0 && !(isdigit(input_buffer[i]) || input_buffer[i] == ';' ||
+                        input_buffer[i] == '?' || input_buffer[i] == '=' ||
+                        input_buffer[i] == '[' || input_buffer[i] == '\e')) {
                 int     color;
                 
                 /* Conver this color code to internal representation */
@@ -549,6 +551,7 @@ void Session::inputReady() {
         if(lastline != input_buffer + i) {
             // count+pos = max size of buffer
             pos = count+pos-(lastline-(unsigned char*)input_buffer);
+            if(code_pos >= 0) { code_pos = pos-(i-code_pos); }
             memcpy(input_buffer, lastline, pos);
             input_buffer[pos] = '\0';
         } else {
