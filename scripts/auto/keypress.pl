@@ -65,11 +65,11 @@ sub command_keypress {
     my($hookcmd) = "/hook -T KEYPRESS ";
 
     if(defined $opts{l} && $opts{l}) {
-        &main::report(sprintf("%-6s%-35s%11s%7s%6s%6s %s\n", "Key", "Action", "Priority", "Chance", "Shots", "Flags", "Groups"));
+        &main::report(sprintf("%-10s%-35s%11s%6s %s\n", "Key", "Action", "Priority", "Flags", "Groups"));
         foreach $name (sort keys %Keypresses) {
             my($keypressref) = $Keypresses{$name};
-            &main::report(sprintf("%-6s%-35s%11s%6s%2s%2s %s\n", $name, $keypressref->{'action'},
-	    $keypressref->{p}, $keypressref->{n}, $keypressref->{F}?"F":"", $keypressref->{D}?"D":"",
+            &main::report(sprintf("%-10s%-35s%11s%2s%2s %s\n", $name, $keypressref->{'action'},
+	    $keypressref->{p}, $keypressref->{F}?"F":"", $keypressref->{D}?"D":"",
 	    $keypressref->{g}));
         }
         return 1;
@@ -104,7 +104,6 @@ sub command_keypress {
     $name = $ARGV[0];
     $keypresshash{'action'} = join(" ", @ARGV[2..$#ARGV]);
     $hookcmd .= "-k $name '__DIRT_KEYPRESS_" . $name . "' = " . $keypresshash{'action'};
-    print "$name\n";
     &main::run($hookcmd);
     $Keypresses{$name} = \%keypresshash;  # main::save will save complex data structures for us!
     return 1;

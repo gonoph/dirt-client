@@ -180,7 +180,7 @@ int main(int argc, char **argv) {
     delete chatServerSocket;
     delete currentSession;      // Close the current session, if any
     delete screen;              // Reset screen (this kills all subwindows too)
-//    FIXME this line causes a crash (on alternate tuesdays).  Probably memory corruption.
+//    FIXME the above line causes a crash (on alternate tuesdays).  Probably memory corruption.
     delete tty;                 // Reset TTY state
     delete outputPipe;
     delete interpreterPipe;
