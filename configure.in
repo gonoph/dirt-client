@@ -1,7 +1,7 @@
 dnl Dirt - Mud Client for Unix (mcl fork)
 dnl process this file with autoconf to produce a configure script.
 
-AC_REVISION($Revision: 1.1 $)
+AC_REVISION($Revision: 1.2 $)
 AC_INIT(main.cc)
 AC_CONFIG_AUX_DIR(admin)
 
@@ -17,7 +17,7 @@ DIRT_HOME=
 
 AC_ARG_ENABLE(debug,  [  --enable-debug          enable debugging], DEBUG="$enable_debug")
 AC_ARG_ENABLE(efence, [  --enable-efence         enable electric fence malloc debugger], EFENCE="$enable_efence")
-AC_ARG_ENABLE(perl,   [  --enable-perl           enable perl scripting support], PERL="$enable_perl")
+AC_ARG_ENABLE(perl,   [  --disable-perl          disable perl scripting support], PERL="$enable_perl")
 AC_ARG_ENABLE(python, [  --enable-python         enable python scripting support], PYTHON="$enable_python")
 AC_ARG_WITH(install_root, [  --with-install-root     directory to consider as the install root [default=/]], INSTALL_ROOT="$with_install_root")
 
@@ -54,17 +54,21 @@ AC_CHECK_LIB(stdc++, main, [LIBSTDCPP="-lstdc++"], LIBSTDCPP=)
 dnl debugging
 if test "x$enable_debug" = "xyes"; then
     echo "debug build enabled."
-	CFLAGS="$CFLAGS -g"
-	CXXFLAGS="$CXXFLAGS -g"
+        CFLAGS="-g"
+dnl	CFLAGS="$CFLAGS -g"
+        CXXFLAGS="-g"
+dnl	CXXFLAGS="$CXXFLAGS -g"
         LDFLAGS=
 else 
     if test "x$save_have_cflags" = "xno"; then
             CFLAGS=""
     fi
+    CFLAGS="-O2"
 
     if test "x$save_have_cxxflags" = "xno"; then
             CXXFLAGS=""
     fi
+    CXXFLAGS="-O2"
 
     if test "x$save_have_ldflags" = "xno"; then
             LDFLAGS="-s"
