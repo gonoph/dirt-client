@@ -158,3 +158,5 @@ Dirt 0.53.00 (First version after fork from mcl 0.53.00)
     than fg_white|bg_black
 * We now scroll when someone print's a \n.  (i.e. /echo "")
 * ctrl-L now redraws screen immediately, instead after *next* keypress.
+* Fix segfault on exit
+* Fix segfault from non-fallthrough, inputline-modifying hooks.

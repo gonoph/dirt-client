@@ -242,27 +242,12 @@ PerlEmbeddedInterpreter::match determines if the match was successful by grabbin
     It is desirable to modify the mud string, consider the prompt case.  A naive
     regex like "/hook -Ft'shit'" would match twice if the prompt string sent the
     mud line through twice.
-Maybe an option to /hook to cause the RHS to be evaluated immediately, rather
-than being added to the command stack, with a warning that this may cause things
-to happen out of order?
-    /hook -Ft 'shit' -p 1 myshit1 = say one
-    /hook -Ft 'shit' -p 2 myshit2 = /eval run("say two")
-    /hook -Ft 'shit' -p 3 myshit3 = say three
-    You say: shit
-    You say: three
-    You say: one
-    You say: two
-    ....I think this is because the perl commands are read from the socket
-    *after* all commands have been processed.  There's no way of knowing which
-    order they came in.
-=======
 Debug mode for hooks.  Dump everything that matches.
     /debug <HookType>       -- dump the names of hooks that matched the HookType
     /hook -lt 'adsf'        -- list the hooks that will match the string 'adsf'
     /hook -l -T COMMAND -t 'asdf'    -- etc.
 Print an error message if a /command isn't caught by any hook.
     /asdf   -> unknown command: '/asdf'
-
 Directly calling C++ (instead of interpreterPipe):    
     http://www-106.ibm.com/developerworks/linux/library/l-inline
     use C-Inline library?
@@ -275,6 +260,7 @@ Directly calling C++ (instead of interpreterPipe):
         http://www.python.org/doc/current/ext/extending-with-embedding.html
 
 Investigate removing Interpreter, or making Interpreter not have a command stack.
+    Replace with just direct calling.  Can also remove savedmatch in this case (i think).
 Investigate removing Interpreter::mark
 When in scrollback, put "(N new lines)" in the status bar.
 /telnet command, or expand /open to take host/port arguments
@@ -291,7 +277,38 @@ Get rid of showprompt option?
 Prompt help file: explain various options
 Why does "/eval foo" give me an error on line 2?  But /eval foo;boo; give me an
     error on line 1.
-<end> to leave scrollback only works once.
+gags broken...
+Sometimes the first character on a line is missing...
+Perl evaluation:
+    /hook -Ft'A tall street light' lightgag = /eval $_=""
+    /hook -Ft'A tall street light' lightgag = /eval $_="";
+    the former generates:
+    @ [Perl ERROR] Can't find string terminator '"' anywhere before EOF at (eval 1388) line 1.
+/hook -t'follows Zathras into the room(.*)' followers = /eval print("Got after followers: '$1'\n");
+    prints: 'ot after followers: '.
+/hook -t'follows Zathras into the room(.*)' followers = /eval $foo=$1; print("Got after followers: ,$foo,\n");
+    prints ,ot after followers: ,.
+/run -Lperl save_configuration prints:
+    @ Dumping perl > /run -Lperl save_configuration
+    may just be command echoing overwriting the line.  (but it shouldn't, the
+    dumping... line has a \n at the end) 
+    This appears to be a python interaction:
+    @ Dumping perl @ [ERROR] Python could not find function 'save_configuration' anywhere (args: )                   
+When using autorepeat and echo command line, blank is echoed.
+After typing one character, the cursor bounces back to the beginning of the line?
+    Consumes a bunch of CPU too...
+    Only when connected.
+autorepeat only works if length of command is less than 4.
+After /exec the window doesn't close on esc.
+Segfault seems to occur in conjunction with autocomplete (and weird
+    autocomplete results) -- try to autocomplete in the middle of an
+    autocompleted word.
+    autocomplete, backspace.  (is repeatable)
+    hmm now I can't reproduce
+/eval \$ThreeKingdoms::enemy="chinchilla"
+    @ [Perl ERROR] Can't find string terminator '"' anywhere before EOF at (eval 2209) line 1, <FILE> line 46.       
+    adding a semicolon gets rid of the error message.
+Putting things on the screen fails for large xterms (128x90)
 
 Hook:
 -----
