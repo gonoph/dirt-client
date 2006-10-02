@@ -636,7 +636,6 @@ void KeypressHookStub::print() {
 bool KeypressHookStub::operator() (string& data, savedmatch*) {
     MessageWindow* mw;
     struct tms mytime;
-    int clocks;
     times(&mytime);
     if(key == inputLine->getlastkey()) {
         if(window.length()) {

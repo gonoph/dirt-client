@@ -25,6 +25,7 @@
 #else
 #include <ctype.h>
 #endif
+#include <assert.h>
 
 ChatServerSocket *chatServerSocket;
 MUD *chatMUD;
@@ -381,11 +382,11 @@ void ChatServerSocket::handleUserCommand(const char *name, const char *arg) {
         }
         
     } else if (!strcmp(name, "list")) {
-        int i = 1;
+        size_t i;
         bool verbose = (outputWindow->width > 90);
-        for(size_t i=0;i<connections.size();i++)
-            outputWindow->printf("%2d %s\n", i++, connections[i]->longDescription(verbose));
-        outputWindow->printf("\n%d active connections.\n", i-1);
+        for(i=0;i<connections.size();i++)
+            outputWindow->printf("%2d %s\n", i+1, connections[i]->longDescription(verbose));
+        outputWindow->printf("\n%d active connections.\n", i);
         
         
     } else if (!strcmp(name, "accept")) {
