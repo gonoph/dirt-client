@@ -56,7 +56,7 @@ get it operational under a modern OS, but I kept running into road blocks which
 I didn't have the time nor motivation to resolve.
 
 Eventually I noticed that Mr Andreasen had abandoned the code base. It wasn't
-until recently that I found the forked version from Mr McElrath. Thinking that
+until recently that I found the forked version from Dr McElrath. Thinking that
 some of the harder work of modernizing the code base for a newer compiler had
 mostly been done, I decided to try it out.
 
