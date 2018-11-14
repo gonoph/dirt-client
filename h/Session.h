@@ -13,6 +13,9 @@ class TimerWindow;
 class StatWindow;
 class Window;
 
+extern bool writeMUD(string& s);
+extern bool writeMUDn(string& s);
+
 class Session : public Socket {
 friend bool writeMUD(string& s);
 friend bool writeMUDn(string& s);

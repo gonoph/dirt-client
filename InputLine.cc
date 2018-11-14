@@ -276,7 +276,7 @@ bool InputLine::keypress(int key) {
     hook.run(KEYPRESS, input_buf); // FIXME MOVE to TTY::check_fdset
 //    report("returned from hook.run(KEYPRESS, %s)", input_buf);
     max_pos = strlen(input_buf);
-    cursor_pos = min(max_pos, max(cursor_pos, 0));
+    cursor_pos = min(max_pos, max(cursor_pos, (unsigned int) 0));
     adjust();
     
     // set Key to 0 if keypress handled. Ugh FIXME: make all of the below hooks.
@@ -316,7 +316,7 @@ void InputLine::redraw() {
         if (is_focused())
             set_cursor((cursor_pos+prompt_len)%width, (cursor_pos+prompt_len)/width);
     } else {
-        printf("%s%s%-*.*s", prompt_buf, left_pos ? "<" : "",
+        printf("%s%s%-*.*s", *prompt_buf != '\0' ? prompt_buf : "", left_pos ? "<" : "",
                width-1-prompt_len + (left_pos ? 0 : 1), 
                width-1-prompt_len + (left_pos ? 0 : 1), 
                input_buf+left_pos);
@@ -410,7 +410,7 @@ bool InputLine::keypress_ctrl_c(string& inputline, void* mt) {
 // delete until EOL
 bool InputLine::keypress_ctrl_k(string& inputline, void* mt) {
     InputLine* mythis = (InputLine*)mt;
-    if(mythis->cursor_pos <= (int)inputline.length())
+    if(mythis->cursor_pos <= (unsigned int)inputline.length())
         inputline.erase(mythis->cursor_pos);
     return true;
 }
@@ -425,9 +425,9 @@ bool InputLine::keypress_escape(string& inputline, void*) {
 bool InputLine::keypress_backspace(string& inputline, void* mt) {
     InputLine* mythis = (InputLine*)mt;
     if (mythis->max_pos != 0 && mythis->cursor_pos != 0) {
-        if(mythis->cursor_pos <= (int)inputline.length()+1)
+        if(mythis->cursor_pos <= (unsigned int)inputline.length()+1)
             inputline.erase(--mythis->cursor_pos, 1);
-        mythis->left_pos = max(0,mythis->left_pos-1);
+        mythis->left_pos = max((int) 0,(int)mythis->left_pos-1);
     }
     return true;
 }
@@ -458,7 +458,7 @@ bool InputLine::keypress_ctrl_w(string& inputline, void* mt) {
 // delete to beginning of line
 bool InputLine::keypress_ctrl_u(string& inputline, void* mt) {
     InputLine* mythis = (InputLine*)mt;
-    if(mythis->cursor_pos <= (int)inputline.length())
+    if(mythis->cursor_pos <= (unsigned int)inputline.length())
         inputline.erase(0, mythis->cursor_pos);
     mythis->cursor_pos = 0;
     return true;
@@ -504,7 +504,7 @@ bool InputLine::keypress_arrow_left(string&, void* mt) {
     else
     {
         mythis->cursor_pos--;
-        mythis->left_pos = max(0,mythis->left_pos-1);
+        mythis->left_pos = max((int) 0,(int)mythis->left_pos-1);
     }
     return true;
 }
@@ -516,7 +516,7 @@ bool InputLine::keypress_arrow_right(string&, void* mt) {
     else
     {
         mythis->cursor_pos++;
-        if (mythis->cursor_pos > 7*mythis->width/8) // scroll only when we are approaching right margin
+        if (mythis->cursor_pos > (unsigned int)7*(unsigned int)mythis->width/(unsigned int)8) // scroll only when we are approaching right margin
             mythis->adjust();
     }
     return true;

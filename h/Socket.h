@@ -5,6 +5,7 @@
 #include "Selectable.h"
 #include "Buffer.h"
 #include <netinet/in.h>
+#include <cstddef>
 
 class Socket : public Selectable {
 public:

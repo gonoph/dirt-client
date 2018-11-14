@@ -147,7 +147,7 @@ bool PythonEmbeddedInterpreter::run(const char*, const char *function, const cha
 bool PythonEmbeddedInterpreter::run_quietly(const char* lang, const char *file, const char *args,
                                           char *result, bool suppress)
 {
-  char *func = strrchr(file, '/');
+  char *func = strrchr((char*)file, '/');
   char buf[256];
 
   if(func) func++;

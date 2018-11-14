@@ -6,6 +6,7 @@
 #include "InputLine.h"
 #include "TTY.h"
 #include "Color.h"
+#include <cstring>
 
 class InputBoxedLine : public InputLine
 {
@@ -22,7 +23,7 @@ private:
 };
 
 InputBox::InputBox (Window *_parent, char *_prompt, history_id id)
-: Window(_parent, strlen(_prompt)+4, 7, Bordered, xy_center,xy_center ),
+: Window(_parent, std::strlen(_prompt)+4, 7, Bordered, xy_center,xy_center ),
   prompt(strdup(_prompt)) {
 	input = new InputBoxedLine(this,
 		width-2,1, 					// 2 chars smaller than the inside

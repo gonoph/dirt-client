@@ -2,6 +2,7 @@
 #include "OutputWindow.h"
 #include "Color.h"
 
+#include <cstring>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>

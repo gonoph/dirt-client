@@ -8,6 +8,7 @@
 #include <sys/poll.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <cstring>
 
 Pipe::Pipe(int fd1, int fd2) {
     // socketpair has apparently greater 'capacity' than pipe

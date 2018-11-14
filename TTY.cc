@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <cerrno>
+#include <cstring>
 
 extern time_t current_time;
 

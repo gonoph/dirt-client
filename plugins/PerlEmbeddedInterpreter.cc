@@ -47,7 +47,7 @@ I32 dirt_perl_report() {
     dSP;
     SV* arg = POPs;
     STRLEN n_a;
-    report(SvPV(arg, n_a));
+    report("%s", SvPV(arg, n_a));
     return 0;  // We return no arguments
 }
 
@@ -55,7 +55,7 @@ I32 dirt_perl_report_err() {
     dSP;
     SV* arg = POPs;
     STRLEN n_a;
-    report_err(SvPV(arg, n_a));
+    report_err("%s", SvPV(arg, n_a));
     return 0;  // We return no arguments
 }
 

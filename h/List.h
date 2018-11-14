@@ -1,6 +1,9 @@
 #ifndef DIRT_LIST_H
 #define DIRT_LIST_H
 
+#include <cstddef>
+#include <stdlib.h>
+#include <cassert>
 
 
 template <class T>

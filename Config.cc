@@ -601,7 +601,7 @@ void Config::Save(const char *fname) {
         
         // Save all MUDs but those marked as temporary
         FOREACH(MUD*, mud, (*mud_list))
-            if (mud->getName() != "temp") {
+            if (strncmp(mud->getName(), "temp", strlen("temp")) != 0) {
                 fprintf(fp, "\n");
                 mud->write(fp, false);
             }

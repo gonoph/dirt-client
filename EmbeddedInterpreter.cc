@@ -45,7 +45,7 @@ StackedInterpreter::StackedInterpreter(EmbeddedInterpreter *e1,EmbeddedInterpret
 }
 
 StackedInterpreter::~StackedInterpreter() {
-    for(hash_map<string,EmbeddedInterpreter*,hash<string> >::iterator it = interpreters.begin(); it != interpreters.end(); it++) {
+    for(hash_map<string,EmbeddedInterpreter*,hashstring_type >::iterator it = interpreters.begin(); it != interpreters.end(); it++) {
         if(it->first == "") {  // This interpreter is in the list twice.
             interpreters.erase(it);
             continue;
@@ -75,7 +75,7 @@ bool StackedInterpreter::run(const char* lang, const char *function, const char 
         res = interpreters[lang]->run(lang, function, arg, buf[i++], sm, embhaserror) || res;  // || res has no effect since res is false.
         if(haserror) err_somewhere |= embhaserror;
     } else {
-        for(hash_map<string,EmbeddedInterpreter*,hash<string> >::iterator it = interpreters.begin(); it != interpreters.end(); it++) {
+        for(hash_map<string,EmbeddedInterpreter*,hashstring_type >::iterator it = interpreters.begin(); it != interpreters.end(); it++) {
             if(it->first == DEFAULT_INTERP) continue; // skip the default one -- it's in the list twice
             embhaserror = true; // tell the embedded interpreter that it should report errors to us.
             res = it->second->run(lang, function, arg, buf[i], sm, embhaserror) || res;
@@ -94,7 +94,7 @@ bool StackedInterpreter::run(const char* lang, const char *function, const char 
 
 bool StackedInterpreter::load_file(const char* filename, bool suppress) {
     bool res = false;
-    for(hash_map<string,EmbeddedInterpreter*,hash<string> >::iterator it = interpreters.begin(); it != interpreters.end(); it++) {
+    for(hash_map<string,EmbeddedInterpreter*,hashstring_type >::iterator it = interpreters.begin(); it != interpreters.end(); it++) {
         if(it->first == DEFAULT_INTERP) continue;
         res = it->second->load_file(filename, suppress) || res;
     }
@@ -122,14 +122,14 @@ bool StackedInterpreter::match(void *perlsub, const char *str, char * const & ou
 }
 
 void StackedInterpreter::set(const char *var, int value) {
-    for(hash_map<string,EmbeddedInterpreter*,hash<string> >::iterator it = interpreters.begin(); it != interpreters.end(); it++) {
+    for(hash_map<string,EmbeddedInterpreter*,hashstring_type >::iterator it = interpreters.begin(); it != interpreters.end(); it++) {
         if(it->first == DEFAULT_INTERP) continue;
         it->second->set(var, value);
     }
 }
 
 void StackedInterpreter::set(const char *var, const char* value) {
-    for(hash_map<string,EmbeddedInterpreter*,hash<string> >::iterator it = interpreters.begin(); it != interpreters.end(); it++) {
+    for(hash_map<string,EmbeddedInterpreter*,hashstring_type >::iterator it = interpreters.begin(); it != interpreters.end(); it++) {
         if(it->first == DEFAULT_INTERP) continue;
         it->second->set(var, value);
     }
@@ -153,7 +153,7 @@ bool StackedInterpreter::run_quietly(const char* lang, const char* path, const c
         res = interpreters[lang]->run_quietly(lang, path, arg, buf[i], suppress_error) || res;
         arg = buf[i++];
     } else {
-        for(hash_map<string,EmbeddedInterpreter*,hash<string> >::iterator it = interpreters.begin(); it != interpreters.end(); it++) {
+        for(hash_map<string,EmbeddedInterpreter*,hashstring_type >::iterator it = interpreters.begin(); it != interpreters.end(); it++) {
             if(it->first == DEFAULT_INTERP) continue;
             res = it->second->run_quietly(lang, path, arg, buf[i], suppress_error) || res;
             arg = buf[i++];

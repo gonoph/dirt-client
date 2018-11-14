@@ -3,7 +3,8 @@ dnl Dirt - Mud Client for Unix (mcl fork)
 dnl process this file with autoconf to produce a configure script.
 
 AC_REVISION($Revision: 1.3 $)
-AC_INIT(main.cc)
+AC_INIT
+AC_CONFIG_SRCDIR([main.cc])
 AC_CONFIG_AUX_DIR(admin)
 AC_LANG(C++)
 
@@ -63,18 +64,15 @@ dnl compiler features
 AC_CHECK_HEADERS(hash_map)
 AC_CHECK_HEADERS(ext/hash_map)
 AC_MSG_CHECKING(whether we have hash<string>)
-AC_TRY_COMPILE([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <string>
 #include <hash_map>
-],
-[
+]], [[
 int main() { 
     hash_map<string,int> stuff;
     stuff["shit"] = 4;
 }
-],
-have_hash_string=yes,
-have_hash_string=no)
+]])],[have_hash_string=yes],[have_hash_string=no])
 AC_MSG_RESULT($have_hash_string)
 if test "x$have_hash_string" = "xyes"; then
     AC_DEFINE(HAVE_HASH_STRING)
@@ -246,6 +244,7 @@ import sys
 print "-L%s/lib/python%s/config -lpython%s" % (sys.prefix, sys.version[:3], sys.version[:3])'`
 	changequote([, ])dnl
 	WITH_PYTHON="python"
+	PYTHON_CPPFLAGS+=" -fPIC"
         echo "PYTHON_CPPFLAGS=$PYTHON_CPPFLAGS"
         echo "PYTHON_LDFLAGS=$PYTHON_LDFLAGS"
 else
@@ -258,10 +257,7 @@ save_CFLAGS="$CFLAGS"
 CFLAGS="-fno-rtti"
 AC_MSG_CHECKING(if the flag -fno-rtti is supported by the system compiler)
 AC_CACHE_VAL(ac_cv_flag_no_rtti,
-[AC_TRY_COMPILE([int a;],
-[int a;],
-ac_cv_flag_no_rtti=yes,
-ac_cv_flag_no_rtti=no)])
+[AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[int a;]], [[int a;]])],[ac_cv_flag_no_rtti=yes],[ac_cv_flag_no_rtti=no])])
 AC_MSG_RESULT($ac_cv_flag_no_rtti)
 CFLAGS="$save_CFLAGS"
 case "x$ac_cv_flag_no_rtti" in
@@ -282,10 +278,7 @@ save_CFLAGS="$CFLAGS"
 CFLAGS="-fno-exceptions"
 AC_MSG_CHECKING(if the flag -fno-exceptions is supported by the system compiler)
 AC_CACHE_VAL(ac_cv_flag_no_exceptions,
-[AC_TRY_COMPILE([int a;],
-[int a;],
-ac_cv_flag_no_exceptions=yes,
-ac_cv_flag_no_exceptions=no)])
+[AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[int a;]], [[int a;]])],[ac_cv_flag_no_exceptions=yes],[ac_cv_flag_no_exceptions=no])])
 AC_MSG_RESULT($ac_cv_flag_no_exceptions)
 CFLAGS="$save_CFLAGS"
 case "x$ac_cv_flag_no_exceptions" in
@@ -303,7 +296,7 @@ esac
 
 case "$host" in
 	*-*-linux*)
-	LOCAL_CFLAGS="-Wall -pipe"
+	LOCAL_CFLAGS="-fPIC -Wall -pipe -Wno-write-strings -Wno-deprecated -Wno-narrowing"
 	LOCAL_CPPFLAGS="-Ih"
 	LOCAL_CXXFLAGS="-W $LOCAL_CFLAGS"
 
@@ -399,9 +392,9 @@ AC_SUBST(LOCAL_CXXFLAGS)
 AC_SUBST(LOCAL_LDFLAGS)
 AC_SUBST(LOCAL_LIBS)
 
-AC_OUTPUT(
-Makefile
+AC_CONFIG_FILES([Makefile
 VERSION
 admin/Makefile
 dirt.spec
-h/defs.h)
+h/defs.h])
+AC_OUTPUT

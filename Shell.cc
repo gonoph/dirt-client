@@ -104,7 +104,7 @@ Shell::Shell (Window *_parent, const char *_command, int _w, int _h, int _x, int
             
             dup2(pipe_fds[1], STDOUT_FILENO);
             dup2(pipe_fds[1], STDERR_FILENO);
-            close(pipe_fds[2]);
+            close(pipe_fds[1]);
             execlp("/bin/sh", "/bin/sh", "-c", (const char*) command, (char*)NULL);
             _exit(1);
         }

@@ -5,6 +5,7 @@
 #include <vector>
 #include <cerrno>
 #include <cstdio>
+#include <stdlib.h>
 
 vector<Selectable*> Selectable::ioList;
 

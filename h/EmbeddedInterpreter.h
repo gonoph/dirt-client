@@ -65,7 +65,7 @@ public:
         
     virtual bool isStacked() { return true; }
 private:
-    hash_map<string,EmbeddedInterpreter*,hash<string> > interpreters;
+    hash_map<string,EmbeddedInterpreter*,hashstring_type> interpreters;
 
 };
 

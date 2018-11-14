@@ -60,11 +60,14 @@ typedef enum {  // These are used as indices into hooks.  They should range 0..
     IDLE      = 10   // run once per second.
 } HookType;
 
+typedef __gnu_cxx::hash<string>                                           hashstring_type;
+
 // Stub for hooks.  Embedded interpreters must subclass this and override 
 // operator().  This is how Dirt calls hooks.
 class HookStub { 
 friend class Hook;
 friend class priority_less<vector<HookStub*>* >;
+
 protected:
     int     priority;   // larger is more important, can be negative
     float   chance;     // 0 -> 1 probability
@@ -183,13 +186,13 @@ private:
     //   same name from being used.
     typedef multiset<vector<HookStub*>*, priority_less<vector<HookStub*>* > > hookstubset_type;
     typedef vector<hookstubset_type*>                              hooks_type;
-    typedef hash_map<string, HookStub*, hash<string> >             hooknames_type;
-    typedef hash_map<string, vector<HookStub*>, hash<string> >     hookgroups_type;
+    typedef hash_map<string, HookStub*, hashstring_type>           hooknames_type;
+    typedef hash_map<string, vector<HookStub*>, hashstring_type>   hookgroups_type;
     hooks_type hooks; // subscript of hooks (hooks[i]) is HookType.
     hooknames_type hooknames;
     hookgroups_type hookgroups;
 
-    typedef hash_map<string, HookType, hash<string> > types_type;
+    typedef hash_map<string, HookType, hashstring_type> types_type;
     types_type types;
 };
 
