@@ -1,0 +1,7 @@
+NEWS
+====
+
+New in 0.60.00-2:
+
+   * Converted to use a bunch of the GNU autotools
+   * Updated for newer GNU GCC (4.8.5)

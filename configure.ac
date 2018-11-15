@@ -1,49 +1,43 @@
+# Dirt - Mud Client for Unix (mcl fork)
+# process this file with autoconf to produce a configure script.
+# Copyright (C) 2018 Billy Holmes
 
-dnl Dirt - Mud Client for Unix (mcl fork)
-dnl process this file with autoconf to produce a configure script.
-
-AC_REVISION($Revision: 1.3 $)
-AC_INIT
-AC_CONFIG_SRCDIR([main.cc])
+AC_PREREQ([2.69])
+m4_include([m4/dirt_version.m4])
+AC_INIT([dirt], DIRT_VERSION, [https://github.com/gonoph/dirt-client/issues], [], [https://github.com/gonoph/dirt-client])
+AC_COPYRIGHT([2018 (C) Billy Holmes])
+AC_REVISION([$Revision: DIRT_RELEASE$])
+AC_CONFIG_SRCDIR([src/main.cc])
 AC_CONFIG_AUX_DIR(admin)
+AC_CONFIG_HEADERS([src/h/config.h])
+AC_CONFIG_FILES([Makefile])
+AC_CONFIG_MACRO_DIRS([m4])
+AC_CONFIG_MACRO_DIR([m4])
+
+# Initialize Automake.
+AM_INIT_AUTOMAKE([-Wall -Werror gnu std-options 1.13])
+dnl AM_SILENT_RULES([yes])
+
+# Configure language.
 AC_LANG(C++)
+AC_PROG_CXX([clang++ g++])
 
-dirt_major=0
-dirt_minor=60
-dirt_micro=00
+# Initialize libtool.
+LT_PREREQ([2.4.2])
+LT_INIT([shared disable-static])
+AC_SUBST([LIBTOOL_DEPS])
 
-PACKAGE=dirt
-VERSION=$dirt_major.$dirt_minor.$dirt_micro
-DIRT_VERSION1=$dirt_minor$dirt_micro
-DIRT_VERSION2=$dirt_major.$dirt_minor.$dirt_micro
-DIRT_HOME=
+# Configure package
+AC_ARG_ENABLE([debug],  [AS_HELP_STRING([--enable-debug],  [enable debugging @<:@default=no@:>@])])
+AC_ARG_ENABLE([efence], [AS_HELP_STRING([--enable-efence], [enable electric fence malloc debugger @<:@default=no@:>@])])
+AC_ARG_ENABLE([perl],   [AS_HELP_STRING([--enable-perl],   [enable perl scripting support @<:@default=yes@:>@])], [], [enable_perl=yes])
+AC_ARG_ENABLE([python], [AS_HELP_STRING([--enable-python], [enable python scripting support @<:@default=yes@:>@])], [], [enable_python=yes])
+AM_CONDITIONAL([WITH_PERL],   [ test x$enable_perl = xyes ])
+AM_CONDITIONAL([WITH_PYTHON], [ test x$enable_python = xyes ])
+AM_CONDITIONAL([DEBUG],       [ test x$enable_debug = xyes ])
 
-AC_ARG_ENABLE(debug,  [  --enable-debug          enable debugging], DEBUG="$enable_debug")
-AC_ARG_ENABLE(efence, [  --enable-efence         enable electric fence malloc debugger], EFENCE="$enable_efence")
-AC_ARG_ENABLE(perl,   [  --disable-perl          disable perl scripting support], PERL="$enable_perl")
-AC_ARG_ENABLE(python, [  --enable-python         enable python scripting support], PYTHON="$enable_python")
-AC_ARG_WITH(install_root, [  --with-install-root     directory to consider as the install root [default=/]], INSTALL_ROOT="$with_install_root")
-
-
-AC_PATH_PROG(sedpath, sed)
-if test "_$sedpath" = _; then
-        AC_MSG_ERROR("Cannot find sed: I need it\!")
-fi
-
-dnl supply default CFLAGS, if not specified by `CFLAGS=flags ./configure'
-if test -z "${CFLAGS}"; then
-	save_have_cflags="no"
-fi
-
-dnl supply default CXXFLAGS, if not specified by `CXXFLAGS=flags ./configure'
-if test -z "${CXXFLAGS}"; then
-	save_have_cxxflags="no"
-fi
-
-dnl supply default LDFLAGS, if not specified by `LDFLAGS=flags ./configure'
-if test -z "${LDFLAGS}"; then
-	save_have_ldflags="no"
-fi
+# checkfor sed path
+EMC_PATH_PROG([sedpath], [sed], [], [AC_MSG_ERROR("Cannot find sed!")], [sed path])
 
 dnl Rules
 AC_PROG_CC
@@ -52,79 +46,39 @@ AC_PROG_INSTALL
 AC_CANONICAL_HOST
 AC_PROG_LN_S
 
-dnl libraries
-AC_CHECK_LIB(dl, main, [LIBDL="-ldl"], LIBDL=)
-AC_CHECK_LIB(m, main, [LIBM="-lm"], LIBM=)
-AC_CHECK_LIB(ncurses, main, [LIBNCURSES="-lncurses"], LIBNCURSES=)
-AC_CHECK_LIB(pthread, main, [LIBPTHREAD="-lpthread"], LIBPTHREAD=)
-AC_CHECK_LIB(z, main, [LIBZ="-lz"], LIBZ=)
-AC_CHECK_LIB(stdc++, main, [LIBSTDCPP="-lstdc++"], LIBSTDCPP=)
-
-dnl compiler features
-AC_CHECK_HEADERS(hash_map)
-AC_CHECK_HEADERS(ext/hash_map)
-AC_MSG_CHECKING(whether we have hash<string>)
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#include <string>
+dnl compiler headers and type
+AC_CHECK_HEADERS([ext/hash_map hash_map], [break])
+AC_CHECK_TYPE([__gnu_cxx::hash<std::string>],
+	[AC_DEFINE([HAVE_HASH_STRING], [1], [hash<string> is defined])],
+	[AC_MSG_ERROR(`hash<string> is required!`)],
+	[
+AC_INCLUDES_DEFAULT
+[#include <string>
+#if HAVE_EXT_HASH_MAP
+#include <ext/hash_map>
+#else
 #include <hash_map>
-]], [[
-int main() { 
-    hash_map<string,int> stuff;
-    stuff["shit"] = 4;
-}
-]])],[have_hash_string=yes],[have_hash_string=no])
-AC_MSG_RESULT($have_hash_string)
-if test "x$have_hash_string" = "xyes"; then
-    AC_DEFINE(HAVE_HASH_STRING)
-fi
+#endif
+]])
+		
+dnl libraries
+dnl AC_CHECK_LIB(m, main, [], [AC_MSG_ERROR("Required library was missing!")])
+dnl AC_CHECK_LIB(dl, dlopen, [], [AC_MSG_ERROR([Unable to dynamically load a symbole!])])
+dnl AC_CHECK_LIB(stdc++, main, [], [AC_MSG_ERROR([Required library was missing!])])
+AC_CHECK_LIB(ncurses, endwin, [], [AC_MSG_ERROR([ncurses library is required!])])
+AC_CHECK_LIB(z, zlibVersion, [], [AC_MSG_ERROR([libz library is required!])])
+AC_MSG_CHECKING([if we can natively use pthreads])
+AC_RUN_IFELSE(
+	[AC_LANG_PROGRAM([[
+#include <pthread.h>
+]], [[return pthread_self();]])],
+	[], [AC_MSG_ERROR("Unable to run posix threads!")])
+AC_MSG_RESULT([yes])
 
-dnl debugging
-if test "x$enable_debug" = "xyes"; then
-    echo "debug build enabled."
-        CFLAGS="-g"
-dnl	CFLAGS="$CFLAGS -g"
-        CXXFLAGS="-g"
-dnl	CXXFLAGS="$CXXFLAGS -g"
-        LDFLAGS=
-else 
-    if test "x$save_have_cflags" = "xno"; then
-            CFLAGS=""
-    fi
-    CFLAGS="-O2"
-
-    if test "x$save_have_cxxflags" = "xno"; then
-            CXXFLAGS=""
-    fi
-    CXXFLAGS="-O2"
-
-    if test "x$save_have_ldflags" = "xno"; then
-            LDFLAGS="-s"
-    fi
-fi
-
-dnl electric fence malloc debugger
-case "x$enable_efence" in
-	"xno")
-	LIBEFENCE=""
-	;;
-	"x")
-	LIBEFENCE=""
-	;;
-	"xyes")
-	AC_CHECK_LIB(efence, main, [LIBEFENCE="-lefence"], LIBEFENCE=)
-	if test "x$LIBEFENCE" = "x"; then
-		echo "could not find electric fence"
-		echo "malloc debugging support disabled"
-	fi
-	;;
-	*)
-	AC_CHECK_LIB(efence, main, [LIBEFENCE="-lefence"], LIBEFENCE=)
-	if test "x$LIBEFENCE" = "x"; then
-		echo "could not find electric fence"
-		echo "malloc debugging support disabled"
-	fi
-	;;
-esac
+AS_IF([test x$enable_efence = xyes],
+	AC_CHECK_LIB(efence, main, [AC_MSG_ERROR([efence was enabled, but was not found])])
+)
+AM_CONDITIONAL([EFENCE], [ test x$enable_efence = xyes ])
 
 dnl do we have perl installed in this system?
 case "x$enable_perl" in
@@ -171,7 +125,6 @@ if test "x$enable_perl" != "xno" -a "x$PERL" != "xno"; then
                     AC_MSG_RESULT(ok)
                     CFLAGS="$CFLAGS $PERL_CFLAGS"
                     LIBS="$LIBS $PERL_LDFLAGS"
-                    AC_DEFINE(USE_PERL)
                     AC_CHECK_FUNCS(eval_pv)
             fi
 
@@ -207,17 +160,7 @@ if test "$perl" = yes; then
                 AC_MSG_RESULT(ok)
                 CFLAGS="$CFLAGS $PERL_CFLAGS"
                 LIBS="$LIBS $PERL_LDFLAGS"
-                AC_DEFINE(USE_PERL)
                 AC_CHECK_FUNCS(eval_pv)
-
-                AC_MSG_CHECKING(for old perl)
-                PERL_OLD=`$perlpath -e 'if($]<5.006){printf"yes\n";}else{printf"no\n";}'`
-                if test "$PERL_OLD" = "yes"; then
-                        AC_DEFINE(OLD_PERL)
-                        AC_MSG_RESULT(yes)
-                else
-                        AC_MSG_RESULT(no)
-                fi
         fi
 fi
 
@@ -344,57 +287,4 @@ esac
 
 COMPILED_BY=`whoami`@`uname -n`
 
-AC_PATH_PROG(RM,rm,true)
-AC_PATH_PROG(FIND,find,true)
-AC_PATH_PROG(XARGS,xargs,true)
-AC_PATH_PROG(CTAGS,ctags,true)
-AC_PATH_PROG(ECHO,echo,true)
-
-AC_CONFIG_HEADERS(h/config.h)
-AC_SUBST(CFLAGS)
-AC_SUBST(CXXFLAGS)
-AC_SUBST(LDFLAGS)
-AC_SUBST(PACKAGE)
-AC_SUBST(DIRT_VERSION1)
-AC_SUBST(DIRT_VERSION2)
-AC_SUBST(INSTALL_ROOT)
-AC_SUBST(LIBDL)
-AC_SUBST(LIBEFENCE)
-AC_SUBST(LIBM)
-AC_SUBST(LIBNCURSES)
-AC_SUBST(LIBPTHREAD)
-AC_SUBST(LIBZ)
-AC_SUBST(LIBSTDCPP)
-AC_SUBST(PERL)
-AC_SUBST(PERL_CPPFLAGS)
-AC_SUBST(PERL_LDFLAGS)
-AC_SUBST(WITH_PERL)
-AC_SUBST(PYTHON)
-AC_SUBST(PYTHON_CPPFLAGS)
-AC_SUBST(PYTHON_LDFLAGS)
-AC_SUBST(WITH_PYTHON)
-AC_SUBST(HAVE_FLAG_NO_RTTI)
-AC_SUBST(HAVE_FLAG_NO_EXCEPTIONS)
-AC_SUBST(LOCAL_CFLAGS)
-AC_SUBST(LOCAL_CPPFLAGS)
-AC_SUBST(LOCAL_CXXFLAGS)
-AC_SUBST(LOCAL_LDFLAGS)
-AC_SUBST(LOCAL_LIBS)
-AC_SUBST(COMPILED_BY)
-AC_SUBST(RM)
-AC_SUBST(FIND)
-AC_SUBST(XARGS)
-AC_SUBST(CTAGS)
-AC_SUBST(ECHO)
-AC_SUBST(LOCAL_CFLAGS)
-AC_SUBST(LOCAL_CPPFLAGS)
-AC_SUBST(LOCAL_CXXFLAGS)
-AC_SUBST(LOCAL_LDFLAGS)
-AC_SUBST(LOCAL_LIBS)
-
-AC_CONFIG_FILES([Makefile
-VERSION
-admin/Makefile
-dirt.spec
-h/defs.h])
 AC_OUTPUT

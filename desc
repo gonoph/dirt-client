@@ -1,1 +1,0 @@
-Dirt is a mud/muck/mush/moo/telnet client for linux with plugins for perl and python scripting.  It is text-based and features: color, scrollback, history, autocomplete, alias, trigger (even on ansi), zchat/mudmaster chat, mudftp, MCCP, and a help system.

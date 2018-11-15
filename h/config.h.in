@@ -1,6 +1,0 @@
-
-/* see whether hash_map is <hash_map> (gcc < 3.0) or <hash_map> (gcc >= 3.0) */
-#undef HAVE_HASH_MAP
-#undef HAVE_EXT_HASH_MAP
-#undef HAVE_STDLIBH
-#undef HAVE_HASH_STRING
