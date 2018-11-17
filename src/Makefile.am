@@ -6,6 +6,8 @@ AM_CPPFLAGS = -Ih -DLIBEXECDIR='"$(libexecdir)"' -DPREFIX='"$(prefix)"'
 AM_CXXFLAGS = $(AM_CFLAGS)
 AM_LDFLAGS  = 
 
+# this is needed so that the shared library plugins can see the symbols of the
+# main program 
 dirt_LDFLAGS = -rdynamic
 
 if DEBUG
