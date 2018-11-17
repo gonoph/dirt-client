@@ -247,8 +247,8 @@ Session::Session(MUD& _mud, Window *_window, int _fd) : Socket(_fd), state(disco
     window(_window), nsw(NULL), timer(NULL),  statWindow(NULL), pos(0), out(out_buf), line_begin(out),
     code_pos(-1), last_nsw_update(0)
 {
-    input_buffer[0] = NUL;
-    prompt[0] = NUL;
+    input_buffer[0] = 0;
+    prompt[0] = 0;
     memset(&stats,0,sizeof(stats));
 
     if (config->getOption(opt_autostatwin))
@@ -539,7 +539,6 @@ void Session::telnetHandle(unsigned char byte)
 // Data from the MUD has arrived
 void Session::inputReady() {
     char temp_buf[MAX_MUD_BUF];
-    unsigned char *lastline = (unsigned char*)input_buffer; // points WRT input_buffer
     int     count;
     int     i;
 
@@ -568,7 +567,6 @@ void Session::inputReady() {
     while (mudcompress_pending(mcinfo) && pos < MAX_MUD_BUF-1) {
         // Get some data
         count = mudcompress_get(mcinfo, (char*) input_buffer + pos, MAX_MUD_BUF - pos - 1);
-        lastline = (unsigned char*)input_buffer;
 
         if (count > 0 && chatServerSocket)
             chatServerSocket->handleSnooping((char*)(input_buffer+pos), count);
@@ -590,7 +588,7 @@ void Session::inputReady() {
                     if (input_buffer[i] == GA || input_buffer[i] == EOR) { /* this is a prompt */
 //                        report("Found an IAC GA or IAC EOR.\n");
                         memcpy(prompt, line_begin, out-line_begin);
-                        prompt[out-line_begin] = NUL;
+                        prompt[out-line_begin] = 0;
                         hook.run(OUTPUT, (char*)prompt);
                         hook.run(PROMPT, (char*)prompt);
                         if(config->getOption(opt_snarf_prompt))
@@ -641,7 +639,7 @@ void Session::inputReady() {
                     int old_len = len;
                     char* line = line_begin;
                     
-                    line[len] = NUL;
+                    line[len] = 0;
                     hook.run(OUTPUT, line);
                     interpreter.execute(); // If triggers generated any new commands, execute them.
                     len = strlen(line);
@@ -688,7 +686,7 @@ void Session::inputReady() {
             }
         } // for(... each byte in buffer ...)
         
-        *out = NUL;
+        *out = 0;
 
         /* Do we have some leftover data or an incomplete ANSI sequence? */
         if(lastline != input_buffer + i) {
@@ -701,7 +699,7 @@ void Session::inputReady() {
             // ANY leftover data is considered a prompt
             if (config->getOption(opt_undelim_prompt) && code_pos < 0)  {
                 memcpy(prompt, line_begin, out-line_begin);
-                prompt[out-line_begin] = NUL;
+                prompt[out-line_begin] = 0;
                 hook.run(OUTPUT, (char*)prompt);
                 hook.run(PROMPT, (char*)prompt);
                 if(config->getOption(opt_snarf_prompt))

@@ -30,19 +30,20 @@ GlobalStats globalStats;
 
 Hook hook;
 Interpreter interpreter;
-StatusLine *status;
-MainInputLine *inputLine;
-OutputWindow *outputWindow;
-Screen *screen;
+Interpreter *interpreterP = &interpreter;
+StatusLine *status = (StatusLine*)0;
+MainInputLine *inputLine = (MainInputLine*)0;
+OutputWindow *outputWindow = (OutputWindow*)0;
+Screen *screen = (Screen*)0;
 
-MUD *lastMud;
-Session *currentSession;
-TTY *tty;
+MUD *lastMud = (MUD*)0;
+Session *currentSession = (Session*)0;
+TTY *tty = (TTY*)0;
 bool dirtFinished;
 
-InterpreterPipe *interpreterPipe;
-OutputPipe *outputPipe;
-HistorySet *history;
+InterpreterPipe *interpreterPipe = (InterpreterPipe*)0;
+OutputPipe *outputPipe = (OutputPipe*)0;
+HistorySet *history = (HistorySet*)0;
 
 int session_fd = -1; // Set to somethign else if recovering from copyover
 
@@ -109,9 +110,9 @@ int main(int argc, char **argv) {
 
     embed_interp->set("now", current_time);
     embed_interp->set("interpreterPipe", interpreterPipe->getFile(Pipe::Write));
-    embed_interp->set("VERSION", versionToString(VERSION));
+    embed_interp->set("VERSION", VERSION);
     embed_interp->set("commandCharacter", Sprintf("%c", config->getOption(opt_commandcharacter)));
-    embed_interp->set("DIRT_HOME", INSTALL_ROOT);
+    embed_interp->set("DIRT_HOME", PREFIX);
     embed_interp->load_file("sys/init");
 
     if (strlen(config->getStringOption(opt_chat_name)) != 0)

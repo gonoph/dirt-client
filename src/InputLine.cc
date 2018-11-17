@@ -256,7 +256,7 @@ void InputLine::set(const char *s) {
 
 void MainInputLine::set (const char *s) {
     InputLine::set(s);
-    if (*s == NUL) { // clear, go back to standard size
+    if (*s == 0) { // clear, go back to standard size
         move(0, parent->height-1);
         resize(width, 1);
         outputWindow->move(0,0);
@@ -298,7 +298,7 @@ bool InputLine::keypress(int key) {
         }
         else
             status->setf ("The input buffer is full");
-        input_buf[max_pos] = NUL;
+        input_buf[max_pos] = 0;
         return true;
     }
     return false;
@@ -309,7 +309,7 @@ void InputLine::redraw() {
     
     gotoxy(0,0);
     set_color(config->getOption(opt_inputcolor));
-    input_buf[max_pos] = NUL;
+    input_buf[max_pos] = 0;
 
     if (config->getOption(opt_multiinput) && isExpandable()) {
         printf("%s%s%*s", prompt_buf, input_buf, (height*width)-prompt_len-max_pos, "");
@@ -339,7 +339,7 @@ bool InputLine::getline(char *buf, bool fForce)
 		ready = false;
 
 		if (fForce)
-			input_buf[max_pos]  = NUL;
+			input_buf[max_pos]  = 0;
 			
 		strcpy (buf, input_buf);
 		max_pos = left_pos = 0;
@@ -383,7 +383,7 @@ void  InputLine::set_prompt (const char *s) {
         else
             *out++ = *in;
     
-    *out++ = NUL;
+    *out++ = 0;
     
     
     dirty = true;

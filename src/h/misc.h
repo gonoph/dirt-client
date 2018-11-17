@@ -14,7 +14,6 @@ const char *one_argument (const char *argument, char *buf, bool smash_case);
 void report(const char *fmt, ...) __attribute__((format(printf,1,2)));;
 void report_warn(const char *fmt, ...) __attribute__((format(printf,1,2)));;
 void report_err(const char *fmt, ...) __attribute__((format(printf,1,2)));;
-const char * versionToString(int version);
 string uncolorize(string& str);
 string debackslashify(const string& s);
 string backslashify(const string& s, char c);

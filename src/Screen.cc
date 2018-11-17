@@ -148,7 +148,7 @@ const char* Screen::getColorCode (int color, bool setBackground) const {
         if (setBackground)
             sprintf(bg, "%d;", bg_color);
         else
-            bg[0] = NUL;
+            bg[0] = 0;
         
         if (bold)
             sprintf(buf, CSI "1;%s%dm", bg, fg_color);

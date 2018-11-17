@@ -16,7 +16,7 @@ class EmbeddedInterpreter
     virtual ~EmbeddedInterpreter() {}
     virtual bool load_file(const char*, bool suppress = false) = 0;
     virtual bool eval(const char*, const char*, const char* = NULL, char* = NULL, savedmatch* = NULL) = 0;
-    virtual bool run(const char*, const char*, const char* = NULL, char* = NULL, savedmatch* = NULL, bool& = constboolfalse) = 0; 
+    virtual bool run(const char*, const char*, const char* = NULL, char* = NULL, savedmatch* = NULL, bool = false) = 0; 
     virtual bool run_quietly(const char*, const char*, const char*, char*,
                               bool suppres = true) = 0;
     virtual void *match_prepare(const char*, const char*) = 0;
@@ -38,7 +38,6 @@ class EmbeddedInterpreter
 
 protected:
     const char *findFile(const char *fname, const char *suffix); // given e.g. "foobar" and a suffix, search through the script paths
-    static bool constboolfalse;
 
 };
 
@@ -52,7 +51,7 @@ public:
 
     virtual bool load_file(const char*, bool suppress = false);
     virtual bool eval(const char*, const char*, const char* = NULL, char* = NULL, savedmatch* = NULL);
-    virtual bool run(const char*, const char*, const char* = NULL, char* = NULL, savedmatch* = NULL, bool& = constboolfalse);
+    virtual bool run(const char*, const char*, const char* = NULL, char* = NULL, savedmatch* = NULL, bool = false);
     virtual bool run_quietly(const char*, const char*, const char*, char*, bool suppres = true);
     virtual void *match_prepare(const char*, const char*);
     virtual void *substitute_prepare(const char*, const char*) ;

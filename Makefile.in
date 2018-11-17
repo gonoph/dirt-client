@@ -85,15 +85,15 @@ DIST_COMMON = INSTALL NEWS README AUTHORS ChangeLog \
 	$(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
 	$(top_srcdir)/src/h/config.h.in $(dist_doc_DATA) COPYING TODO \
-	admin/config.guess admin/config.sub admin/install-sh \
-	admin/missing admin/ltmain.sh $(top_srcdir)/admin/config.guess \
+	admin/ar-lib admin/config.guess admin/config.sub admin/depcomp \
+	admin/install-sh admin/missing admin/ltmain.sh \
+	$(top_srcdir)/admin/ar-lib $(top_srcdir)/admin/config.guess \
 	$(top_srcdir)/admin/config.sub $(top_srcdir)/admin/install-sh \
 	$(top_srcdir)/admin/ltmain.sh $(top_srcdir)/admin/missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/emc_path_prog.m4 \
-	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
-	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
-	$(top_srcdir)/m4/lt~obsolete.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
 	$(top_srcdir)/m4/dirt_version.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -294,7 +294,11 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
+PERL_CFLAGS = @PERL_CFLAGS@
+PERL_LDFLAGS = @PERL_LDFLAGS@
 PYTHON = @PYTHON@
+PYTHON_CFLAGS = @PYTHON_CFLAGS@
+PYTHON_LDFLAGS = @PYTHON_LDFLAGS@
 RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
@@ -343,12 +347,10 @@ mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
 pdfdir = @pdfdir@
-perlpath = @perlpath@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
 sbindir = @sbindir@
-sedpath = @sedpath@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
@@ -357,10 +359,12 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
-SUBDIRS = src tests
+
+# SUBDIRS = src tests
+SUBDIRS = src
 dist_doc_DATA = AUTHORS BUGS COPYING ChangeLog INSTALL NEWS Notes \
-	README README.1ST README.md TODO desc dirt2.spec
-EXTRA_DIST = doc libtool m4 scripts
+	README README.1ST README.md TODO dirt2.spec
+EXTRA_DIST = doc libtool m4 scripts autogen.sh
 all: all-recursive
 
 .SUFFIXES:

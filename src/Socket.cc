@@ -21,8 +21,8 @@ Socket::Socket(int _fd, struct sockaddr_in *_remote) {
     if (_fd == -1) {
         if ((fd = socket (AF_INET, SOCK_STREAM, 0)) < 0)
             error ("socket: %m");
-        long flags;
-        flags = fcntl(fd, F_GETFL);
+        // long flags;
+        /* flags = */fcntl(fd, F_GETFL);
     } else {
         fd = _fd;
         uint len = sizeof(struct sockaddr_in);

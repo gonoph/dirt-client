@@ -24,7 +24,7 @@ Buffer::Buffer(int min_size) {
     data = new char[size];
     overflowed = false;
     len = 0;
-    data[0] = NUL;
+    data[0] = 0;
 }
 
 bool Buffer::strcat (const char *text) {
@@ -78,7 +78,7 @@ bool Buffer::strncat(const char *text, int text_len) {
 
 	memcpy (data + len, text, text_len);	/* Start copying */
 	len += text_len;	/* Adjust length */
-	data[len] = NUL; /* Null-terminate at new end */
+	data[len] = 0; /* Null-terminate at new end */
 	
 	return true;
 	
@@ -87,7 +87,7 @@ bool Buffer::strncat(const char *text, int text_len) {
 void Buffer::clear() {
     overflowed = false;
     len = 0;
-    data[0] = NUL;
+    data[0] = 0;
 }
 
 int Buffer::printf(const char *fmt, ...) {

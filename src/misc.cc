@@ -205,15 +205,6 @@ void operator delete (void *ptr)
 
 #endif
 
-const char * versionToString(int version)
-{
-    static char buf[64];
-    sprintf(buf, "%d.%02d.%02d",
-            version/10000, (version - ((10000 * (version/10000)))) / 100, version % 100);
-
-    return buf;
-}
-
 int countChar(const char *s, int c)
 {
     int count = 0;
@@ -266,7 +257,7 @@ int ColorConverter::convert (const unsigned char *s, int size) {
 		return 0;
 
 	memcpy (buf, s, size);
-	buf[size] = NUL;
+	buf[size] = 0;
 
 	if (buf[0] != '\e' || buf[1] != '[')
 		return 0;

@@ -29,7 +29,7 @@ public:
         _s="";
         char buf[len+1];
         memcpy(buf, s, len);
-        buf[len] = NUL;
+        buf[len] = 0;
         replace(buf);
     }
 

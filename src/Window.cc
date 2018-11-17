@@ -275,7 +275,7 @@ void Window::cprintf(const char *fmt, ...)
 
     gotoxy(0, cursor_y);
     if ((int)strlen(buf) > width)
-        buf[width] = NUL;
+        buf[width] = 0;
 
     printf("%*s%s", (width-strlen(buf))/2, "", buf);
 }
@@ -421,7 +421,7 @@ void    Window::box (int x1, int y1, int x2, int y2, int _borders)
 
     // Top/bottom   
     memset (s, special_chars[bc_horizontal], box_width);
-    s[box_width] = NUL;
+    s[box_width] = 0;
 
     if (_borders & BRD_TOP) {
         gotoxy (x1 + 1, y1);

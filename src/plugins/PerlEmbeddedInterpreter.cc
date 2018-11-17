@@ -20,7 +20,7 @@ extern "C" const char* initFunction(const char *) {
 }
 
 extern "C" const char* versionFunction() {
-    return "Perl embedded interprter";
+    return "Perl embedded interpreter";
 }
 
 /* We have to init DynaLoader */
@@ -175,12 +175,11 @@ bool PerlEmbeddedInterpreter::run_quietly(const char* lang, const char *path, co
 // Run a function. Set $_ = arg. If out is non-NULL, copy $_ back there
 // when done. return false if parse error ocurred or if function doesn't exist
 bool PerlEmbeddedInterpreter::run(const char*, const char *function, const char *arg, 
-        char *out, savedmatch* sm, bool& haserror) {
+        char *out, savedmatch* sm, bool haserror) {
     string oldarg; // save it
     if(arg) oldarg = arg;
     char buf[MAX_MUD_BUF]; // FIXME
     bool retval;
-    int nret;
     strcpy(buf, function);
     string cmd = "";
     
@@ -244,7 +243,6 @@ void* PerlEmbeddedInterpreter::match_prepare(const char *pattern, const char *co
 bool PerlEmbeddedInterpreter::match(void *perlsub, const char *str, char *const &out) {
     bool retval;
     int count;
-    STRLEN n_a;
     sv_setpv(default_var, str);
     dSP;
     ENTER;
@@ -294,9 +292,7 @@ void* PerlEmbeddedInterpreter::substitute_prepare(const char *pattern, const cha
 // Evalute some loose perl code, put the result in out if non-NULL
 bool PerlEmbeddedInterpreter::eval(const char*, const char *expr, const char* arg, 
         char* out, savedmatch* sm) {
-    int nret;
     bool retval;
-    char tmp[MAX_MUD_BUF];
     string cmd = "";
 
     if(sm) {
@@ -307,7 +303,7 @@ bool PerlEmbeddedInterpreter::eval(const char*, const char *expr, const char* ar
     SV* res = eval_pv(cmd.c_str(), FALSE);
     
     if (SvTRUE(ERRSV)) {      // Perl will provide a warning message for us. 
-        if(out) *out = NUL;   //(make sure init.pl gets loaded!)
+        if(out) *out = 0;   //(make sure init.pl gets loaded!)
         retval = false;
     } else {
         if(out) {

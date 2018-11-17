@@ -44,13 +44,10 @@ int MUD::getPort() const {
 MUD globalMUD("global", "", 0, NULL, "");
 
 void MUD::write(FILE *fp, bool global) {
-    const char *indent;
     
     if (!global) {
         fprintf(fp, "Mud %s {\n", name.c_str());
-        indent = "  ";
-    } else
-        indent = "";
+    }
 
     if (!global) {
         if (hostname.length())

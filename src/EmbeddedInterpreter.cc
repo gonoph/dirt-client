@@ -20,7 +20,6 @@
 #define DEFAULT_INTERP ""
 extern time_t current_time;
 
-bool EmbeddedInterpreter::constboolfalse = false;
 // Default interpreter if we don't manage to load anything
 static NullEmbeddedInterpreter nullEmbeddedInterpreter;
 EmbeddedInterpreter *embed_interp = &nullEmbeddedInterpreter;
@@ -63,7 +62,7 @@ void StackedInterpreter::add(EmbeddedInterpreter *e) {
 
 // Slight code duplication here, but can't do much about it since the functions called are different,
 // unless I start messing around with some functors I guess
-bool StackedInterpreter::run(const char* lang, const char *function, const char *arg, char *out, savedmatch* sm, bool& haserror) {
+bool StackedInterpreter::run(const char* lang, const char *function, const char *arg, char *out, savedmatch* sm, bool haserror) {
     char buf[interpreters.size()][MAX_MUD_BUF];
     int i = 0;
     bool res = false;
@@ -190,7 +189,7 @@ Plugin * Plugin::loadPlugin(const char *filename, const char *args) {
     void *handle;
     
     // Try global path or home directory
-    snprintf(buf, sizeof(buf), "o/plugins/%s", filename); // If running from compile dir.
+    snprintf(buf, sizeof(buf), ".libs/%s", filename); // If running from compile dir.
     if(access(buf, R_OK) < 0) {
         snprintf(buf, sizeof(buf), "%s/.dirt/plugins/%s", getenv("HOME"), filename);
         if (access(buf, R_OK) < 0) {
@@ -283,7 +282,7 @@ void Plugin::loadPlugins(const char *plugins) {
         out = module_name;
         while (*s && !isspace(*s) && *s != ',')
             *out++ = *s++;
-        *out = NUL;
+        *out = 0;
         if (!module_name[0])
             continue;
 
@@ -293,7 +292,7 @@ void Plugin::loadPlugins(const char *plugins) {
             while(*s && *s != ',')
                 *out++ = *s++;
         }
-        *out = NUL;
+        *out = 0;
         if (*s == ',')
             s++;
 
@@ -325,7 +324,7 @@ const char *EmbeddedInterpreter::findFile(const char *filename, const char *suff
         }
 
         // Globally installed files
-        full = Sprintf("%s/lib/dirt/%s", INSTALL_ROOT, filename);
+        full = Sprintf("%s/dirt/%s", LIBEXECDIR, filename);
         if (access(full, R_OK) == 0) {
             return full;
         }

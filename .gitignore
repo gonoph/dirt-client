@@ -5,6 +5,7 @@
 # ignore generated object files
 *.o
 *.so
+.depend
 
 # ignore autotool cache files
 autom4te.cache/

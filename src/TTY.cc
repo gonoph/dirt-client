@@ -308,7 +308,7 @@ int TTY::get_key() {
 		while ((key = get_raw_key()) >= 0 && pc-buf < MAX_ESCAPE_BUF-1)
 			*pc++ = key;
 
-		*pc = NUL;
+		*pc = 0;
 
 		/* Figure out what control code we are dealing with */
 		/* This could be optimized later on. Perhaps use bsearch */

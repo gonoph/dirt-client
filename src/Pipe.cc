@@ -75,7 +75,7 @@ void InterpreterPipe::inputReady() {
         int len = s-line_buf;
         
         memcpy(buf, line_buf, len);
-        buf[len] = NUL;
+        buf[len] = 0;
         memmove(line_buf, s+1, pos - len);
         pos -= len+1;
         interpreter.add(buf);
@@ -100,7 +100,7 @@ void OutputPipe::inputReady() {
     if (count < 0)
         error ("OutputPipe::inputReady:%m");
     
-    buf[count] = NUL;
+    buf[count] = 0;
     outputWindow->printf("%s", buf);
 }
 

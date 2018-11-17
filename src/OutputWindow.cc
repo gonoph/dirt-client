@@ -304,13 +304,13 @@ void OutputWindow::printVersion()
 {
     printf (
             "\n"
-            "Dirt version %s\n"
-            "Copyright (C) 2001 Bob McElrath <mcelrath@users.sourceforge.net>\n"
-            "Based on MCL Copyright (C) 1997-2000 Erwin S. Andreasen <erwin@andreasen.org>\n"
-            "Dirt comes with ABSOLUTELY NO WARRANTY; for details, see file COPYING\n"
-            "This binary compiled: " __DATE__ ", " __TIME__ " by " COMPILED_BY ".\n"
-            "Binary/source available from http://sourceforge.net/projects/dirt-client/\n",
-            versionToString(VERSION)
+            PACKAGE_NAME " version " VERSION "\n"
+            COPYRIGHT "\n"
+            PACKAGE_NAME " is based on priot code; for details, see AUTHORS\n"
+            PACKAGE_NAME " comes with ABSOLUTELY NO WARRANTY; for details, see file COPYING\n"
+            "This binary compiled: " __DATE__ ", " __TIME__ "\n"
+            "Binary/source available from %s\n",
+            PACKAGE_URL
            );
 
     if (screen->isVirtual())
@@ -324,7 +324,7 @@ void OutputWindow::saveToFile (const char *fname, bool use_color) {
     if (!fp)
         status->setf("Cannot open %s for writing: %s", fname, strerror(errno));
     else {
-        fprintf(fp, "Scrollback saved from dirt %s at %s", versionToString(VERSION), ctime(&current_time));
+        fprintf(fp, "Scrollback saved from dirt %s at %s", VERSION, ctime(&current_time));
 
         int color = -1;
         for (attrib *line = scrollback; line < canvas + (width * height); line += width) {

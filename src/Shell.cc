@@ -53,7 +53,7 @@ void Shell::check_fdset(fd_set *fdset, fd_set*) {
         }
         else
         {
-            buf[res] = NUL;
+            buf[res] = 0;
             print(buf);
         }
     }

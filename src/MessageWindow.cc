@@ -29,7 +29,7 @@ MessageWindow::MessageWindow (Window *_parent, string& _alias, string& _logfile,
     name = alias; // FIXME debug
     char buf[256];
     if (number == -1)
-        buf[0] = NUL;
+        buf[0] = 0;
     else
         sprintf(buf, "[%d] ", number);
 

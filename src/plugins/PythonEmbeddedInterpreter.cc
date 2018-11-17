@@ -101,7 +101,7 @@ bool PythonEmbeddedInterpreter::eval(const char*, const char *expression, const 
 }
 
 bool PythonEmbeddedInterpreter::run(const char*, const char *function, const char *args,
-                                    char *out, savedmatch*, bool& haserror)
+                                    char *out, savedmatch*, bool haserror)
 {
   PyObject *func = get_function(function);
   PyObject *func_args, *res;

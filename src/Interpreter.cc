@@ -36,14 +36,14 @@ const char *one_argument (const char *argument, char *buf, bool smash_case) {
     if (*argument == '\'' || *argument == '\"')
         end = *argument++;
     else
-        end = NUL;
+        end = 0;
 
     while(*argument && (end ? *argument != end : !isspace(*argument)))  {
         *buf++ = smash_case ? tolower(*argument) : *argument;
         argument++;
     }
 
-    *buf++ = NUL;
+    *buf++ = 0;
 
     if (*argument && end)
         argument++;

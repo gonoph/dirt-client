@@ -128,7 +128,7 @@ static const char* sanitize(const char *data, int len, int new_len) {
     }
     
     
-    *out++ = NUL;
+    *out++ = 0;
     return buf;
 }
 
@@ -727,7 +727,7 @@ try_again:
                     close(Sprintf("Invalid MudMaster protocol line: \"%-.128s\"", line));
                     return;
                 }
-                chat_id[0] = NUL;
+                chat_id[0] = 0;
             } else if (!strncmp(line, "ZCHAT", strlen("ZCHAT"))) { // Zugg's extensions
                 protocol = zchat;
                 if (3 != sscanf(line, "%64[^:]:%64[^\t]\t%64[^\n]", protocol_name, chat_name, chat_id)) {
@@ -758,7 +758,7 @@ try_again:
             if (count <= 0)
                 return;
             
-            linebuf[count] = NUL;
+            linebuf[count] = 0;
             line = linebuf;
         } else {
             line = readLine();
@@ -772,7 +772,7 @@ try_again:
             else {
                 port_start = line+strlen(line) - 5; // grr, why this weirdness
                 strncpy(ip_address, line, port_start-line);
-                ip_address[port_start-line] = NUL;
+                ip_address[port_start-line] = 0;
                 
                 strcpy(port_number, port_start);
                 remote_port = atoi(port_number);
@@ -999,7 +999,7 @@ void ChatConnection::dispatchCommand (int command, const char *data, int len) {
             writeChat("Invalid group message, shorter than %d characters", (int)sizeof(group_name));
         else {
             memcpy(group_name, data, sizeof(group_name)-1);
-            group_name[sizeof(group_name)-1] = NUL;
+            group_name[sizeof(group_name)-1] = 0;
 
             data += sizeof(group_name)-1;
             len -= sizeof(group_name)-1;
@@ -1007,7 +1007,7 @@ void ChatConnection::dispatchCommand (int command, const char *data, int len) {
             
             for (int i = sizeof(group_name)-1; i >0; i--)
                 if (isspace(group_name[i]))
-                    group_name[i] = NUL;
+                    group_name[i] = 0;
 
             
             if (config->getOption(opt_chat_paranoia) || !strstr(sane, ~name))
@@ -1078,12 +1078,12 @@ void ChatConnection::dispatchCommand (int command, const char *data, int len) {
                 *out++ = *s++;
             if (!*s)
                 break;
-            *out = NUL; s++;
+            *out = 0; s++;
 
             out = port_s; end = port_s+sizeof(port_s)-1;
             while(*s && *s != ',' && out < end)
                 *out++ = *s++;
-            *out = NUL;
+            *out = 0;
             if (*s == ',')
                 s++;
             port = atoi(port_s);
@@ -1340,7 +1340,7 @@ void ChatConnection::sendTextEverybody(const char *arg, bool emote) {
 }
 
 void ChatConnection::sendVersion() {
-    sendCommand(cmdVersion, Sprintf("dirt %s", versionToString(VERSION)));
+    sendCommand(cmdVersion, Sprintf("dirt %s", VERSION));
 }
 
 void ChatConnection::sendIcon(const char *filename) {
@@ -1418,7 +1418,7 @@ static int flagAbbrevLookup(int flag) {
 static const char * flagString(int flag, bool abbrev) {
     StaticBuffer buf;
     char *s = buf;
-    *s = NUL;
+    *s = 0;
     
     for (int i = 0; flag_table[i].s; i++)
         if (flag & flag_table[i].val) {
@@ -1430,7 +1430,7 @@ static const char * flagString(int flag, bool abbrev) {
                 s += sprintf(s, " ");
 
     if (!abbrev && s>buf)
-        *--s = NUL;
+        *--s = 0;
 
     return buf;
 }

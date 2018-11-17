@@ -11,7 +11,7 @@ class PerlEmbeddedInterpreter : public EmbeddedInterpreter
     ~PerlEmbeddedInterpreter();
     virtual bool load_file(const char*, bool suppress = false);
     virtual bool eval(const char*, const char*, const char* =NULL, char* = NULL, savedmatch* = NULL);
-    virtual bool run(const char*, const char*, const char* =NULL, char* = NULL, savedmatch* = NULL, bool& = constboolfalse);
+    virtual bool run(const char*, const char*, const char* =NULL, char* = NULL, savedmatch* = NULL, bool = false);
     virtual bool run_quietly(const char*, const char*, const char*, char*,
                              bool suppress = true);
     virtual void *match_prepare(const char*, const char*);
