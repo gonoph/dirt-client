@@ -1,7 +1,7 @@
 # Highlights package
 package Highlight;
 use vars qw(%Highlights);  # vars that will be exported in Highlight:: namepace
-if(!defined %Highlights) {
+if(!%Highlights) {
     %Highlights = ();
 }
 &main::save("Highlight::Highlights", \%Highlights);

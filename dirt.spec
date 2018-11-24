@@ -1,24 +1,27 @@
-# This is the spec file for building a RPM of dirt
+# This is the spec file for building a RPM of dirt-client
 # vim: expandtab
 # Originaly created by Rodrigo Parra Novo
 
 Summary: Dirt:  A MUD client for Unix
 Summary(pt_BR): Dirt: Um cliente de MUD para Unix
-Name:           dirt
+Name:           dirt-client
 Version:        0.60.00
 Release:        2
 License:        GPLv2
 Group:          Amusements/Games
 Group(pt_BR):   Passatempos/Jogos
 Packager:       Billy Holmes <billy@gonoph.net>
-URL:            https://github.com/gonoph/dirt-client
-Source0:        https://github.com/gonoph/dirt-client/archive/dirt-client-%{version}-%{release}.tar.gz
+URL:            https://github.com/gonoph/%{name}
+Source0:        https://github.com/gonoph/%{name}/archive/%{name}-%{version}-%{release}.tar.gz
 
 Requires:       libz ncurses
 Requires:       python(abi) = 2.7
 Requires:       perl >= 5.16
 
-BuildRequires:  perl-devel libz-devel python-devel gcc-c++ perl(ExtUtils-Embed)
+BuildRequires:  perl-devel libz-devel python-devel gcc-c++
+BuildRequires:  perl(ExtUtils-Embed)
+BuildRequires:  python(abi) = 2.7
+BuildRequires:  perl >= 5.16
 
 Provides:       mudclient
 

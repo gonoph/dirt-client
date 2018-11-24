@@ -1,3 +1,4 @@
+// vim: sw=4 ts=4 ai expandtab
 #include "EmbeddedInterpreter.h"
 #include "StaticBuffer.h"
 #include "NullEmbeddedInterpreter.h"
@@ -6,6 +7,7 @@
 #include "Hook.h"
 #include "Pipe.h"
 #include "Interpreter.h"
+#include "SearchPath.h" 
 #include <dlfcn.h>
 #include <unistd.h>
 #if __GNUC__ >= 3
@@ -14,9 +16,25 @@
 #include <ctype.h>
 #endif
 
+const SearchPathFinder PLUGIN_FINDER = SearchPathFinder({
+    SearchPath(true,  "Parent compile  ", "./src/.libs/%s", ""),
+    SearchPath(true,  "Compile         ", "./.libs/%s", ""),
+    SearchPath(false, "Home plugins    ", "%s/.dirt/plugins/", getenv("HOME") ),
+    SearchPath(false, "Package Plugins ", "%s/dirt/plugins/", LIBEXECDIR )
+});
 
-#define DIRT_LOCAL_LIBRARY_PATH "/usr/local/lib/dirt"
-#define DIRT_LIBRARY_PATH "/usr/lib/dirt"
+const SearchPathFinder SCRIPT_FINDER = SearchPathFinder({
+    SearchPath(true,  "Parent compile  ", "./scripts/%s", "" ),
+    SearchPath(true,  "Compile         ", "../scripts/%s", "" ),
+    SearchPath(false, "Home Directory ", "%s/.dirt/", getenv("HOME") ),
+    SearchPath(false, "Package Library", "%s/dirt/", LIBEXECDIR )
+});
+
+#define PLUGIN_SEARCH_HEADER "Error loading %s: not found\n" \
+        "I tried looking for plugin in:\n"
+#define PLUGIN_SEARCH_FOOTER "If you installed the standard binary distribution, you probably\n" \
+        "forgot to move the plugin files to one of the above places.\n"
+
 #define DEFAULT_INTERP ""
 extern time_t current_time;
 
@@ -167,6 +185,8 @@ bool StackedInterpreter::run_quietly(const char* lang, const char* path, const c
 
 vector<Plugin*> Plugin::plugins;
 
+Plugin::Plugin(const string _filename, void *_handle) : filename(_filename), handle(_handle) {
+}
 Plugin::Plugin(const char *_filename, void *_handle) : filename(_filename), handle(_handle) {
 }
 
@@ -185,44 +205,31 @@ void Plugin::done() {
 
 // Load shared object and update interpreter settings
 Plugin * Plugin::loadPlugin(const char *filename, const char *args) {
-    char buf[1024];
+    string buffer;
     void *handle;
-    
-    // Try global path or home directory
-    snprintf(buf, sizeof(buf), ".libs/%s", filename); // If running from compile dir.
-    if(access(buf, R_OK) < 0) {
-        snprintf(buf, sizeof(buf), "%s/.dirt/plugins/%s", getenv("HOME"), filename);
-        if (access(buf, R_OK) < 0) {
-            snprintf(buf, sizeof(buf), "%s/plugins/%s", DIRT_LOCAL_LIBRARY_PATH, filename);
-            if (access(buf, R_OK) < 0) {
-                snprintf(buf, sizeof(buf), "%s/plugins/%s", DIRT_LIBRARY_PATH, filename);
-                if (access(buf, R_OK) < 0)
-                    error ("Error loading %s: not found\n"
-                           "I tried looking for and failed to find:\n"
-                           "  %s/.dirt/plugins/%s\n"
-                           "  %s/plugins/%s\n"
-                           "  %s/plugins/%s\n"
-                           "If you installed the standard binary distribution, you probably\n"
-                           "forgot to move the plugin files to one of the above places.\n"
-                           , filename, getenv("HOME"), filename, DIRT_LOCAL_LIBRARY_PATH, filename, DIRT_LIBRARY_PATH, filename);
-            }
-        }
+    const string fullpath = PLUGIN_FINDER.find(filename);
+
+    if (fullpath.empty()) {
+        buffer = Sprintf(PLUGIN_SEARCH_HEADER, filename);
+        buffer += PLUGIN_FINDER.asString();
+        buffer += PLUGIN_SEARCH_FOOTER;
+        error(buffer.c_str());
     }
     
-    if (!(handle = dlopen(buf, RTLD_LAZY|RTLD_GLOBAL)))
-        error ("Error loading %s: %s\n", buf, dlerror());
+    if (!(handle = dlopen(fullpath.c_str(), RTLD_LAZY|RTLD_GLOBAL)))
+        error ("Error loading %s: %s\n", fullpath.c_str(), dlerror());
     
-    Plugin *plugin = new Plugin(buf, handle);
+    Plugin *plugin = new Plugin(fullpath, handle);
     plugins.push_back(plugin);
     
     // Call the initFunction, it returns an error message in case of error
     const char *load_result;
     
     if (!(plugin->initFunction = (InitFunction*)dlsym(handle, "initFunction")))
-        error ("Error loading %s: modules does not have a initFunction\n", buf);
+        error ("Error loading %s: modules does not have an initFunction\n", fullpath.c_str());
     
     if ((load_result = plugin->initFunction(args)))
-        error ("Error loading %s: %s\n", buf, load_result);
+        error ("Error loading %s: %s\n", fullpath.c_str(), load_result);
     
     // Display some information about the module if the module so wishes
     plugin->versionFunction = (VersionFunction*)dlsym(handle, "versionFunction");
@@ -232,7 +239,7 @@ Plugin * Plugin::loadPlugin(const char *filename, const char *args) {
     if ((plugin->createInterpreterFunction = (CreateInterpreterFunction*)dlsym(handle, "createInterpreter"))) {
         EmbeddedInterpreter *interp = plugin->createInterpreterFunction();
         if (!interp)
-            error ("Module %s: error creating interpreter", buf);
+            error ("Module %s: error creating interpreter", fullpath.c_str());
         else {
             if (stacked_interp) // If we already have a stacked set of interpreters, add it there
                 stacked_interp->add(interp);
@@ -309,31 +316,21 @@ bool NullEmbeddedInterpreter::run_quietly(const char*, const char*, const char*,
     return false;
 }
 
-const char *EmbeddedInterpreter::findFile(const char *filename, const char *suffix) {
-    // Add suffix if not there already
-    if (strlen(filename) < strlen(suffix) || strcmp(filename+strlen(filename)-strlen(suffix), suffix))
-        filename = Sprintf("%s%s", filename, suffix);
-    
-    const char *full;
-    
-    // Try first compared to the .dirt directory
-    if (filename[0] != '/') {
-        full = Sprintf("%s/.dirt/%s", getenv("HOME"), filename);
-        if (access(full, R_OK) == 0) {
-            return full;
-        }
+const char *EmbeddedInterpreter::findFile(const char *_f, const char *_s) {
+    const string suffix = _s;
+    string filename = _f;
 
-        // Globally installed files
-        full = Sprintf("%s/dirt/%s", LIBEXECDIR, filename);
-        if (access(full, R_OK) == 0) {
-            return full;
-        }
+    // Add suffix if not there already
+    if (filename.length() < suffix.length() || filename.substr(filename.length()-suffix.length()) != suffix) {
+        filename += suffix;
     }
     
-    if (access(filename, R_OK) == 0)
-        return filename;
+    const string fullpath = filename[0] == '/' ? filename : SCRIPT_FINDER.find(filename);
+
+    if (access(fullpath.c_str(), R_OK) == 0)
+        return fullpath.c_str();
     
-    return NULL;
+    return nullptr;
 }
 
 // Note: we don't want to use the second argument.
@@ -346,7 +343,7 @@ bool EmbeddedInterpreter::command_load(string& str, void*, savedmatch* sm) {
     if(sm) sm->retval = true;
     if(!opt.valid()) return true;
     if(!embed_interp->load_file(opt.restStr().c_str())) {
-	int CmdChar = config->getOption(opt_commandcharacter);
+    int CmdChar = config->getOption(opt_commandcharacter);
         report("%cload: Unable to load file: %s\n", CmdChar, opt.restStr().c_str());
     }
     return true;
@@ -359,7 +356,7 @@ bool EmbeddedInterpreter::command_run(string& str, void*, savedmatch* sm) {
     char out[MAX_MUD_BUF]; // FIXME
 
     if(opt.argc() < 2) {
-	int CmdChar = config->getOption(opt_commandcharacter);
+    int CmdChar = config->getOption(opt_commandcharacter);
         report_err("%crun: Please pass a function name to run!\n", CmdChar);
         return true;
     }
@@ -379,8 +376,8 @@ bool EmbeddedInterpreter::command_eval(string& str, void*, savedmatch* sm) {
 //    report("command_eval passing savedmatch '%s' to embed_interp->eval\n", sm->data.c_str());
     retval = embed_interp->eval(opt.gotOpt('L')?opt['L'].c_str():NULL, opt.restStr().c_str(), NULL, out, sm);
     if(opt.gotOpt('r')) {
-	int CmdChar = config->getOption(opt_commandcharacter);
-	report("%ceval result: %s\n", CmdChar, out);
+    int CmdChar = config->getOption(opt_commandcharacter);
+    report("%ceval result: %s\n", CmdChar, out);
     }
     if(sm) {
         sm->retval = retval;

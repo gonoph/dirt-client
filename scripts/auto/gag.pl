@@ -4,7 +4,7 @@ package Gag;
 use vars qw(%Gags);  # Variables that will be exported in Gag:: namespace
 use Getopt::Std;
 my($pri) = -2147483646; # lowest possible priority -- let other hooks get it first.
-if(!defined %Gags) {
+if(!%Gags) {
     %Gags = ();
 }
 my($regexdelim) = qr/[\#\/\%\&!,=:]/;           # regex delimiters

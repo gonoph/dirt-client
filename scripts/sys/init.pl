@@ -5,20 +5,7 @@ use Carp qw(carp cluck croak confess); # verbose warning/error messages.
 use IO::Handle;
 require DynaLoader;
 
-#BEGIN {
-#    open(LOG, "+>/tmp/dirtlog") || die "unable to open dirtlog\n";
-#    LOG->autoflush(1);
-#}
-
-# Fallback to global installation
-push @INC, "$ENV{HOME}/.dirt", "/usr/local/lib/dirt", "/usr/lib/dirt";
-
-# mbt aug 00 -- hack to make things work under Debian (ugh)
-if (-f "/etc/debian_version") {
-  push @INC, "/usr/lib/perl5/5.005", "/usr/lib/perl5/5.005/i386-linux";
-}
 require "sys/functions.pl"; # Lots of utility functions
-
 &run($commandCharacter . "hook -T INIT perl_init = ${commandCharacter}run -Lperl init");
 sub init {
     require "sys/color.pl";     # Color code definitions
@@ -33,22 +20,28 @@ sub init {
     # Do autoloading. Just use builtin glob, to reduce dependency
     # on Perl version
     my @AutoloadDirectories = ();
-    if (-d "$ENV{HOME}/.dirt/auto") {
-        push @AutoloadDirectories, "$ENV{HOME}/.dirt/auto";
-    } else {
-        push @AutoloadDirectories, "/usr/local/lib/dirt/auto", "/usr/lib/dirt/auto";
+    
+    foreach (@INC) {
+        my $d = "$_/auto";
+        $d =~ s|//|/|g;
+        if (-d $d) {
+            if (glob("$d/*.pl") or glob("$d/*/*.pl")) {
+                print "Added $d\n";
+                push @AutoloadDirectories, $d;
+            }
+        }
     }
     
-    foreach $AutoDir (@AutoloadDirectories) {
-        foreach (glob("$AutoDir/*.pl")) {
+    foreach my $AutoDir (@AutoloadDirectories) {
+        my @files = glob("$AutoDir/*.pl");
+        push @files, glob("$AutoDir/*/*.pl");
+        if (@files) {
+            printf "Processing %s\n", $AutoDir;
+        }
+        foreach (@files) {
+            # print "Loading ", $_, "\n";
             do $_;
             #require $_;
-        }
-        
-        foreach (glob("$AutoDir/*")) {
-            if (-d $_ and /\/([^\/]+)$/ and -f "$_/$1.pl") {
-                require("$_/$1.pl");
-            }
         }
     }
 

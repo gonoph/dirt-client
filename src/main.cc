@@ -48,6 +48,8 @@ HistorySet *history = (HistorySet*)0;
 int session_fd = -1; // Set to somethign else if recovering from copyover
 
 int main(int argc, char **argv) {
+    // Parse command line switches: return first non-option	
+    int non_option = config->parseOptions(argc, argv);
     
     // Initialize vcsa screen driver, drop any setgid that we have
     //  Do this right at the start, so that a) perl can startup correctly,
@@ -62,9 +64,6 @@ int main(int argc, char **argv) {
     config = new Config(getenv("DIRTRC"));	// Load config file if no $DIRTRC, use .dirt/dirtrc
     history = new HistorySet();
     
-    // Parse command line switches: return first non-option	
-    int non_option = config->parseOptions(argc, argv);
-
     // Load the chosen plugins
     Plugin::loadPlugins(config->getStringOption(opt_plugins));
     

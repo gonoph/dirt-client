@@ -3,7 +3,7 @@
 package Trigger;
 use vars qw(%Triggers); # vars that will be exported in the Trigger:: namespace
 use Getopt::Std;
-if(!defined %Triggers) {
+if(!%Triggers) {
     %Triggers = ();
 }
 my($regexdelim) = qr/[\#\/\%\&!,=:]/;           # regex delimiters

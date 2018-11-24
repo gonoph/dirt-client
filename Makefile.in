@@ -157,8 +157,17 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(docdir)"
-DATA = $(dist_doc_DATA)
+am__installdirs = "$(DESTDIR)$(dirt_docs_dir)" \
+	"$(DESTDIR)$(dirt_docs_commands_dir)" \
+	"$(DESTDIR)$(dirt_docs_old_dir)" \
+	"$(DESTDIR)$(dirt_scripts_3k_dir)" \
+	"$(DESTDIR)$(dirt_scripts_auto_dir)" \
+	"$(DESTDIR)$(dirt_scripts_contrib_dir)" \
+	"$(DESTDIR)$(dirt_scripts_sys_dir)" "$(DESTDIR)$(docdir)"
+DATA = $(dirt_docs__DATA) $(dirt_docs_commands__DATA) \
+	$(dirt_docs_old__DATA) $(dirt_scripts_3k__DATA) \
+	$(dirt_scripts_auto__DATA) $(dirt_scripts_contrib__DATA) \
+	$(dirt_scripts_sys__DATA) $(dist_doc_DATA)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
 am__recursive_targets = \
@@ -362,9 +371,55 @@ ACLOCAL_AMFLAGS = -I m4
 
 # SUBDIRS = src tests
 SUBDIRS = src
-dist_doc_DATA = AUTHORS BUGS COPYING ChangeLog INSTALL NEWS Notes \
-	README README.1ST README.md TODO dirt2.spec
-EXTRA_DIST = doc libtool m4 scripts autogen.sh
+dist_doc_DATA = AUTHORS BUGS COPYING ChangeLog INSTALL NEWS Notes README \
+	README.1ST README.md TODO dirt.spec 
+
+dirt_docs_dir = $(docdir)/doc
+dirt_docs_commands_dir = $(dirt_docs_dir)/commands
+dirt_docs_old_dir = $(dirt_docs_dir)/old
+dirt_docs__DATA = doc/CommandLine doc/Escaping doc/Help doc/Hooks doc/Keys doc/Scripts doc/Trigger
+dirt_docs_commands__DATA = doc/commands/alias doc/commands/bell \
+	doc/commands/clear doc/commands/close doc/commands/command \
+	doc/commands/complete doc/commands/disable doc/commands/echo \
+	doc/commands/enable doc/commands/eval doc/commands/exec doc/commands/gag \
+	doc/commands/group doc/commands/hook doc/commands/keypress doc/commands/load \
+	doc/commands/open doc/commands/prompt doc/commands/quit doc/commands/reopen \
+	doc/commands/run doc/commands/save doc/commands/send doc/commands/setinput \
+	doc/commands/status doc/commands/trig doc/commands/trigger doc/commands/window \
+	doc/commands/windows
+
+dirt_docs_old__DATA = doc/old/Changes doc/old/Chat doc/old/Chat.html \
+	doc/old/Embedded doc/old/Embedded.html doc/old/Examples doc/old/Examples.html \
+	doc/old/Modules doc/old/Modules.html doc/old/Plugins doc/old/README \
+	doc/old/README.html doc/old/TODO 
+
+dirt_dir = $(libexecdir)/@PACKAGE_NAME@
+dirt_scripts_dir = $(dirt_dir)/scripts
+dirt_scripts_3k_dir = $(dirt_scripts_dir)/3k
+dirt_scripts_auto_dir = $(dirt_scripts_dir)/auto
+dirt_scripts_contrib_dir = $(dirt_scripts_dir)/contrib
+dirt_scripts_sys_dir = $(dirt_scripts_dir)/sys
+dirt_scripts_3k__DATA = scripts/3k/Player.pl scripts/3k/Saved.pl \
+	scripts/3k/ThreeKingdoms.pl scripts/3k/aliases.pl
+
+dirt_scripts_auto__DATA = scripts/auto/README scripts/auto/completion.pl \
+	scripts/auto/help.pl scripts/auto/mudftp.pl scripts/auto/alias.pl \
+	scripts/auto/command.pl scripts/auto/gag.pl scripts/auto/highlight.pl \
+	scripts/auto/keypress.pl scripts/auto/trigger.pl
+
+dirt_scripts_contrib__DATA = scripts/contrib/DynaComplete.py \
+	scripts/contrib/README scripts/contrib/bot.pl scripts/contrib/bot.py \
+	scripts/contrib/ccancel.pl scripts/contrib/log.pl \
+	scripts/contrib/mudcompletion.pl scripts/contrib/profanity.pl \
+	scripts/contrib/prompt.pl scripts/contrib/reconnect.pl \
+	scripts/contrib/repeat.pl scripts/contrib/spellcheck.pl scripts/contrib/vars.pl
+
+dirt_scripts_sys__DATA = scripts/sys/color.pl scripts/sys/config.pl \
+	scripts/sys/config.py scripts/sys/functions.pl scripts/sys/functions.py \
+	scripts/sys/idle.pl scripts/sys/idle.py scripts/sys/init.py scripts/sys/keys.pl \
+	scripts/sys/init.pl
+
+EXTRA_DIST = libtool m4 scripts autogen.sh doc
 all: all-recursive
 
 .SUFFIXES:
@@ -426,6 +481,153 @@ clean-libtool:
 
 distclean-libtool:
 	-rm -f libtool config.lt
+install-dirt_docs_DATA: $(dirt_docs__DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(dirt_docs__DATA)'; test -n "$(dirt_docs_dir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(dirt_docs_dir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(dirt_docs_dir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(dirt_docs_dir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(dirt_docs_dir)" || exit $$?; \
+	done
+
+uninstall-dirt_docs_DATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dirt_docs__DATA)'; test -n "$(dirt_docs_dir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(dirt_docs_dir)'; $(am__uninstall_files_from_dir)
+install-dirt_docs_commands_DATA: $(dirt_docs_commands__DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(dirt_docs_commands__DATA)'; test -n "$(dirt_docs_commands_dir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(dirt_docs_commands_dir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(dirt_docs_commands_dir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(dirt_docs_commands_dir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(dirt_docs_commands_dir)" || exit $$?; \
+	done
+
+uninstall-dirt_docs_commands_DATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dirt_docs_commands__DATA)'; test -n "$(dirt_docs_commands_dir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(dirt_docs_commands_dir)'; $(am__uninstall_files_from_dir)
+install-dirt_docs_old_DATA: $(dirt_docs_old__DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(dirt_docs_old__DATA)'; test -n "$(dirt_docs_old_dir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(dirt_docs_old_dir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(dirt_docs_old_dir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(dirt_docs_old_dir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(dirt_docs_old_dir)" || exit $$?; \
+	done
+
+uninstall-dirt_docs_old_DATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dirt_docs_old__DATA)'; test -n "$(dirt_docs_old_dir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(dirt_docs_old_dir)'; $(am__uninstall_files_from_dir)
+install-dirt_scripts_3k_DATA: $(dirt_scripts_3k__DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(dirt_scripts_3k__DATA)'; test -n "$(dirt_scripts_3k_dir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(dirt_scripts_3k_dir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(dirt_scripts_3k_dir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(dirt_scripts_3k_dir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(dirt_scripts_3k_dir)" || exit $$?; \
+	done
+
+uninstall-dirt_scripts_3k_DATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dirt_scripts_3k__DATA)'; test -n "$(dirt_scripts_3k_dir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(dirt_scripts_3k_dir)'; $(am__uninstall_files_from_dir)
+install-dirt_scripts_auto_DATA: $(dirt_scripts_auto__DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(dirt_scripts_auto__DATA)'; test -n "$(dirt_scripts_auto_dir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(dirt_scripts_auto_dir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(dirt_scripts_auto_dir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(dirt_scripts_auto_dir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(dirt_scripts_auto_dir)" || exit $$?; \
+	done
+
+uninstall-dirt_scripts_auto_DATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dirt_scripts_auto__DATA)'; test -n "$(dirt_scripts_auto_dir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(dirt_scripts_auto_dir)'; $(am__uninstall_files_from_dir)
+install-dirt_scripts_contrib_DATA: $(dirt_scripts_contrib__DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(dirt_scripts_contrib__DATA)'; test -n "$(dirt_scripts_contrib_dir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(dirt_scripts_contrib_dir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(dirt_scripts_contrib_dir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(dirt_scripts_contrib_dir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(dirt_scripts_contrib_dir)" || exit $$?; \
+	done
+
+uninstall-dirt_scripts_contrib_DATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dirt_scripts_contrib__DATA)'; test -n "$(dirt_scripts_contrib_dir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(dirt_scripts_contrib_dir)'; $(am__uninstall_files_from_dir)
+install-dirt_scripts_sys_DATA: $(dirt_scripts_sys__DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(dirt_scripts_sys__DATA)'; test -n "$(dirt_scripts_sys_dir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(dirt_scripts_sys_dir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(dirt_scripts_sys_dir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(dirt_scripts_sys_dir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(dirt_scripts_sys_dir)" || exit $$?; \
+	done
+
+uninstall-dirt_scripts_sys_DATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dirt_scripts_sys__DATA)'; test -n "$(dirt_scripts_sys_dir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(dirt_scripts_sys_dir)'; $(am__uninstall_files_from_dir)
 install-dist_docDATA: $(dist_doc_DATA)
 	@$(NORMAL_INSTALL)
 	@list='$(dist_doc_DATA)'; test -n "$(docdir)" || list=; \
@@ -740,7 +942,7 @@ check: check-recursive
 all-am: Makefile $(DATA)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(docdir)"; do \
+	for dir in "$(DESTDIR)$(dirt_docs_dir)" "$(DESTDIR)$(dirt_docs_commands_dir)" "$(DESTDIR)$(dirt_docs_old_dir)" "$(DESTDIR)$(dirt_scripts_3k_dir)" "$(DESTDIR)$(dirt_scripts_auto_dir)" "$(DESTDIR)$(dirt_scripts_contrib_dir)" "$(DESTDIR)$(dirt_scripts_sys_dir)" "$(DESTDIR)$(docdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -795,7 +997,11 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-dist_docDATA
+install-data-am: install-dirt_docs_DATA \
+	install-dirt_docs_commands_DATA install-dirt_docs_old_DATA \
+	install-dirt_scripts_3k_DATA install-dirt_scripts_auto_DATA \
+	install-dirt_scripts_contrib_DATA \
+	install-dirt_scripts_sys_DATA install-dist_docDATA
 
 install-dvi: install-dvi-recursive
 
@@ -841,7 +1047,12 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-dist_docDATA
+uninstall-am: uninstall-dirt_docs_DATA \
+	uninstall-dirt_docs_commands_DATA uninstall-dirt_docs_old_DATA \
+	uninstall-dirt_scripts_3k_DATA \
+	uninstall-dirt_scripts_auto_DATA \
+	uninstall-dirt_scripts_contrib_DATA \
+	uninstall-dirt_scripts_sys_DATA uninstall-dist_docDATA
 
 .MAKE: $(am__recursive_targets) install-am install-strip
 
@@ -853,14 +1064,23 @@ uninstall-am: uninstall-dist_docDATA
 	distclean-hdr distclean-libtool distclean-tags distcleancheck \
 	distdir distuninstallcheck dvi dvi-am html html-am info \
 	info-am install install-am install-data install-data-am \
-	install-dist_docDATA install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-am uninstall \
-	uninstall-am uninstall-dist_docDATA
+	install-dirt_docs_DATA install-dirt_docs_commands_DATA \
+	install-dirt_docs_old_DATA install-dirt_scripts_3k_DATA \
+	install-dirt_scripts_auto_DATA \
+	install-dirt_scripts_contrib_DATA \
+	install-dirt_scripts_sys_DATA install-dist_docDATA install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	installdirs-am maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
+	ps ps-am tags tags-am uninstall uninstall-am \
+	uninstall-dirt_docs_DATA uninstall-dirt_docs_commands_DATA \
+	uninstall-dirt_docs_old_DATA uninstall-dirt_scripts_3k_DATA \
+	uninstall-dirt_scripts_auto_DATA \
+	uninstall-dirt_scripts_contrib_DATA \
+	uninstall-dirt_scripts_sys_DATA uninstall-dist_docDATA
 
 libtool: $(LIBTOOL_DEPS)
 	$(SHELL) $(top_builddir)/config.status libtool

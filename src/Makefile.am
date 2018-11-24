@@ -1,8 +1,8 @@
 # process this with automake to create the Makefile.in
 bin_PROGRAMS = dirt
 
-AM_CFLAGS   = -Wall -pipe -Wno-write-strings -Wno-deprecated -Wno-narrowing
-AM_CPPFLAGS = -Ih -DLIBEXECDIR='"$(libexecdir)"' -DPREFIX='"$(prefix)"'
+AM_CFLAGS   = -Wall -pipe -Wno-write-strings -Wno-deprecated -Wno-narrowing -Wno-literal-suffix -std=c++11
+AM_CPPFLAGS = -I./h -I$(srcdir)/h -I$(builddir)/h -DLIBEXECDIR='"$(pkglibexecdir)"' -DPREFIX='"$(prefix)"' -DLIBDIR='"$(pkglibdir)"'
 AM_CXXFLAGS = $(AM_CFLAGS)
 AM_LDFLAGS  = 
 
@@ -26,6 +26,7 @@ dirt_SOURCES = Buffer.cc Chat.cc Config.cc Curses.cc \
 	Screen.cc Selectable.cc Selection.cc Session.cc Shell.cc \
 	Socket.cc StaticBuffer.cc StatusLine.cc String.cc TTY.cc \
 	Variables.cc Window.cc WindowGroup.cc main.cc misc.cc \
+	SearchPath.cc h/SearchPath.h \
 	h/Bitvalues.h h/Buffer.h h/Chat.h h/Color.h h/Config.h \
 	h/Control.h h/Curses.h h/EmbeddedInterpreter.h h/GlobalStats.h \
 	h/Hook.h h/Hotkey.h h/InputBox.h h/InputLine.h \
@@ -46,7 +47,7 @@ pkglib_LTLIBRARIES += perl.la
 perl_la_SOURCES = plugins/PerlEmbeddedInterpreter.cc h/PerlEmbeddedInterpreter.h
 perl_la_CFLAGS = @PERL_CFLAGS@ $(AM_CFLAGS)
 perl_la_CXXFLAGS = @PERL_CFLAGS@ $(AM_CFLAGS)
-perl_la_LDFLAGS = -module @PERL_LDFLAGS@
+perl_la_LDFLAGS = -module -avoid-version @PERL_LDFLAGS@
 endif
 
 if WITH_PYTHON
@@ -55,6 +56,6 @@ pkglib_LTLIBRARIES += python.la
 python_la_SOURCES = plugins/PythonEmbeddedInterpreter.cc h/PythonEmbeddedInterpreter.h
 python_la_CFLAGS = @PYTHON_CFLAGS@ $(AM_CFLAGS)
 python_la_CXXFLAGS = @PYTHON_CFLAGS@ $(AM_CFLAGS)
-python_la_LDFLAGS = -module @PYTHON_LDFLAGS@
+python_la_LDFLAGS = -module -avoid-version @PYTHON_LDFLAGS@
 endif
 

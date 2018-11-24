@@ -84,6 +84,12 @@ PerlEmbeddedInterpreter::PerlEmbeddedInterpreter()
     //dSP;
     //PUSHMARK(SP);
 
+    string tmp;
+    report("Running push to @INC...");
+    for (auto const& sp: SCRIPT_FINDER.getPaths()) {
+        tmp = "push @INC, '" + sp.asPath() + "';";
+        eval_pv(tmp.c_str(), TRUE);
+    }
     // This is a little routine that works like require() but does not die if it fails.
     eval_pv(
         "sub include {"

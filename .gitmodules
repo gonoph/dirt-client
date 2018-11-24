@@ -1,0 +1,4 @@
+[submodule "modules/docopt"]
+	path = modules/docopt
+	url = https://github.com/docopt/docopt.cpp
+	branch = v0.6.2

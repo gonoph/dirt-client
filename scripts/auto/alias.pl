@@ -3,7 +3,7 @@
 package Alias;
 use vars qw(%Aliases); # vars that will be exported in the Alias:: namespace
 use Getopt::Std;
-if(!defined %Aliases) {
+if(!%Aliases) {
     %Aliases = ();
 }
 my($regexdelim) = qr/[\#\/\%\&!,=:]/;           # regex delimiters

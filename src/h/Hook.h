@@ -185,7 +185,7 @@ private:
     //   a hash map, it has the added benefit of preventing two hooks with the
     //   same name from being used.
     typedef multiset<vector<HookStub*>*, priority_less<vector<HookStub*>* > > hookstubset_type;
-    typedef vector<hookstubset_type*>                              hooks_type;
+    typedef vector<hookstubset_type>                               hooks_type;
     typedef hash_map<string, HookStub*, hashstring_type>           hooknames_type;
     typedef hash_map<string, vector<HookStub*>, hashstring_type>   hookgroups_type;
     hooks_type hooks; // subscript of hooks (hooks[i]) is HookType.

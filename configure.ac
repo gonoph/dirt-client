@@ -4,7 +4,7 @@
 
 AC_PREREQ([2.69])
 m4_include([m4/dirt_version.m4])
-AC_INIT([dirt], DIRT_VERSION, [https://github.com/gonoph/dirt-client/issues], [], [https://github.com/gonoph/dirt-client])
+AC_INIT([dirt-client], DIRT_VERSION, [https://github.com/gonoph/dirt-client/issues], [], [https://github.com/gonoph/dirt-client])
 AC_COPYRIGHT(DIRT_COPYRIGHT)
 AC_DEFINE_UNQUOTED([COPYRIGHT], ["DIRT_COPYRIGHT"], [Copyright notice])
 AC_REVISION([$Revision: DIRT_RELEASE$])

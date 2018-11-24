@@ -3,7 +3,7 @@
 package Keypress;
 use vars qw(%Keypresses); # vars that will be exported in the Keypress:: namespace
 use Getopt::Std;
-if(!defined %Keypresses) {
+if(!%Keypresses) {
     %Keypresses = ();
 }
 my($regexdelim) = qr/[\#\/\%\&!,=:]/;           # regex delimiters

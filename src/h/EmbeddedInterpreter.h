@@ -6,6 +6,9 @@
 #include <vector>
 #include "Option.h"
 #include "Hook.h"
+#include "SearchPath.h"
+
+extern const SearchPathFinder SCRIPT_FINDER;
 
 bool load_shared_object(const char *filename);
 //FIXME unused? extern vector<string> modules_loaded;
@@ -38,7 +41,6 @@ class EmbeddedInterpreter
 
 protected:
     const char *findFile(const char *fname, const char *suffix); // given e.g. "foobar" and a suffix, search through the script paths
-
 };
 
 extern EmbeddedInterpreter *embed_interp;

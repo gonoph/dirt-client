@@ -3,7 +3,7 @@
 package Command;
 use vars qw(%Commands); # vars that will be exported in the Command:: namespace
 use Getopt::Std;
-if(!defined %Commands) {
+if(!%Commands) {
     %Commands = ();
 }
 my($regexdelim) = qr/[\#\/\%\&!,=:]/;           # regex delimiters

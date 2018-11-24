@@ -41,7 +41,7 @@ Hook::Hook() : max_type(IDLE), deleted_count(0), hooks(), types() {
     /*types["connect"]   = types["Connect"]   =*/ types["CONNECT"]   = CONNECT;
     /*types["idle"]      = types["Idle"]      =*/ types["IDLE"]      = IDLE;
     for(int i=0;i<=max_type;i++) {
-        hooks.push_back(new hookstubset_type());
+        hooks.push_back(hookstubset_type());
     }
 }
 
@@ -212,13 +212,9 @@ bool Hook::command_hook(string& s, void* mt, savedmatch* sm) {
         stub = new TriggerHookStub(priority, chance, nshots, fallthrough, enabled, wantansi, name,
             groups, trigstr, action);
     }
-    if(stub == NULL) {
-        report_err("%chook: 'new' failed to create new HookStub for hook '%s'!\n", CmdChar, name.c_str());
-    } else {
-        hook.add(type, stub);
-    }
+    hook.add(type, stub);
 
-//    report("Added hook %s with priority %d\n", name.c_str(), priority);
+    report("Added hook %s with priority %d\n", name.c_str(), priority);
     return true;
 }
 
@@ -313,7 +309,7 @@ bool Hook::command_group(string& s, void* mt, savedmatch* sm) {
 
 HookType Hook::add_type(const string& name) { 
     types[name] = (HookType)++max_type;
-    hooks.push_back(new hookstubset_type());
+    hooks.push_back(hookstubset_type());
     return (HookType)max_type; 
 }
 
@@ -335,7 +331,7 @@ void Hook::add(HookType t, HookStub* callback) {
         report_warn("hook %s redefined.\n", callback->name.c_str());
     }
     // Insert it into the types-indexed list
-    for(hookstubset_type::iterator it = hooks[t]->begin();it != hooks[t]->end();it++) {
+    for(hookstubset_type::iterator it = hooks[t].begin();it != hooks[t].end();it++) {
         if((*(*it))[0]->priority == callback->priority) { 
             (*it)->push_back(callback);
             priorityused = true;
@@ -349,7 +345,7 @@ void Hook::add(HookType t, HookStub* callback) {
             return;
         }
         newvector->push_back(callback);
-        hooks[t]->insert(newvector);
+        hooks[t].insert(newvector);
     }
     callback->type = t;
     hooknames[callback->name] = callback;         // Insert it into the name-indexed list
@@ -369,7 +365,7 @@ void Hook::addDirtCommand(string name, bool (*cbk)(string&,void*,savedmatch*), v
 
 // Returns true if the hook was caught.
 bool Hook::run(HookType t, string& data, savedmatch* sm) {
-    hookstubset_type* hookset = hooks[t];
+    hookstubset_type hookset = hooks[t];
     HookStub *stub;
     bool done = false;
     bool caughtsomewhere = false;
@@ -377,7 +373,7 @@ bool Hook::run(HookType t, string& data, savedmatch* sm) {
     string olduncolored = uncolored;  // To check if it changes.
     string olddata = data;
 
-    for(hookstubset_type::iterator it = hookset->begin(); it != hookset->end(); it++) {
+    for(hookstubset_type::iterator it = hookset.begin(); it != hookset.end(); it++) {
         interpreter.mark();
         for(size_t i=0;i<(*it)->size();i++) {  // Iterate over hooks of same priority
             stub = (*(*it))[i];
@@ -442,14 +438,14 @@ bool Hook::remove(string name) {
                        // invalidates the iterator we're using.
             }
         }
-        for(hookstubset_type::iterator it = hooks[stub->type]->begin();it != hooks[stub->type]->end();it++) {
+        for(hookstubset_type::iterator it = hooks[stub->type].begin();it != hooks[stub->type].end();it++) {
             vector<HookStub*>* privec = *it;  // Vector of same priority
             if((*privec)[0]->priority == stub->priority) {
                 for(vector<HookStub*>::iterator vit = privec->begin();vit != privec->end();vit++) {
                     if(*vit == stub) {
                         privec->erase(vit);
                         if(privec->empty()) {
-                            hooks[stub->type]->erase(it);
+                            hooks[stub->type].erase(it);
                             delete privec;
                         }
                         break; // Deleting element from vector/multiset
@@ -527,10 +523,10 @@ void Hook::gc() {
 // delete all hooks stored in hooks.
 Hook::~Hook() {
     for(int i=0;i<=max_type;i++) {
-        for(hookstubset_type::iterator it=hooks[i]->begin();it != hooks[i]->end(); it++) {
-            delete *it;
+        for(hookstubset_type::iterator it=hooks[i].begin();it != hooks[i].end(); it++) {
+            // delete *it;
         }
-        delete hooks[i];
+        // delete hooks[i];
     }
 }
 

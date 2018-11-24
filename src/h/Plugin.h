@@ -11,6 +11,7 @@ public:
     typedef const char* VersionFunction();
     typedef EmbeddedInterpreter * CreateInterpreterFunction();
 
+    Plugin(const string _filename, void *_handle);
     Plugin(const char *_filename, void *_handle);
     ~Plugin();
     const char *getVersionInformation();

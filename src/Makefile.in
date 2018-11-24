@@ -165,7 +165,8 @@ am_dirt_OBJECTS = Buffer.$(OBJEXT) Chat.$(OBJEXT) Config.$(OBJEXT) \
 	Shell.$(OBJEXT) Socket.$(OBJEXT) StaticBuffer.$(OBJEXT) \
 	StatusLine.$(OBJEXT) String.$(OBJEXT) TTY.$(OBJEXT) \
 	Variables.$(OBJEXT) Window.$(OBJEXT) WindowGroup.$(OBJEXT) \
-	main.$(OBJEXT) misc.$(OBJEXT) mccpDecompress.$(OBJEXT)
+	main.$(OBJEXT) misc.$(OBJEXT) SearchPath.$(OBJEXT) \
+	mccpDecompress.$(OBJEXT)
 dirt_OBJECTS = $(am_dirt_OBJECTS)
 dirt_LDADD = $(LDADD)
 dirt_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
@@ -378,10 +379,13 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CFLAGS = -Wall -pipe -Wno-write-strings -Wno-deprecated \
-	-Wno-narrowing $(am__append_1)
-AM_CPPFLAGS = -Ih -DLIBEXECDIR='"$(libexecdir)"' -DPREFIX='"$(prefix)"'
+	-Wno-narrowing -Wno-literal-suffix -std=c++11 $(am__append_1)
+AM_CPPFLAGS = -I./h -I$(srcdir)/h -I$(builddir)/h -DLIBEXECDIR='"$(pkglibexecdir)"' -DPREFIX='"$(prefix)"' -DLIBDIR='"$(pkglibdir)"'
 AM_CXXFLAGS = $(AM_CFLAGS) $(am__append_2)
 AM_LDFLAGS = $(am__append_3)
+
+# this is needed so that the shared library plugins can see the symbols of the
+# main program 
 dirt_LDFLAGS = -rdynamic
 dirt_SOURCES = Buffer.cc Chat.cc Config.cc Curses.cc \
 	EmbeddedInterpreter.cc GlobalStats.cc Hook.cc Hotkey.cc \
@@ -390,6 +394,7 @@ dirt_SOURCES = Buffer.cc Chat.cc Config.cc Curses.cc \
 	Screen.cc Selectable.cc Selection.cc Session.cc Shell.cc \
 	Socket.cc StaticBuffer.cc StatusLine.cc String.cc TTY.cc \
 	Variables.cc Window.cc WindowGroup.cc main.cc misc.cc \
+	SearchPath.cc h/SearchPath.h \
 	h/Bitvalues.h h/Buffer.h h/Chat.h h/Color.h h/Config.h \
 	h/Control.h h/Curses.h h/EmbeddedInterpreter.h h/GlobalStats.h \
 	h/Hook.h h/Hotkey.h h/InputBox.h h/InputLine.h \
@@ -408,11 +413,11 @@ noinst_LTLIBRARIES =
 @WITH_PERL_TRUE@perl_la_SOURCES = plugins/PerlEmbeddedInterpreter.cc h/PerlEmbeddedInterpreter.h
 @WITH_PERL_TRUE@perl_la_CFLAGS = @PERL_CFLAGS@ $(AM_CFLAGS)
 @WITH_PERL_TRUE@perl_la_CXXFLAGS = @PERL_CFLAGS@ $(AM_CFLAGS)
-@WITH_PERL_TRUE@perl_la_LDFLAGS = -module @PERL_LDFLAGS@
+@WITH_PERL_TRUE@perl_la_LDFLAGS = -module -avoid-version @PERL_LDFLAGS@
 @WITH_PYTHON_TRUE@python_la_SOURCES = plugins/PythonEmbeddedInterpreter.cc h/PythonEmbeddedInterpreter.h
 @WITH_PYTHON_TRUE@python_la_CFLAGS = @PYTHON_CFLAGS@ $(AM_CFLAGS)
 @WITH_PYTHON_TRUE@python_la_CXXFLAGS = @PYTHON_CFLAGS@ $(AM_CFLAGS)
-@WITH_PYTHON_TRUE@python_la_LDFLAGS = -module @PYTHON_LDFLAGS@
+@WITH_PYTHON_TRUE@python_la_LDFLAGS = -module -avoid-version @PYTHON_LDFLAGS@
 all: all-am
 
 .SUFFIXES:
@@ -592,6 +597,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/OutputWindow.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Pipe.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Screen.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SearchPath.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Selectable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Selection.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Session.Po@am__quote@
