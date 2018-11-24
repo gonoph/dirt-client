@@ -2,3 +2,6 @@
 	path = modules/docopt
 	url = https://github.com/docopt/docopt.cpp
 	branch = v0.6.2
+[submodule "modules/optparse"]
+	path = modules/optparse
+	url = https://github.com/myint/optparse
